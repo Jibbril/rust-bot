@@ -1,10 +1,13 @@
-mod data;
-
+mod data_sources;
+mod utils;
 
 use dotenv::dotenv;
-use data::request_data;
+use data_sources::request_data;
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(),Box<dyn std::error::Error>> {
     dotenv().ok();
-    request_data("BTC");
+    request_data("BTC").await?;
+
+    Ok(())
 }
