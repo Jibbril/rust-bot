@@ -1,3 +1,10 @@
+mod data;
+
+
+use dotenv::dotenv;
+use data::request_data;
+
 fn main() {
-    println!("Hello, world!");
+    dotenv().ok();
+    request_data("BTC");
 }
