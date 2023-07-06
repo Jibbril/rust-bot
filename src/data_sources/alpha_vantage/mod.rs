@@ -1,7 +1,10 @@
+mod structs;
+use structs::AlphaVantageApiResponse;
+
 use std::env;
 use reqwest;
 use crate::utils::generic_result::GenericResult;
-use crate::utils::timeseries::{TimeSeries,Candle};
+use crate::utils::timeseries::{TimeSeries,Interval};
 
 pub async fn get(symbol: &str) -> GenericResult<TimeSeries> {
     let function = "DIGITAL_CURRENCY_DAILY";
@@ -16,21 +19,12 @@ pub async fn get(symbol: &str) -> GenericResult<TimeSeries> {
     }
 }
 
-async fn convert_data(_res: reqwest::Response) -> GenericResult<TimeSeries> {
-    // let response = res.text().await?;
-    
-    Ok(TimeSeries {
-        ticker: "BTC".to_string(),
-        candles: vec![
-            Candle {
-                open: 10,
-                close: 11,
-                high: 12,
-                low: 9,
-                volume: 24
-            }
-        ]
-    })
+async fn convert_data(res: reqwest::Response) -> GenericResult<TimeSeries> {
+    let mut alpha_vantage_data: AlphaVantageApiResponse = res.json().await?;
+
+    let timeseries = alpha_vantage_data.to_timeseries(Interval::Daily);
+
+    timeseries.map(|ts| ts)
 }
 
 fn construct_url(
