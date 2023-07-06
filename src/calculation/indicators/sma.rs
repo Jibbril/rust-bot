@@ -5,8 +5,8 @@ pub fn rolling_sma(
     length: usize,
     i: usize,
     candles: &Vec<Candle>
-    , previous_sma: f32
-) -> Option<f32> {
+    , previous_sma: f64
+) -> Option<f64> {
     calculation_mode_rolling_sma(
         length, 
         i, 
@@ -21,8 +21,8 @@ pub fn calculation_mode_rolling_sma(
     i: usize, 
     candles: &Vec<Candle>, 
     mode: CalculationMode,
-    previous_sma: f32
-) -> Option<f32> {
+    previous_sma: f64
+) -> Option<f64> {
     let arr_length = candles.len();
     if i > arr_length || length > arr_length {
         None
@@ -40,7 +40,7 @@ pub fn calculation_mode_rolling_sma(
             CalculationMode::Close => candles[i].close,
         };
 
-        let sma = ((previous_sma * length as f32) - price_out + price_in) / length as f32;
+        let sma = ((previous_sma * length as f64) - price_out + price_in) / length as f64;
 
         Some(sma)
     }
@@ -51,7 +51,7 @@ pub fn calculation_mode_sma(
     i: usize, 
     candles: &Vec<Candle>, 
     mode: CalculationMode
-) -> Option<f32> {
+) -> Option<f64> {
     let arr_length = candles.len();
     if i > arr_length || length > arr_length {
         None
@@ -59,13 +59,13 @@ pub fn calculation_mode_sma(
         let start = i + 1 - length;
         let end = i + 1;
         let segment = &candles[start..end];
-        let length = length as f32;
+        let length = length as f64;
 
         let sma = match mode {
-            CalculationMode::Open => segment.iter().map(|c| c.open).sum::<f32>() / length,
-            CalculationMode::High => segment.iter().map(|c| c.high).sum::<f32>() / length,
-            CalculationMode::Low => segment.iter().map(|c| c.low).sum::<f32>() / length,
-            CalculationMode::Close => segment.iter().map(|c| c.close).sum::<f32>() / length,
+            CalculationMode::Open => segment.iter().map(|c| c.open).sum::<f64>() / length,
+            CalculationMode::High => segment.iter().map(|c| c.high).sum::<f64>() / length,
+            CalculationMode::Low => segment.iter().map(|c| c.low).sum::<f64>() / length,
+            CalculationMode::Close => segment.iter().map(|c| c.close).sum::<f64>() / length,
         };
 
         Some(sma)
@@ -73,6 +73,6 @@ pub fn calculation_mode_sma(
 }
 
 // Default implementation using closing values for calculations.
-pub fn sma(length:usize, i:usize, candles: &Vec<Candle>) -> Option<f32> {
+pub fn sma(length:usize, i:usize, candles: &Vec<Candle>) -> Option<f64> {
     calculation_mode_sma(length, i, candles, CalculationMode::Close)
 }

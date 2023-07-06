@@ -1,4 +1,8 @@
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc, NaiveDate, NaiveDateTime, NaiveTime};
+use crate::calculation::indicators::{IndicatorType, Indicator};
+
 use super::generic_result::GenericResult;
 
 #[derive(Debug,Clone)]
@@ -20,11 +24,12 @@ pub struct TimeSeries {
 #[derive(Debug,Clone)]
 pub struct Candle {
     pub timestamp: DateTime<Utc>,
-    pub open: f32,
-    pub close: f32,
-    pub high: f32,
-    pub low: f32,
-    pub volume: f32
+    pub open: f64,
+    pub close: f64,
+    pub high: f64,
+    pub low: f64,
+    pub volume: f64,
+    pub indicators: HashMap<IndicatorType,Indicator>
 }
 
 pub fn str_date_to_datetime(s: &str) -> GenericResult<DateTime<Utc>> {

@@ -85,11 +85,12 @@ impl AlphaVantageApiResponse {
 
                 Ok(Candle {
                     timestamp: datetime,
-                    open: ts.open.parse::<f32>()?,
-                    close: ts.close.parse::<f32>()?,
-                    high: ts.high.parse::<f32>()?,
-                    low: ts.low.parse::<f32>()?,
-                    volume: ts.volume.parse::<f32>()?,
+                    open: ts.open.parse::<f64>()?,
+                    close: ts.close.parse::<f64>()?,
+                    high: ts.high.parse::<f64>()?,
+                    low: ts.low.parse::<f64>()?,
+                    volume: ts.volume.parse::<f64>()?,
+                    indicators: HashMap::new()
                 })
             })
             .collect();
