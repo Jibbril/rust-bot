@@ -1,11 +1,12 @@
 mod alpha_vantage;
-use alpha_vantage::get;
 
+use alpha_vantage::get;
 use crate::utils::{
     generic_result::GenericResult, 
     timeseries::TimeSeries
 };
 
+// Available data sources
 pub enum DataSource {
     AlphaVantage
 }
