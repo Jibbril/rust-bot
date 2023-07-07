@@ -71,7 +71,7 @@ impl SMA {
         if i > arr_length || length > arr_length {
             None
         } else {
-            let start = i + 1 - length;
+            let start = i - length;
             let end = i + 1;
             let segment = &candles[start..end];
             let f_length = length as f64;
