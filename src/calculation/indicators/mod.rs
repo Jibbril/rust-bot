@@ -1,4 +1,8 @@
 mod sma;
+mod rsi;
+
+use sma::SMA;
+use rsi::RSI;
 
 pub enum CalculationMode {
     Close,
@@ -10,11 +14,11 @@ pub enum CalculationMode {
 #[derive(Debug,Clone)]
 pub enum IndicatorType {
     SMA(usize),
+    RSI(usize),
 }
 
 #[derive(Debug,Clone)]
 pub enum Indicator {
-    Numeric(f32),
-    // Logical(bool)
+    SMA(SMA),
+    RSI(RSI),
 }
-
