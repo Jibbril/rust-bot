@@ -5,8 +5,13 @@ mod rsi;
 use sma::SMA;
 use rsi::RSI;
 
+use crate::utils::timeseries::Candle;
 
-#[derive(Debug,Clone)]
+pub trait PopulatesCandles {
+    fn populate_candles(candles: &mut Vec<Candle>);
+}
+
+#[derive(Debug,Copy,Clone,Hash,PartialEq,Eq)]
 pub enum IndicatorType {
     SMA(usize),
     RSI(usize),

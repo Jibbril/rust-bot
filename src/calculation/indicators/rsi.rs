@@ -1,6 +1,11 @@
 use crate::utils::timeseries::Candle;
 
-use super::calculation_mode::{CalculationMode, price_by_calc_mode};
+use super::{
+    calculation_mode::{CalculationMode, price_by_calc_mode}, 
+    PopulatesCandles, 
+    IndicatorType, 
+    Indicator
+};
 
 
 #[derive(Debug,Clone)]
@@ -9,6 +14,47 @@ pub struct RSI {
     value: f64,
     avg_gain: f64,
     avg_loss: f64,
+}
+
+impl PopulatesCandles for RSI {
+    fn populate_candles(candles: &mut Vec<Candle>) {
+        let length = 14;
+        if candles.len() < length { return }
+
+        let initial_rsi = Self::calculate(length - 1, &candles);
+
+        if let Some(initial_rsi) = initial_rsi {
+            let mut rsi = initial_rsi;
+            let new_rsis: Vec<RSI> = candles.iter()
+                .enumerate() 
+                .skip(length)
+                .map(|(i,_)| {
+                    let rolling_rsi = Self::calculate_rolling(
+                        i, 
+                        &candles, 
+                        &rsi
+                    );
+
+                    rsi = match rolling_rsi {
+                        Some(val) => val,
+                        _ => {
+                            // TODO: Handle error
+                            panic!("Unable to calculate rolling RSI.");
+                        }
+                    };
+                    rsi.clone()
+                })
+                .collect();
+            
+            let indicator_type = IndicatorType::RSI(length);
+            
+            for (i,candle) in candles.iter_mut().enumerate().skip(length) {
+                let new_rsi = Indicator::RSI(new_rsis[i].clone());
+                
+                candle.indicators.insert(indicator_type,new_rsi);
+            }
+        }
+    }
 }
 
 impl RSI {

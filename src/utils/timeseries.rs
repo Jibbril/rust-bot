@@ -1,8 +1,6 @@
 use std::collections::HashMap;
-
 use chrono::{DateTime, Utc, NaiveDate, NaiveDateTime, NaiveTime};
 use crate::calculation::indicators::{IndicatorType, Indicator};
-
 use super::generic_result::GenericResult;
 
 #[derive(Debug,Clone)]
