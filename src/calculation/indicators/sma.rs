@@ -1,6 +1,7 @@
 use crate::utils::timeseries::Candle;
-use super::CalculationMode;
+use super::calculation_mode::{CalculationMode, price_by_calc_mode};
 
+#[derive(Debug,Clone)]
 pub struct SMA {
     length: usize,
     value: f64,
@@ -34,18 +35,8 @@ impl SMA {
         if i > arr_length || length > arr_length {
             None
         } else {
-            let price_out = match mode {
-                CalculationMode::Open => candles[i - length].open,
-                CalculationMode::High => candles[i - length].high,
-                CalculationMode::Low => candles[i - length].low,
-                CalculationMode::Close => candles[i - length].close,
-            };
-            let price_in = match mode {
-                CalculationMode::Open => candles[i].open,
-                CalculationMode::High => candles[i].high,
-                CalculationMode::Low => candles[i].low,
-                CalculationMode::Close => candles[i].close,
-            };
+            let price_out = price_by_calc_mode(&candles[i - length], &mode);
+            let price_in = price_by_calc_mode(&candles[i], &mode);
 
             let sma = ((previous_sma * length as f64) - price_out + price_in) / length as f64;
 

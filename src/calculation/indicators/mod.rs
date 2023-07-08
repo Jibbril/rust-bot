@@ -1,15 +1,10 @@
+mod calculation_mode;
 mod sma;
 mod rsi;
 
 use sma::SMA;
 use rsi::RSI;
 
-pub enum CalculationMode {
-    Close,
-    Open,
-    High,
-    Low,
-}
 
 #[derive(Debug,Clone)]
 pub enum IndicatorType {
