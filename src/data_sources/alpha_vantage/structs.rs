@@ -1,15 +1,10 @@
-use serde::Deserialize;
-use std::collections::HashMap;
-use std::cmp::Reverse;
 use crate::utils::{
-    timeseries::{
-        str_date_to_datetime, 
-        Candle, 
-        TimeSeries, 
-        Interval
-    }, 
-    generic_result::GenericResult
+    generic_result::GenericResult,
+    timeseries::{str_date_to_datetime, Candle, Interval, TimeSeries},
 };
+use serde::Deserialize;
+use std::cmp::Reverse;
+use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
 struct AlphaVantageMetaData {
@@ -69,18 +64,20 @@ struct AlphaVantageTimeSeries {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct  AlphaVantageApiResponse {
+pub struct AlphaVantageApiResponse {
     #[serde(rename = "Meta Data")]
     metadata: AlphaVantageMetaData,
 
     #[serde(rename = "Time Series (Digital Currency Daily)")]
-    timeseries: HashMap<String, AlphaVantageTimeSeries>
+    timeseries: HashMap<String, AlphaVantageTimeSeries>,
 }
 
 impl AlphaVantageApiResponse {
     pub fn to_timeseries(&mut self, interval: Interval) -> GenericResult<TimeSeries> {
-        let candles: GenericResult<Vec<Candle>> = self.timeseries.iter()
-            .map(|(date,ts)| {
+        let candles: GenericResult<Vec<Candle>> = self
+            .timeseries
+            .iter()
+            .map(|(date, ts)| {
                 let datetime = str_date_to_datetime(date)?;
 
                 Ok(Candle {
@@ -90,7 +87,7 @@ impl AlphaVantageApiResponse {
                     high: ts.high.parse::<f64>()?,
                     low: ts.low.parse::<f64>()?,
                     volume: ts.volume.parse::<f64>()?,
-                    indicators: HashMap::new()
+                    indicators: HashMap::new(),
                 })
             })
             .collect();
@@ -101,7 +98,7 @@ impl AlphaVantageApiResponse {
             TimeSeries {
                 ticker: self.metadata.digital_currency_code.to_string(),
                 interval,
-                candles, 
+                candles,
             }
         })
     }

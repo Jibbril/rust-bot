@@ -1,15 +1,15 @@
+mod calculation;
 mod data_sources;
 mod utils;
-mod calculation;
 
+use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
-use data_sources::{DataSource,request_data};
 
 #[tokio::main]
-async fn main() -> Result<(),Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
 
-    request_data(DataSource::AlphaVantage,"BTC").await?;
+    request_data(DataSource::AlphaVantage, "BTC").await?;
 
     Ok(())
 }

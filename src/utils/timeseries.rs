@@ -1,9 +1,9 @@
-use std::collections::HashMap;
-use chrono::{DateTime, Utc, NaiveDate, NaiveDateTime, NaiveTime};
-use crate::calculation::indicators::{IndicatorType, Indicator};
 use super::generic_result::GenericResult;
+use crate::calculation::indicators::{Indicator, IndicatorType};
+use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+use std::collections::HashMap;
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum Interval {
     // Hour1,
     // Hour4,
@@ -12,14 +12,14 @@ pub enum Interval {
     // Weekly,
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct TimeSeries {
     pub ticker: String,
     pub interval: Interval,
-    pub candles: Vec<Candle>
+    pub candles: Vec<Candle>,
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Candle {
     pub timestamp: DateTime<Utc>,
     pub open: f64,
@@ -27,18 +27,18 @@ pub struct Candle {
     pub high: f64,
     pub low: f64,
     pub volume: f64,
-    pub indicators: HashMap<IndicatorType,Indicator>
+    pub indicators: HashMap<IndicatorType, Indicator>,
 }
 
 pub fn str_date_to_datetime(s: &str) -> GenericResult<DateTime<Utc>> {
-    let time = NaiveTime::from_hms_opt(0,0,0).unwrap();
+    let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
     let date = NaiveDate::parse_from_str(s, "%Y-%m-%d");
-    
+
     match date {
         Ok(date) => {
             let datetime = NaiveDateTime::new(date, time);
             Ok(DateTime::from_utc(datetime, Utc))
-        },
-        Err(e) => Err(Box::new(e))
+        }
+        Err(e) => Err(Box::new(e)),
     }
 }
