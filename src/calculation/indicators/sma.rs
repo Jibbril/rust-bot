@@ -6,6 +6,7 @@ use crate::utils::{generic_result::GenericResult, timeseries::Candle};
 
 #[derive(Debug, Copy, Clone)]
 pub struct SMA {
+    #[allow(dead_code)] // TODO: Remove once used
     length: usize,
     value: f64,
 }

@@ -7,7 +7,9 @@ use super::{
 
 #[derive(Debug, Copy, Clone)]
 pub struct RSI {
+    #[allow(dead_code)] // TODO: Remove once used
     length: usize,
+    #[allow(dead_code)] // TODO: Remove once used
     value: f64,
     avg_gain: f64,
     avg_loss: f64,
