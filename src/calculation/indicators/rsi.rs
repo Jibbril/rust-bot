@@ -1,9 +1,9 @@
-use crate::utils::{generic_result::GenericResult, timeseries::Candle};
-
-use super::{
-    calculation_mode::{price_by_calc_mode, CalculationMode},
-    Indicator, IndicatorType, PopulatesCandles,
+use crate::{
+    calculation::calculation_mode::{price_by_calc_mode, CalculationMode},
+    utils::{generic_result::GenericResult, timeseries::Candle},
 };
+
+use super::{Indicator, IndicatorType, PopulatesCandles};
 
 #[derive(Debug, Copy, Clone)]
 pub struct RSI {

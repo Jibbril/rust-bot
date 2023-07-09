@@ -1,4 +1,3 @@
-mod calculation_mode;
 pub mod rsi;
 pub mod sma;
 
