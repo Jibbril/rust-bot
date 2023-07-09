@@ -1,6 +1,6 @@
 use super::generic_result::GenericResult;
 use crate::calculation::indicators::{Indicator, IndicatorType};
-use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+use chrono::{DateTime, Duration, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -28,6 +28,41 @@ pub struct Candle {
     pub low: f64,
     pub volume: f64,
     pub indicators: HashMap<IndicatorType, Indicator>,
+}
+
+impl Candle {
+    pub fn dummy_data(n: usize, mode: &str) -> Vec<Candle> {
+        let mut val = 100.0;
+
+        let mut now = Utc::now();
+
+        (0..n)
+            .map(|i| {
+                now += Duration::days(1);
+                val += match mode {
+                    "positive" => 10.0,
+                    "negative" => -10.0,
+                    _ => {
+                        if i % 2 == 0 {
+                            10.0
+                        } else {
+                            -10.0
+                        }
+                    }
+                };
+
+                Candle {
+                    timestamp: now,
+                    open: val,
+                    close: val,
+                    high: val,
+                    low: val,
+                    volume: 1000.0,
+                    indicators: HashMap::new(),
+                }
+            })
+            .collect()
+    }
 }
 
 pub fn str_date_to_datetime(s: &str) -> GenericResult<DateTime<Utc>> {
