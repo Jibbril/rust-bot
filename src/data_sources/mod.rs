@@ -8,12 +8,10 @@ pub enum DataSource {
     AlphaVantage,
 }
 
-pub async fn request_data(datasource: DataSource, symbol: &str) -> GenericResult<()> {
+pub async fn request_data(datasource: DataSource, symbol: &str) -> GenericResult<TimeSeries> {
     let data: TimeSeries = match datasource {
         DataSource::AlphaVantage => get(symbol).await?,
     };
 
-    println!("Data:{:#?}", data);
-
-    Ok(())
+    Ok(data)
 }

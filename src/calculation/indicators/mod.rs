@@ -1,6 +1,6 @@
 mod calculation_mode;
-mod rsi;
-mod sma;
+pub mod rsi;
+pub mod sma;
 
 use rsi::RSI;
 use sma::SMA;
@@ -19,6 +19,6 @@ pub enum IndicatorType {
 
 #[derive(Debug, Clone)]
 pub enum Indicator {
-    SMA(SMA),
-    RSI(RSI),
+    SMA(Option<SMA>),
+    RSI(Option<RSI>),
 }

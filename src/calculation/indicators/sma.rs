@@ -12,38 +12,27 @@ pub struct SMA {
 
 impl PopulatesCandles for SMA {
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
-        let initial_sma = Self::calculate(length, length - 1, candles);
-        if let Some(initial_sma) = initial_sma {
-            let mut sma = initial_sma;
-
-            let new_smas: Vec<SMA> = candles
-                .iter()
-                .enumerate()
-                .skip(length)
-                .map(|(i, _)| {
-                    let rolling_sma = Self::calculate_rolling(length, i, candles, sma.value);
-
-                    sma = match rolling_sma {
-                        Some(val) => val,
-                        _ => {
-                            panic!("Unable to calculate rolling SMA.");
-                        }
-                    };
-
-                    sma
-                })
-                .collect();
-
-            let indicator_type = IndicatorType::SMA(length);
-
-            for (i, candle) in candles.iter_mut().enumerate().skip(length) {
-                let new_sma = Indicator::SMA(new_smas[i]);
-            }
-
-            Ok(())
-        } else {
-            Err("Unable to calculate initial SMA.".into())
+        if candles.len() < length {
+            return Err("Length of candles is shorter than indicator length.".into());
         }
+
+        let mut sma: Option<SMA> = None;
+        let new_smas: Vec<Option<SMA>> = (0..candles.len())
+            .map(|i| {
+                sma = Self::calculate_rolling(length, i, candles, &sma);
+                sma
+            })
+            .collect();
+
+        let indicator_type = IndicatorType::SMA(length);
+
+        for (i, candle) in candles.iter_mut().enumerate() {
+            let new_sma = Indicator::SMA(new_smas[i]);
+
+            candle.indicators.insert(indicator_type, new_sma);
+        }
+
+        Ok(())
     }
 }
 
@@ -53,7 +42,7 @@ impl SMA {
         length: usize,
         i: usize,
         candles: &Vec<Candle>,
-        previous_sma: f64,
+        previous_sma: &Option<SMA>,
     ) -> Option<SMA> {
         Self::calc_mode_rolling(length, i, candles, CalculationMode::Close, previous_sma)
     }
@@ -63,18 +52,20 @@ impl SMA {
         i: usize,
         candles: &Vec<Candle>,
         mode: CalculationMode,
-        previous_sma: f64,
+        previous_sma: &Option<SMA>,
     ) -> Option<SMA> {
         let arr_length = candles.len();
-        if i > arr_length || length > arr_length {
+        if i > arr_length || length > arr_length || i < length - 1 {
             None
-        } else {
+        } else if let Some(prev_sma) = previous_sma {
             let price_out = price_by_calc_mode(&candles[i - length], &mode);
             let price_in = price_by_calc_mode(&candles[i], &mode);
 
-            let sma = ((previous_sma * length as f64) - price_out + price_in) / length as f64;
+            let sma = ((prev_sma.value * length as f64) - price_out + price_in) / length as f64;
 
             Some(SMA { length, value: sma })
+        } else {
+            Self::calculate(length, i, candles)
         }
     }
 
@@ -93,7 +84,7 @@ impl SMA {
         if i > arr_length || length > arr_length {
             None
         } else {
-            let start = i - length;
+            let start = i + 1 - length;
             let end = i + 1;
             let segment = &candles[start..end];
             let f_length = length as f64;
