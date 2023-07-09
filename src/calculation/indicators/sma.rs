@@ -102,3 +102,60 @@ impl SMA {
         }
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::utils::timeseries::Candle;
+
+    use super::SMA;
+
+
+    #[test]
+    fn calculate_sma() {
+        let candles = Candle::dummy_data(4, "positive");
+        let sma = SMA::calculate(4,3, &candles);
+        assert!(sma.is_some());
+        let sma = sma.unwrap();
+        assert_eq!(sma.value, 125.0);
+    }
+
+    #[test]
+    fn sma_not_enough_data() {
+        let candles = Candle::dummy_data(2, "positive");
+        let sma = SMA::calculate(4,3, &candles);
+        assert!(sma.is_none());
+    }
+
+    #[test]
+    fn sma_no_candles() {
+        let candles: Vec<Candle> = Vec::new();
+        let sma = SMA::calculate(4,3, &candles);
+        assert!(sma.is_none());
+    }
+
+    #[test]
+    fn rolling_sma() {
+        let n = 20;
+        let length = 7;
+        let candles = Candle::dummy_data(20, "positive");
+        let mut sma = None;
+
+        let smas: Vec<Option<SMA>> = (0..n)
+            .map(|i| {
+                sma = SMA::calculate_rolling(7, i, &candles, &sma);
+                sma
+            })
+            .collect();
+
+        for (i,sma) in smas.iter().enumerate() {
+            if i < length - 1 {
+                assert!(sma.is_none())
+            } else {
+                assert!(sma.is_some())
+            }
+        }
+
+        assert_eq!(smas[n-1].unwrap().value,270.0);
+    }
+}
