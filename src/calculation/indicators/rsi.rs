@@ -48,10 +48,10 @@ impl RSI {
         candles: &Vec<Candle>,
         prev_rsi: &Option<RSI>,
     ) -> Option<RSI> {
-        Self::calc_mode_rolling(14, i, candles, CalculationMode::Close, prev_rsi)
+        Self::calculate_rolling_with_opts(14, i, candles, CalculationMode::Close, prev_rsi)
     }
 
-    fn calc_mode_rolling(
+    fn calculate_rolling_with_opts(
         length: usize,
         i: usize,
         candles: &Vec<Candle>,
@@ -92,10 +92,10 @@ impl RSI {
 
     // Default implementation using closing values for calculations.
     pub fn calculate(i: usize, candles: &Vec<Candle>) -> Option<RSI> {
-        Self::calculation_mode_rsi(14, i, candles, CalculationMode::Close)
+        Self::calculate_with_opts(14, i, candles, CalculationMode::Close)
     }
 
-    fn calculation_mode_rsi(
+    fn calculate_with_opts(
         length: usize,
         i: usize,
         candles: &Vec<Candle>,
@@ -152,7 +152,7 @@ mod tests {
     #[test]
     fn test_rsi_calculation() {
         let candles = Candle::dummy_data(14, "alternating");
-        let rsi = RSI::calculation_mode_rsi(14, 13, &candles, CalculationMode::Close);
+        let rsi = RSI::calculate_with_opts(14, 13, &candles, CalculationMode::Close);
 
         assert!(rsi.is_some());
         let rsi = rsi.unwrap();
@@ -162,7 +162,7 @@ mod tests {
     #[test]
     fn test_rsi_calculation_not_enough_data() {
         let candles = Candle::dummy_data(3, "");
-        let rsi = RSI::calculation_mode_rsi(14, 13, &candles, CalculationMode::Close);
+        let rsi = RSI::calculate_with_opts(14, 13, &candles, CalculationMode::Close);
 
         assert!(rsi.is_none());
     }
@@ -170,7 +170,7 @@ mod tests {
     #[test]
     fn no_candles() {
         let candles: Vec<Candle> = Vec::new();
-        let rsi = RSI::calculation_mode_rsi(14, 13, &candles, CalculationMode::Close);
+        let rsi = RSI::calculate_with_opts(14, 13, &candles, CalculationMode::Close);
 
         assert!(rsi.is_none());
     }

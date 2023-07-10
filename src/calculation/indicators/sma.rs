@@ -46,10 +46,10 @@ impl SMA {
         candles: &Vec<Candle>,
         previous_sma: &Option<SMA>,
     ) -> Option<SMA> {
-        Self::calc_mode_rolling(length, i, candles, CalculationMode::Close, previous_sma)
+        Self::calculate_rolling_with_opts(length, i, candles, CalculationMode::Close, previous_sma)
     }
 
-    fn calc_mode_rolling(
+    fn calculate_rolling_with_opts(
         length: usize,
         i: usize,
         candles: &Vec<Candle>,
@@ -73,10 +73,10 @@ impl SMA {
 
     // Default implementation using closing values for calculations.
     pub fn calculate(length: usize, i: usize, candles: &Vec<Candle>) -> Option<SMA> {
-        Self::calculation_mode_sma(length, i, candles, CalculationMode::Close)
+        Self::calculate_with_opts(length, i, candles, CalculationMode::Close)
     }
 
-    fn calculation_mode_sma(
+    fn calculate_with_opts(
         length: usize,
         i: usize,
         candles: &Vec<Candle>,
