@@ -103,18 +103,16 @@ impl SMA {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use crate::utils::timeseries::Candle;
 
     use super::SMA;
 
-
     #[test]
     fn calculate_sma() {
         let candles = Candle::dummy_data(4, "positive");
-        let sma = SMA::calculate(4,3, &candles);
+        let sma = SMA::calculate(4, 3, &candles);
         assert!(sma.is_some());
         let sma = sma.unwrap();
         assert_eq!(sma.value, 125.0);
@@ -123,14 +121,14 @@ mod tests {
     #[test]
     fn sma_not_enough_data() {
         let candles = Candle::dummy_data(2, "positive");
-        let sma = SMA::calculate(4,3, &candles);
+        let sma = SMA::calculate(4, 3, &candles);
         assert!(sma.is_none());
     }
 
     #[test]
     fn sma_no_candles() {
         let candles: Vec<Candle> = Vec::new();
-        let sma = SMA::calculate(4,3, &candles);
+        let sma = SMA::calculate(4, 3, &candles);
         assert!(sma.is_none());
     }
 
@@ -148,7 +146,7 @@ mod tests {
             })
             .collect();
 
-        for (i,sma) in smas.iter().enumerate() {
+        for (i, sma) in smas.iter().enumerate() {
             if i < length - 1 {
                 assert!(sma.is_none())
             } else {
@@ -156,6 +154,6 @@ mod tests {
             }
         }
 
-        assert_eq!(smas[n-1].unwrap().value,270.0);
+        assert_eq!(smas[n - 1].unwrap().value, 270.0);
     }
 }

@@ -63,11 +63,11 @@ impl RSI {
         } else if let Some(prev_rsi) = prev_rsi {
             let current = price_by_calc_mode(&candles[i], &mode);
             let previous = price_by_calc_mode(&candles[i - 1], &mode);
-            
+
             let f_length = length as f64;
             let mut gains = prev_rsi.avg_gain * (f_length - 1.0);
             let mut losses = prev_rsi.avg_loss * (f_length - 1.0);
-            
+
             let change = current - previous;
             if change >= 0.0 {
                 gains += change;
@@ -174,20 +174,21 @@ mod tests {
 
         assert!(rsi.is_none());
     }
-    
+
     #[test]
     fn rolling_rsi_test() {
         let n = 20;
         let candles = Candle::dummy_data(n, "alternating");
         let mut rsi = None;
 
-        let rsis: Vec<Option<RSI>> = (0..n).map(|i| {
-            rsi = RSI::calculate_rolling(i, &candles, &rsi);        
-            rsi
-        })
-        .collect();
+        let rsis: Vec<Option<RSI>> = (0..n)
+            .map(|i| {
+                rsi = RSI::calculate_rolling(i, &candles, &rsi);
+                rsi
+            })
+            .collect();
 
-        for (i,rsi) in rsis.iter().enumerate() {
+        for (i, rsi) in rsis.iter().enumerate() {
             if i < 13 {
                 assert!(rsi.is_none())
             } else {
@@ -196,6 +197,6 @@ mod tests {
         }
 
         // assert that last value is reasonably close
-        assert!((rsis[n-1].unwrap().value - 46.86).abs() < 0.1)
+        assert!((rsis[n - 1].unwrap().value - 46.86).abs() < 0.1)
     }
 }
