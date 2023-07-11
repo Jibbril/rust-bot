@@ -8,8 +8,8 @@ use super::{Indicator, IndicatorType, PopulatesCandles};
 #[derive(Debug, Copy, Clone)]
 pub struct SMA {
     #[allow(dead_code)] // TODO: Remove once used
-    length: usize,
-    value: f64,
+    pub length: usize,
+    pub value: f64,
 }
 
 impl PopulatesCandles for SMA {

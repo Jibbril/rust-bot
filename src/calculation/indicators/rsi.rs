@@ -8,11 +8,11 @@ use super::{Indicator, IndicatorType, PopulatesCandles};
 #[derive(Debug, Copy, Clone)]
 pub struct RSI {
     #[allow(dead_code)] // TODO: Remove once used
-    length: usize,
+    pub length: usize,
     #[allow(dead_code)] // TODO: Remove once used
-    value: f64,
-    avg_gain: f64,
-    avg_loss: f64,
+    pub value: f64,
+    pub avg_gain: f64,
+    pub avg_loss: f64,
 }
 
 impl PopulatesCandles for RSI {

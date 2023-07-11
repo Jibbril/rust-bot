@@ -31,6 +31,7 @@ pub struct Candle {
 }
 
 impl Candle {
+    #[allow(dead_code)] // TODO: Remove once used
     pub fn dummy_data(n: usize, mode: &str) -> Vec<Candle> {
         let mut val = 100.0;
 
