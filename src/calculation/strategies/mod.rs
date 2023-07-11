@@ -1,14 +1,15 @@
 pub mod rsi_basic;
-use crate::utils::{timeseries::{Candle, TimeSeries, Interval}, generic_result::GenericResult};
+use crate::utils::{
+    generic_result::GenericResult,
+    timeseries::{Candle, Interval, TimeSeries},
+};
 
 use rsi_basic::RsiBasic;
 
-
-
 #[derive(Debug, Clone)]
-pub enum Strategy {   
+pub enum Strategy {
     #[allow(dead_code)] // TODO: Remove once used
-    RsiBasic(RsiBasic)
+    RsiBasic(RsiBasic),
 }
 
 #[derive(Debug, Clone)]
