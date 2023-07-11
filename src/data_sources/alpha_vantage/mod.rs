@@ -28,7 +28,7 @@ async fn convert_data(res: reqwest::Response) -> GenericResult<TimeSeries> {
 
 fn construct_url(function: &str, symbol: &str, interval: Interval) -> String {
     //TODO: Implement different intervals
-    
+
     let market = "USD";
     let key = env::var("ALPHA_VANTAGE_KEY");
 
