@@ -1,3 +1,5 @@
+use serde::Serialize;
+
 use crate::{
     calculation::calculation_mode::{price_by_calc_mode, CalculationMode},
     utils::{generic_result::GenericResult, timeseries::Candle},
@@ -5,7 +7,7 @@ use crate::{
 
 use super::{Indicator, IndicatorType, PopulatesCandles};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Serialize)]
 pub struct SMA {
     #[allow(dead_code)] // TODO: Remove once used
     pub length: usize,
