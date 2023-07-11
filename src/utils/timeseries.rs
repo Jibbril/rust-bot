@@ -1,7 +1,7 @@
 use super::generic_result::GenericResult;
 use crate::calculation::indicators::{Indicator, IndicatorType};
 use chrono::{DateTime, Duration, NaiveDate, NaiveDateTime, NaiveTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -20,7 +20,7 @@ pub struct TimeSeries {
     pub candles: Vec<Candle>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Candle {
     pub timestamp: DateTime<Utc>,
     pub open: f64,
@@ -29,7 +29,7 @@ pub struct Candle {
     pub low: f64,
     pub volume: f64,
 
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, skip_deserializing)]
     pub indicators: HashMap<IndicatorType, Indicator>,
 }
 

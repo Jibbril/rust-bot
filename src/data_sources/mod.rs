@@ -7,6 +7,7 @@ use crate::utils::{
 };
 
 // Available data sources
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DataSource {
     AlphaVantage,
     Local(Box<DataSource>),
@@ -21,7 +22,10 @@ pub async fn request_data(
     let ts = data_by_source(source, symbol, interval).await?;
 
     if save_local {
-        local::write(&ts, &source).await;
+        match source {
+            DataSource::Local(_) => (),
+            _ => local::write(&ts, &source).await?,
+        }
     }
 
     Ok(ts)
@@ -33,11 +37,8 @@ async fn data_by_source(
     interval: Interval,
 ) -> GenericResult<TimeSeries> {
     let data: TimeSeries = match source {
-        DataSource::AlphaVantage => {
-            let ts = alpha_vantage::get(symbol, interval).await?;
-            ts
-        }
-        DataSource::Local(source) => local::read(source, symbol).await?,
+        DataSource::AlphaVantage => alpha_vantage::get(symbol, &interval).await?,
+        DataSource::Local(source) => local::read(&source, &symbol, &interval).await?,
     };
 
     Ok(data)
