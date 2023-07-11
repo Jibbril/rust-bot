@@ -3,7 +3,6 @@ use crate::utils::{
     timeseries::{str_date_to_datetime, Candle, Interval, TimeSeries},
 };
 use serde::Deserialize;
-use std::cmp::Reverse;
 use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
@@ -93,7 +92,7 @@ impl AlphaVantageApiResponse {
             .collect();
 
         candles.map(|mut candles| {
-            candles.sort_by_key(|candle| Reverse(candle.timestamp));
+            candles.sort_by_key(|candle| candle.timestamp);
 
             TimeSeries {
                 ticker: self.metadata.digital_currency_code.to_string(),
