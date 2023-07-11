@@ -4,15 +4,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug Rust-bot",
+            "name": "Debug rust_bot",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=rust-bot",
-                    "--package=rust-bot"
+                    "--bin=rust_bot",
+                    "--package=rust_bot"
                 ],
                 "filter": {
-                    "name": "rust-bot",
+                    "name": "rust_bot",
                     "kind": "bin"
                 }
             },
