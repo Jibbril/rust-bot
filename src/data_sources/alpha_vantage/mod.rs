@@ -6,10 +6,9 @@ use reqwest;
 use std::env;
 use structs::AlphaVantageApiResponse;
 
-pub async fn get(symbol: &str) -> GenericResult<TimeSeries> {
+pub async fn get(symbol: &str, interval: Interval) -> GenericResult<TimeSeries> {
     let function = "DIGITAL_CURRENCY_DAILY";
-    let market = "USD";
-    let url = construct_url(function, symbol, market);
+    let url = construct_url(function, symbol, interval);
 
     let response = reqwest::get(url).await?;
 
@@ -27,7 +26,10 @@ async fn convert_data(res: reqwest::Response) -> GenericResult<TimeSeries> {
     timeseries.map(|ts| ts)
 }
 
-fn construct_url(function: &str, symbol: &str, market: &str) -> String {
+fn construct_url(function: &str, symbol: &str, interval: Interval) -> String {
+    //TODO: Implement different intervals
+    
+    let market = "USD";
     let key = env::var("ALPHA_VANTAGE_KEY");
 
     if let Ok(key) = key {
