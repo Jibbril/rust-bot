@@ -6,7 +6,11 @@ use crate::{
     },
 };
 
-use super::{FindsSetups, Setup, StrategyOrientation};
+use super::{
+    resolution_strategy::{self, AtrResolution, CalculatesTradeBounds, ResolutionStrategy},
+    setup::{FindsSetups, Setup},
+    strategy::StrategyOrientation,
+};
 
 #[derive(Debug, Clone)]
 pub struct RsiBasic {
@@ -60,20 +64,29 @@ impl FindsSetups for RsiBasic {
                     _ => return Err("Unable to retrieve current RSI.".into()),
                 };
 
-                if prev.value < self.lower_band && current.value > self.lower_band {
-                    // Go long
-                    setups.push(Setup {
-                        candle: candle.clone(),
-                        interval: ts.interval.clone(),
-                        orientation: StrategyOrientation::Long,
-                    })
+                let atr = AtrResolution::new(14, 1.0, 2.0);
+                let resolution_strategy = ResolutionStrategy::ATR(atr);
+
+                let orientation = if prev.value < self.lower_band && current.value > self.lower_band
+                {
+                    StrategyOrientation::Long
                 } else if prev.value > self.upper_band && current.value < self.upper_band {
-                    setups.push(Setup {
-                        candle: candle.clone(),
-                        interval: ts.interval.clone(),
-                        orientation: StrategyOrientation::Short,
-                    })
-                }
+                    StrategyOrientation::Short
+                } else {
+                    continue;
+                };
+
+                let (take_profit, stop_loss) =
+                    resolution_strategy.get_trade_bounds(&ts.candles, i, &orientation);
+
+                setups.push(Setup {
+                    candle: candle.clone(),
+                    interval: ts.interval.clone(),
+                    orientation,
+                    resolution_strategy,
+                    stop_loss,
+                    take_profit,
+                });
             }
         }
 
