@@ -81,7 +81,7 @@ impl FindsSetups for RsiBasic {
                 };
 
                 if let Some(orientation) = self.get_orientation(&prev, &current) {
-                    let atr = AtrResolution::new(14, 1.0, 2.0);
+                    let atr = AtrResolution::new(14, 1.0, 1.5);
                     let resolution_strategy = ResolutionStrategy::ATR(atr);
                     let (take_profit, stop_loss) =
                         resolution_strategy.get_trade_bounds(&ts.candles, i, &orientation)?;
