@@ -141,7 +141,7 @@ mod tests {
 
         let smas: Vec<Option<SMA>> = (0..n)
             .map(|i| {
-                sma = SMA::calculate_rolling(7, i, &candles, &sma);
+                sma = SMA::calculate_rolling(length, i, &candles, &sma);
                 sma
             })
             .collect();

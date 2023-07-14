@@ -123,4 +123,43 @@ mod tests {
         let atr = atr.unwrap();
         assert_eq!(atr.value, 10.0);
     }
+
+    #[test]
+    fn atr_not_enough_data() {
+        let candles = Candle::dummy_data(2, "positive");
+        let sma = ATR::calculate(4, 3, &candles);
+        assert!(sma.is_none());
+    }
+
+    #[test]
+    fn atr_no_candles() {
+        let candles: Vec<Candle> = Vec::new();
+        let sma = ATR::calculate(4, 3, &candles);
+        assert!(sma.is_none());
+    }
+
+    #[test]
+    fn rolling_atr() {
+        let n = 20;
+        let length = 7;
+        let candles = Candle::dummy_data(20, "positive");
+        let mut atr = None;
+
+        let atrs: Vec<Option<ATR>> = (0..n)
+            .map(|i| {
+                atr = ATR::calculate_rolling(length, i, &candles, &atr);
+                atr
+            })
+            .collect();
+
+        for (i, atr) in atrs.iter().enumerate() {
+            if i <= length - 1 {
+                assert!(atr.is_none())
+            } else {
+                assert!(atr.is_some())
+            }
+        }
+
+        assert_eq!(atrs[n - 1].unwrap().value, 10.0);
+    }
 }
