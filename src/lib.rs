@@ -4,7 +4,7 @@ mod utils;
 
 use calculation::{
     indicators::{rsi::RSI, sma::SMA, PopulatesCandles},
-    strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
+    trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
 };
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
