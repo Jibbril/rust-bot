@@ -7,7 +7,7 @@ use crate::{
 
 use super::{Indicator, IndicatorType, PopulatesCandles};
 
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone)]
 pub struct SMA {
     #[allow(dead_code)] // TODO: Remove once used
     pub length: usize,

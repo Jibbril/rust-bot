@@ -46,6 +46,19 @@ impl RsiBasic {
     }
 }
 
+fn get_orientation(strategy: &RsiBasic, prev: &RSI, current: &RSI) -> Option<StrategyOrientation> {
+    let long_condition = prev.value < strategy.lower_band && current.value > strategy.lower_band;
+    let short_condition = prev.value > strategy.upper_band && current.value < strategy.upper_band;
+
+    if long_condition {
+        Some(StrategyOrientation::Long)
+    } else if short_condition {
+        Some(StrategyOrientation::Short)
+    } else {
+        None
+    }
+}
+
 impl FindsSetups for RsiBasic {
     fn find_setups(&self, ts: &mut TimeSeries) -> GenericResult<Vec<Setup>> {
         let length = 14;
@@ -64,29 +77,23 @@ impl FindsSetups for RsiBasic {
                     _ => return Err("Unable to retrieve current RSI.".into()),
                 };
 
-                let atr = AtrResolution::new(14, 1.0, 2.0);
-                let resolution_strategy = ResolutionStrategy::ATR(atr);
+                if let Some(orientation) = get_orientation(&self, &prev, &current) {
+                    let atr = AtrResolution::new(14, 1.0, 2.0);
+                    let resolution_strategy = ResolutionStrategy::ATR(atr);
+                    let (take_profit, stop_loss) =
+                        resolution_strategy.get_trade_bounds(&ts.candles, i, &orientation)?;
 
-                let orientation = if prev.value < self.lower_band && current.value > self.lower_band
-                {
-                    StrategyOrientation::Long
-                } else if prev.value > self.upper_band && current.value < self.upper_band {
-                    StrategyOrientation::Short
+                    setups.push(Setup {
+                        candle: candle.clone(),
+                        interval: ts.interval.clone(),
+                        orientation,
+                        resolution_strategy,
+                        stop_loss,
+                        take_profit,
+                    });
                 } else {
-                    continue;
-                };
-
-                let (take_profit, stop_loss) =
-                    resolution_strategy.get_trade_bounds(&ts.candles, i, &orientation);
-
-                setups.push(Setup {
-                    candle: candle.clone(),
-                    interval: ts.interval.clone(),
-                    orientation,
-                    resolution_strategy,
-                    stop_loss,
-                    take_profit,
-                });
+                    continue
+                }
             }
         }
 
