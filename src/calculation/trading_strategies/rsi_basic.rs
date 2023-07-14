@@ -1,12 +1,20 @@
 use crate::{
-    calculation::indicators::{rsi::RSI, Indicator, IndicatorType},
+    calculation::{
+        indicators::{rsi::RSI, Indicator, IndicatorType},
+        resolution_strategies::{
+            atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
+        },
+    },
     utils::{
         generic_result::GenericResult,
         timeseries::{Candle, TimeSeries},
     },
 };
 
-use super::{FindsSetups, Setup, StrategyOrientation};
+use super::{
+    setup::{FindsSetups, Setup},
+    StrategyOrientation,
+};
 
 #[derive(Debug, Clone)]
 pub struct RsiBasic {
@@ -40,6 +48,18 @@ impl RsiBasic {
             orientation: StrategyOrientation::Both,
         }
     }
+    fn get_orientation(&self, prev: &RSI, current: &RSI) -> Option<StrategyOrientation> {
+        let long_condition = prev.value < self.lower_band && current.value > self.lower_band;
+        let short_condition = prev.value > self.upper_band && current.value < self.upper_band;
+
+        if long_condition {
+            Some(StrategyOrientation::Long)
+        } else if short_condition {
+            Some(StrategyOrientation::Short)
+        } else {
+            None
+        }
+    }
 }
 
 impl FindsSetups for RsiBasic {
@@ -60,19 +80,22 @@ impl FindsSetups for RsiBasic {
                     _ => return Err("Unable to retrieve current RSI.".into()),
                 };
 
-                if prev.value < self.lower_band && current.value > self.lower_band {
-                    // Go long
+                if let Some(orientation) = self.get_orientation(&prev, &current) {
+                    let atr = AtrResolution::new(14, 1.0, 1.5);
+                    let resolution_strategy = ResolutionStrategy::ATR(atr);
+                    let (take_profit, stop_loss) =
+                        resolution_strategy.get_trade_bounds(&ts.candles, i, &orientation)?;
+
                     setups.push(Setup {
                         candle: candle.clone(),
                         interval: ts.interval.clone(),
-                        orientation: StrategyOrientation::Long,
-                    })
-                } else if prev.value > self.upper_band && current.value < self.upper_band {
-                    setups.push(Setup {
-                        candle: candle.clone(),
-                        interval: ts.interval.clone(),
-                        orientation: StrategyOrientation::Short,
-                    })
+                        orientation,
+                        resolution_strategy,
+                        stop_loss,
+                        take_profit,
+                    });
+                } else {
+                    continue;
                 }
             }
         }
@@ -86,15 +109,12 @@ fn get_indicator(
     key: &IndicatorType,
     length: usize,
 ) -> GenericResult<Option<RSI>> {
-    let err_message = format!("No RSI of length {}", length);
-    let prev_rsi = candle.indicators.get(key);
-    let indicator = match prev_rsi {
-        None => return Err(err_message.into()),
-        Some(indicator) => match indicator {
-            Indicator::RSI(rsi) => rsi,
-            _ => &None,
-        },
-    };
-
-    Ok(indicator.clone())
+    candle
+        .indicators
+        .get(key)
+        .ok_or_else(|| format!("No RSI of length {}", length).into())
+        .and_then(|indicator| match indicator {
+            Indicator::RSI(rsi) => Ok(rsi.clone()),
+            _ => Ok(None),
+        })
 }

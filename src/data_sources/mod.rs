@@ -19,7 +19,10 @@ pub async fn request_data(
     interval: Interval,
     save_local: bool,
 ) -> GenericResult<TimeSeries> {
-    let ts = data_by_source(source, symbol, interval).await?;
+    let ts: TimeSeries = match source {
+        DataSource::AlphaVantage => alpha_vantage::get(symbol, &interval).await?,
+        DataSource::Local(source) => local::read(&source, &symbol, &interval).await?,
+    };
 
     if save_local {
         match source {
@@ -29,17 +32,4 @@ pub async fn request_data(
     }
 
     Ok(ts)
-}
-
-async fn data_by_source(
-    source: &DataSource,
-    symbol: &str,
-    interval: Interval,
-) -> GenericResult<TimeSeries> {
-    let data: TimeSeries = match source {
-        DataSource::AlphaVantage => alpha_vantage::get(symbol, &interval).await?,
-        DataSource::Local(source) => local::read(&source, &symbol, &interval).await?,
-    };
-
-    Ok(data)
 }

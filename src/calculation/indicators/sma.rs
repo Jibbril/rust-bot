@@ -1,5 +1,3 @@
-use serde::Serialize;
-
 use crate::{
     calculation::calculation_mode::{price_by_calc_mode, CalculationMode},
     utils::{generic_result::GenericResult, timeseries::Candle},
@@ -7,7 +5,7 @@ use crate::{
 
 use super::{Indicator, IndicatorType, PopulatesCandles};
 
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone)]
 pub struct SMA {
     #[allow(dead_code)] // TODO: Remove once used
     pub length: usize,
@@ -85,7 +83,7 @@ impl SMA {
         mode: CalculationMode,
     ) -> Option<SMA> {
         let arr_length = candles.len();
-        if i > arr_length || length > arr_length {
+        if i > arr_length || length > arr_length || i < length - 1 {
             None
         } else {
             let start = i + 1 - length;
@@ -143,7 +141,7 @@ mod tests {
 
         let smas: Vec<Option<SMA>> = (0..n)
             .map(|i| {
-                sma = SMA::calculate_rolling(7, i, &candles, &sma);
+                sma = SMA::calculate_rolling(length, i, &candles, &sma);
                 sma
             })
             .collect();

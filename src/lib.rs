@@ -4,11 +4,13 @@ mod utils;
 
 use calculation::{
     indicators::{rsi::RSI, sma::SMA, PopulatesCandles},
-    strategies::{rsi_basic::RsiBasic, FindsSetups},
+    trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
 };
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
 use utils::timeseries::Interval;
+
+use crate::calculation::indicators::atr::ATR;
 
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
@@ -22,19 +24,17 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // Calculate indicator data for TimeSeries
     SMA::populate_candles(&mut ts.candles, 7)?;
     RSI::populate_candles(&mut ts.candles, 14)?;
+    ATR::populate_candles(&mut ts.candles, 14)?;
 
     // Implement Strategy to analyze TimeSeries
     let rsi_strategy = RsiBasic::new_default();
 
-    let res = rsi_strategy.find_setups(&mut ts);
+    let setups = rsi_strategy.find_setups(&mut ts)?;
 
-    res.map(|setups| {
-        println!("Found {} setups!", setups.len());
-
-        for setup in setups.iter() {
-            println!("{:#?}", setup.clone());
-        }
-    })?;
+    println!("Found {} setups!", setups.len());
+    for setup in setups.iter() {
+        println!("{:#?}", setup.clone());
+    }
 
     Ok(())
 }
