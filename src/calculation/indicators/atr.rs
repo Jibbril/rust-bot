@@ -83,11 +83,12 @@ impl ATR {
         mode: CalculationMode,
     ) -> Option<ATR> {
         let arr_length = candles.len();
-        if i > arr_length || length > arr_length || i < length {
+        if i >= arr_length || length > arr_length || i <= length - 1 {
             None
         } else {
-            let sum: f64 = (i - length..i)
-                .skip(1)
+            let start = i + 1 - length;
+            let end = i + 1;
+            let sum: f64 = (start..end)
                 .map(|i| Self::true_range(&mode, &candles[i - 1], &candles[i]))
                 .sum();
 
@@ -105,5 +106,21 @@ impl ATR {
         let c = (curr.low - prev_price).abs();
 
         a.max(b).max(c)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ATR;
+    use crate::utils::timeseries::Candle;
+
+    #[test]
+    fn calculate_atr() {
+        let candles = Candle::dummy_data(6, "positive");
+        let atr = ATR::calculate(4, 5, &candles);
+        println!("ATR: {:#?}", atr);
+        assert!(atr.is_some());
+        let atr = atr.unwrap();
+        assert_eq!(atr.value, 10.0);
     }
 }

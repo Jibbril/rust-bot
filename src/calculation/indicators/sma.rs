@@ -83,7 +83,7 @@ impl SMA {
         mode: CalculationMode,
     ) -> Option<SMA> {
         let arr_length = candles.len();
-        if i > arr_length || length > arr_length {
+        if i > arr_length || length > arr_length || i < length - 1 {
             None
         } else {
             let start = i + 1 - length;
