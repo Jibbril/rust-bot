@@ -61,7 +61,7 @@ impl RsiBasic {
 }
 
 impl FindsSetups for RsiBasic {
-    fn find_setups(&self, ts: &mut TimeSeries) -> GenericResult<Vec<Setup>> {
+    fn find_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>> {
         let length = 14;
         let key = IndicatorType::RSI(length);
         let mut setups: Vec<Setup> = Vec::new();

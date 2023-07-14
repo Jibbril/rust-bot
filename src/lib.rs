@@ -30,7 +30,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // Implement Strategy to analyze TimeSeries
     let rsi_strategy = RsiBasic::new_default();
 
-    let setups = rsi_strategy.find_setups(&mut ts)?;
+    let setups = rsi_strategy.find_setups(&ts)?;
 
     println!("Found {} setups!", setups.len());
     for setup in setups.iter() {

@@ -9,7 +9,7 @@ use crate::{
 use super::StrategyOrientation;
 
 pub trait FindsSetups {
-    fn find_setups(&self, ts: &mut TimeSeries) -> GenericResult<Vec<Setup>>;
+    fn find_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>>;
 }
 
 #[derive(Debug, Clone)]
