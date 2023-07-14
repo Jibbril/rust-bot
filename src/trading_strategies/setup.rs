@@ -1,5 +1,5 @@
 use crate::{
-    calculation::resolution_strategies::ResolutionStrategy,
+    resolution_strategies::ResolutionStrategy,
     utils::{
         generic_result::GenericResult,
         timeseries::{Candle, Interval, TimeSeries},

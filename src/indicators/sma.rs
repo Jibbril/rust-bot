@@ -1,5 +1,5 @@
 use crate::{
-    calculation::calculation_mode::{price_by_calc_mode, CalculationMode},
+    utils::calculation_mode::{price_by_calc_mode, CalculationMode},
     utils::{generic_result::GenericResult, timeseries::Candle},
 };
 

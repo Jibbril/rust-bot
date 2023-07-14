@@ -1,16 +1,17 @@
-mod calculation;
 mod data_sources;
+mod indicators;
+mod resolution_strategies;
+mod trading_strategies;
 mod utils;
 
-use calculation::{
-    indicators::{rsi::RSI, sma::SMA, PopulatesCandles},
-    trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
-};
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
 use utils::timeseries::Interval;
 
-use crate::calculation::indicators::atr::ATR;
+use crate::{
+    indicators::{atr::ATR, rsi::RSI, sma::SMA, PopulatesCandles},
+    trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
+};
 
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();

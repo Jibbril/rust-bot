@@ -1,9 +1,7 @@
 use crate::{
-    calculation::{
-        indicators::{rsi::RSI, Indicator, IndicatorType},
-        resolution_strategies::{
-            atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
-        },
+    indicators::{rsi::RSI, Indicator, IndicatorType},
+    resolution_strategies::{
+        atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
     },
     utils::{
         generic_result::GenericResult,
