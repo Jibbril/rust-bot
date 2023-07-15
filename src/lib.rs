@@ -4,6 +4,7 @@ mod models;
 mod resolution_strategies;
 mod trading_strategies;
 mod utils;
+mod notifications;
 
 use crate::models::interval::Interval;
 use data_sources::{request_data, DataSource};
