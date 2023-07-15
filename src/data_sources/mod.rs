@@ -1,10 +1,10 @@
-mod alpha_vantage;
-mod local;
-
-use crate::utils::{
+use crate::models::{
     generic_result::GenericResult,
     timeseries::{Interval, TimeSeries},
 };
+
+mod alpha_vantage;
+mod local;
 
 // Available data sources
 #[derive(Debug, Clone, PartialEq, Eq)]

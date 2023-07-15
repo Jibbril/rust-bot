@@ -1,12 +1,13 @@
 mod data_sources;
 mod indicators;
+mod models;
 mod resolution_strategies;
 mod trading_strategies;
 mod utils;
 
+use crate::models::timeseries::Interval;
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
-use utils::timeseries::Interval;
 
 use crate::{
     indicators::{atr::ATR, rsi::RSI, sma::SMA, PopulatesCandles},

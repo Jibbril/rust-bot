@@ -1,4 +1,4 @@
-use crate::utils::timeseries::Candle;
+use crate::models::timeseries::Candle;
 
 pub enum CalculationMode {
     Close,

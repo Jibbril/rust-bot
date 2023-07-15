@@ -7,7 +7,7 @@ use rsi::RSI;
 use serde::Serialize;
 use sma::SMA;
 
-use crate::utils::{generic_result::GenericResult, timeseries::Candle};
+use crate::models::{generic_result::GenericResult, timeseries::Candle};
 
 pub trait PopulatesCandles {
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()>;

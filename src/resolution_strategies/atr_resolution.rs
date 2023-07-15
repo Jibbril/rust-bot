@@ -1,11 +1,11 @@
 use crate::{
     indicators::{atr::ATR, IndicatorType},
-    trading_strategies::StrategyOrientation,
-    utils::{
+    models::{
         calculation_mode::{price_by_calc_mode, CalculationMode},
         generic_result::GenericResult,
         timeseries::Candle,
     },
+    trading_strategies::StrategyOrientation,
 };
 
 use super::CalculatesTradeBounds;

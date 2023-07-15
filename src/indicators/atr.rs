@@ -1,6 +1,7 @@
-use crate::{
-    utils::calculation_mode::{price_by_calc_mode, CalculationMode},
-    utils::{generic_result::GenericResult, timeseries::Candle},
+use crate::models::{
+    calculation_mode::{price_by_calc_mode, CalculationMode},
+    generic_result::GenericResult,
+    timeseries::Candle,
 };
 
 use super::{Indicator, IndicatorType, PopulatesCandles};
@@ -112,7 +113,7 @@ impl ATR {
 #[cfg(test)]
 mod tests {
     use super::ATR;
-    use crate::utils::timeseries::Candle;
+    use crate::models::timeseries::Candle;
 
     #[test]
     fn calculate_atr() {

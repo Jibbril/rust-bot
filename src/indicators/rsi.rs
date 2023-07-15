@@ -1,8 +1,9 @@
 use serde::Serialize;
 
-use crate::{
-    utils::calculation_mode::{price_by_calc_mode, CalculationMode},
-    utils::{generic_result::GenericResult, timeseries::Candle},
+use crate::models::{
+    calculation_mode::{price_by_calc_mode, CalculationMode},
+    generic_result::GenericResult,
+    timeseries::Candle,
 };
 
 use super::{Indicator, IndicatorType, PopulatesCandles};
@@ -148,7 +149,7 @@ impl RSI {
 mod tests {
     use crate::{
         indicators::rsi::RSI,
-        utils::{calculation_mode::CalculationMode, timeseries::Candle},
+        models::{calculation_mode::CalculationMode, timeseries::Candle},
     };
 
     #[test]

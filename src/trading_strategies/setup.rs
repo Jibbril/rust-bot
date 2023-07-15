@@ -1,9 +1,9 @@
 use crate::{
-    resolution_strategies::ResolutionStrategy,
-    utils::{
+    models::{
         generic_result::GenericResult,
         timeseries::{Candle, Interval, TimeSeries},
     },
+    resolution_strategies::ResolutionStrategy,
 };
 
 use super::StrategyOrientation;

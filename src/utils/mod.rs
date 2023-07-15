@@ -1,10 +1,5 @@
-use chrono::{DateTime, Utc, NaiveTime, NaiveDate, NaiveDateTime};
-
-use self::generic_result::GenericResult;
-
-pub mod calculation_mode;
-pub mod generic_result;
-pub mod timeseries;
+use crate::models::generic_result::GenericResult;
+use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
 pub fn str_date_to_datetime(s: &str) -> GenericResult<DateTime<Utc>> {
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();

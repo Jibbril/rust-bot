@@ -1,11 +1,11 @@
 use crate::{
     indicators::{rsi::RSI, Indicator, IndicatorType},
-    resolution_strategies::{
-        atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
-    },
-    utils::{
+    models::{
         generic_result::GenericResult,
         timeseries::{Candle, TimeSeries},
+    },
+    resolution_strategies::{
+        atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
     },
 };
 
