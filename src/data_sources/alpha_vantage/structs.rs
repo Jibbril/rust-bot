@@ -1,6 +1,6 @@
 use crate::utils::{
     generic_result::GenericResult,
-    timeseries::{str_date_to_datetime, Candle, Interval, TimeSeries},
+    timeseries::{Candle, Interval, TimeSeries}, str_date_to_datetime,
 };
 use serde::Deserialize;
 use std::collections::HashMap;

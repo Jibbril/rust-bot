@@ -1,7 +1,6 @@
 use crate::indicators::{Indicator, IndicatorType};
 
-use super::generic_result::GenericResult;
-use chrono::{DateTime, Duration, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -67,18 +66,5 @@ impl Candle {
                 }
             })
             .collect()
-    }
-}
-
-pub fn str_date_to_datetime(s: &str) -> GenericResult<DateTime<Utc>> {
-    let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
-    let date = NaiveDate::parse_from_str(s, "%Y-%m-%d");
-
-    match date {
-        Ok(date) => {
-            let datetime = NaiveDateTime::new(date, time);
-            Ok(DateTime::from_utc(datetime, Utc))
-        }
-        Err(e) => Err(Box::new(e)),
     }
 }
