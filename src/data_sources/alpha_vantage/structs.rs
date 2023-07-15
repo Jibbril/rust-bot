@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use crate::{
     models::{
         generic_result::GenericResult,
-        timeseries::{Candle, Interval, TimeSeries},
+        timeseries::TimeSeries, interval::Interval, candle::Candle,
     },
     utils::str_date_to_datetime,
 };

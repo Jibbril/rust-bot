@@ -1,7 +1,7 @@
 use crate::{
     models::{
         generic_result::GenericResult,
-        timeseries::{Candle, Interval, TimeSeries},
+        timeseries::TimeSeries, candle::Candle, interval::Interval,
     },
     resolution_strategies::ResolutionStrategy,
 };

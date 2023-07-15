@@ -1,6 +1,6 @@
 use crate::models::{
     generic_result::GenericResult,
-    timeseries::{Interval, TimeSeries},
+    timeseries::TimeSeries, interval::Interval,
 };
 
 mod alpha_vantage;

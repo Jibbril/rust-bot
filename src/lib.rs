@@ -5,7 +5,7 @@ mod resolution_strategies;
 mod trading_strategies;
 mod utils;
 
-use crate::models::timeseries::Interval;
+use crate::models::interval::Interval;
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
 

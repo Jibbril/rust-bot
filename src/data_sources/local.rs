@@ -2,7 +2,7 @@ use csv::Reader;
 
 use crate::models::{
     generic_result::GenericResult,
-    timeseries::{Candle, Interval, TimeSeries},
+    timeseries::TimeSeries, interval::Interval, candle::Candle,
 };
 
 use super::DataSource;

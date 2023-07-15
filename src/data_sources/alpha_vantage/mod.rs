@@ -1,7 +1,8 @@
 mod structs;
 
 use crate::models::generic_result::GenericResult;
-use crate::models::timeseries::{Interval, TimeSeries};
+use crate::models::interval::Interval;
+use crate::models::timeseries::TimeSeries;
 use reqwest;
 use std::env;
 use structs::AlphaVantageApiResponse;
