@@ -1,9 +1,6 @@
 use crate::{
     indicators::{rsi::RSI, Indicator, IndicatorType},
-    models::{
-        generic_result::GenericResult,
-        timeseries::TimeSeries, candle::Candle,
-    },
+    models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries},
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
     },

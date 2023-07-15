@@ -1,7 +1,4 @@
-use crate::models::{
-    generic_result::GenericResult,
-    timeseries::TimeSeries, interval::Interval,
-};
+use crate::models::{generic_result::GenericResult, interval::Interval, timeseries::TimeSeries};
 
 mod alpha_vantage;
 mod local;

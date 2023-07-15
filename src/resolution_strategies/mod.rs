@@ -1,6 +1,6 @@
 pub mod atr_resolution;
 use super::trading_strategies::StrategyOrientation;
-use crate::models::{generic_result::GenericResult, candle::Candle};
+use crate::models::{candle::Candle, generic_result::GenericResult};
 use atr_resolution::AtrResolution;
 
 #[derive(Debug, Clone)]

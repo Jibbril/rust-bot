@@ -1,7 +1,7 @@
+use crate::indicators::{Indicator, IndicatorType};
+use chrono::{DateTime, Duration, Utc};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use chrono::{Utc, DateTime, Duration};
-use serde::{Serialize, Deserialize};
-use crate::indicators::{IndicatorType, Indicator};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Candle {

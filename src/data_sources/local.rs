@@ -1,8 +1,7 @@
 use csv::Reader;
 
 use crate::models::{
-    generic_result::GenericResult,
-    timeseries::TimeSeries, interval::Interval, candle::Candle,
+    candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
 };
 
 use super::DataSource;

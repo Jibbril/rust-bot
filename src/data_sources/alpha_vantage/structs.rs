@@ -3,8 +3,7 @@ use std::collections::HashMap;
 
 use crate::{
     models::{
-        generic_result::GenericResult,
-        timeseries::TimeSeries, interval::Interval, candle::Candle,
+        candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
     },
     utils::str_date_to_datetime,
 };

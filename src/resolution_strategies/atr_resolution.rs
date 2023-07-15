@@ -2,8 +2,8 @@ use crate::{
     indicators::{atr::ATR, IndicatorType},
     models::{
         calculation_mode::{price_by_calc_mode, CalculationMode},
-        generic_result::GenericResult,
         candle::Candle,
+        generic_result::GenericResult,
     },
     trading_strategies::StrategyOrientation,
 };
