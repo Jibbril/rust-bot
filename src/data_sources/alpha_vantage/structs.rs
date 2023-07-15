@@ -1,9 +1,12 @@
-use crate::utils::{
-    generic_result::GenericResult,
-    timeseries::{str_date_to_datetime, Candle, Interval, TimeSeries},
-};
 use serde::Deserialize;
 use std::collections::HashMap;
+
+use crate::{
+    models::{
+        candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
+    },
+    utils::str_date_to_datetime,
+};
 
 #[derive(Debug, Deserialize)]
 struct AlphaVantageMetaData {

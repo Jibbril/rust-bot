@@ -1,10 +1,10 @@
 use csv::Reader;
 
-use super::DataSource;
-use crate::utils::{
-    generic_result::GenericResult,
-    timeseries::{Candle, Interval, TimeSeries},
+use crate::models::{
+    candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
 };
+
+use super::DataSource;
 use std::{
     fs::{create_dir_all, File},
     path::Path,

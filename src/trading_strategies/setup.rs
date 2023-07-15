@@ -1,15 +1,14 @@
 use crate::{
-    calculation::resolution_strategies::ResolutionStrategy,
-    utils::{
-        generic_result::GenericResult,
-        timeseries::{Candle, Interval, TimeSeries},
+    models::{
+        candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
     },
+    resolution_strategies::ResolutionStrategy,
 };
 
 use super::StrategyOrientation;
 
 pub trait FindsSetups {
-    fn find_setups(&self, ts: &mut TimeSeries) -> GenericResult<Vec<Setup>>;
+    fn find_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>>;
 }
 
 #[derive(Debug, Clone)]

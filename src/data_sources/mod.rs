@@ -1,10 +1,7 @@
+use crate::models::{generic_result::GenericResult, interval::Interval, timeseries::TimeSeries};
+
 mod alpha_vantage;
 mod local;
-
-use crate::utils::{
-    generic_result::GenericResult,
-    timeseries::{Interval, TimeSeries},
-};
 
 // Available data sources
 #[derive(Debug, Clone, PartialEq, Eq)]

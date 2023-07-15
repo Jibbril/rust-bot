@@ -1,13 +1,8 @@
 use crate::{
-    calculation::{
-        indicators::{rsi::RSI, Indicator, IndicatorType},
-        resolution_strategies::{
-            atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
-        },
-    },
-    utils::{
-        generic_result::GenericResult,
-        timeseries::{Candle, TimeSeries},
+    indicators::{rsi::RSI, Indicator, IndicatorType},
+    models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries},
+    resolution_strategies::{
+        atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
     },
 };
 
@@ -63,7 +58,7 @@ impl RsiBasic {
 }
 
 impl FindsSetups for RsiBasic {
-    fn find_setups(&self, ts: &mut TimeSeries) -> GenericResult<Vec<Setup>> {
+    fn find_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>> {
         let length = 14;
         let key = IndicatorType::RSI(length);
         let mut setups: Vec<Setup> = Vec::new();
