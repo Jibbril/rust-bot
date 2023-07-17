@@ -1,11 +1,10 @@
+use super::strategy_orientation::StrategyOrientation;
 use crate::{
     models::{
         candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
     },
     resolution_strategies::ResolutionStrategy,
 };
-
-use super::StrategyOrientation;
 
 pub trait FindsSetups {
     fn find_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>>;

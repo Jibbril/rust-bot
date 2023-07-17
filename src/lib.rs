@@ -6,7 +6,7 @@ mod resolution_strategies;
 mod trading_strategies;
 mod utils;
 
-use crate::{models::interval::Interval, trading_strategies::Strategy};
+use crate::{models::interval::Interval, trading_strategies::strategy::Strategy};
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
 use notifications::notify;

@@ -1,4 +1,7 @@
-use std::fmt::{Display, Formatter};
+use super::{
+    setup::{FindsSetups, Setup},
+    strategy_orientation::StrategyOrientation,
+};
 use crate::{
     indicators::{rsi::RSI, Indicator, IndicatorType},
     models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries},
@@ -6,10 +9,7 @@ use crate::{
         atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
     },
 };
-use super::{
-    setup::{FindsSetups, Setup},
-    StrategyOrientation,
-};
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone)]
 pub struct RsiBasic {

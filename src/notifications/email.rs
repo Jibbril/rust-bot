@@ -1,6 +1,6 @@
 use crate::{
     models::generic_result::GenericResult,
-    trading_strategies::{setup::Setup, Strategy},
+    trading_strategies::{setup::Setup, strategy::Strategy},
 };
 use lettre::{
     message::header::ContentType, transport::smtp::authentication::Credentials, Message,

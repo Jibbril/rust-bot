@@ -1,46 +1,4 @@
 pub mod rsi_basic;
 pub mod setup;
-use self::{
-    rsi_basic::RsiBasic,
-    setup::{FindsSetups, Setup},
-};
-use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
-use std::fmt::{Display, Formatter, Result};
-
-#[derive(Debug, Clone)]
-pub enum Strategy {
-    RsiBasic(RsiBasic),
-}
-
-impl Display for Strategy {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self {
-            Self::RsiBasic(s) => write!(f, "{}", s),
-        }
-    }
-}
-
-impl FindsSetups for Strategy {
-    fn find_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>> {
-        match self {
-            Self::RsiBasic(rsi) => rsi.find_setups(ts),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum StrategyOrientation {
-    Long,
-    Short,
-    Both,
-}
-
-impl Display for StrategyOrientation {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match *self {
-            Self::Long => write!(f, "Long"),
-            Self::Short => write!(f, "Short"),
-            Self::Both => write!(f, "Long and Short"),
-        }
-    }
-}
+pub mod strategy;
+pub mod strategy_orientation;
