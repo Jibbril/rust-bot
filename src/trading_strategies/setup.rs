@@ -13,6 +13,7 @@ pub trait FindsSetups {
 
 #[derive(Debug, Clone)]
 pub struct Setup {
+    pub ticker: String,
     pub candle: Candle,
     pub interval: Interval,
     pub orientation: StrategyOrientation,
