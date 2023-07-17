@@ -6,15 +6,15 @@ mod resolution_strategies;
 mod trading_strategies;
 mod utils;
 
-use crate::{models::interval::Interval, trading_strategies::strategy::Strategy};
-use data_sources::{request_data, DataSource};
-use dotenv::dotenv;
-use notifications::notify;
-
 use crate::{
     indicators::{atr::ATR, rsi::RSI, sma::SMA, PopulatesCandles},
     trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
+    models::interval::Interval,
+    trading_strategies::strategy::Strategy,
 };
+use data_sources::{request_data, DataSource};
+use dotenv::dotenv;
+use notifications::notify;
 
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
