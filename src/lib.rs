@@ -1,18 +1,20 @@
 mod data_sources;
 mod indicators;
 mod models;
+mod notifications;
 mod resolution_strategies;
 mod trading_strategies;
 mod utils;
 
-use crate::models::interval::Interval;
-use data_sources::{request_data, DataSource};
-use dotenv::dotenv;
-
 use crate::{
     indicators::{atr::ATR, rsi::RSI, sma::SMA, PopulatesCandles},
     trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
+    models::interval::Interval,
+    trading_strategies::strategy::Strategy,
 };
+use data_sources::{request_data, DataSource};
+use dotenv::dotenv;
+use notifications::notify;
 
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
@@ -29,14 +31,15 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     ATR::populate_candles(&mut ts.candles, 14)?;
 
     // Implement Strategy to analyze TimeSeries
-    let rsi_strategy = RsiBasic::new_default();
-
-    let setups = rsi_strategy.find_setups(&ts)?;
+    let strategy = Strategy::RsiBasic(RsiBasic::new_default());
+    let setups = strategy.find_setups(&ts)?;
 
     println!("Found {} setups!", setups.len());
     for setup in setups.iter() {
         println!("{:#?}", setup.clone());
     }
+
+    notify(&setups[0], &strategy).await?;
 
     Ok(())
 }

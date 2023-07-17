@@ -5,7 +5,7 @@ use crate::{
         candle::Candle,
         generic_result::GenericResult,
     },
-    trading_strategies::StrategyOrientation,
+    trading_strategies::strategy_orientation::StrategyOrientation,
 };
 
 use super::CalculatesTradeBounds;

@@ -1,3 +1,7 @@
+use super::{
+    setup::{FindsSetups, Setup},
+    strategy_orientation::StrategyOrientation,
+};
 use crate::{
     indicators::{rsi::RSI, Indicator, IndicatorType},
     models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries},
@@ -5,11 +9,7 @@ use crate::{
         atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
     },
 };
-
-use super::{
-    setup::{FindsSetups, Setup},
-    StrategyOrientation,
-};
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone)]
 pub struct RsiBasic {
@@ -17,6 +17,12 @@ pub struct RsiBasic {
     pub upper_band: f64,
     pub lower_band: f64,
     pub orientation: StrategyOrientation,
+}
+
+impl Display for RsiBasic {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "RSI Basic")
+    }
 }
 
 impl RsiBasic {
@@ -82,6 +88,7 @@ impl FindsSetups for RsiBasic {
                         resolution_strategy.get_trade_bounds(&ts.candles, i, &orientation)?;
 
                     setups.push(Setup {
+                        ticker: ts.ticker.clone(),
                         candle: candle.clone(),
                         interval: ts.interval.clone(),
                         orientation,
