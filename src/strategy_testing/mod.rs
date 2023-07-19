@@ -46,47 +46,39 @@ fn gather_results_data(
             let close = setup.candle.close;
             let take_profit = setup.take_profit;
             let stop_loss = setup.stop_loss;
+            let orientation = setup.orientation.clone();
 
             let mut outcome = 0.0;
-            let mut orientation = StrategyOrientation::Long;
             let mut i = *candle_i;
 
-            match setup.orientation {
-                StrategyOrientation::Long => {
-                    while i < candles.len() {
-                        let candle = candles.get(i).unwrap();
-                        let is_win = candle.high >= take_profit;
-                        let is_loss = candle.low <= stop_loss;
+            while let Some(candle) = candles.get(i) {
+                let (is_win,is_loss) = match setup.orientation {
+                    StrategyOrientation::Long => (
+                        candle.high >= take_profit,
+                        candle.low <= stop_loss
+                    ),
+                    StrategyOrientation::Short => (
+                        candle.low <= take_profit,
+                        candle.high >= stop_loss
+                    )
+                };
 
-                        if is_win {
-                            outcome = (take_profit - close) / close;
-                            break;
-                        } else if is_loss {
-                            outcome = (stop_loss - close) / close;
-                            break;
-                        } else {
-                            i += 1;
-                        }
-                    }
+                if is_win {
+                    outcome = match setup.orientation {
+                        StrategyOrientation::Long => (take_profit - close) / close,
+                        StrategyOrientation::Short => (close - take_profit) / close
+                    };
+                    break;
+                } else if is_loss {
+                    outcome = match setup.orientation {
+                        StrategyOrientation::Long => (stop_loss - close) / close,
+                        StrategyOrientation::Short => (close - stop_loss) / close
+                    };
+                    break;
+                } else {
+                    i += 1;
                 }
-                StrategyOrientation::Short => {
-                    orientation = StrategyOrientation::Short;
-                    while i < candles.len() {
-                        let candle = candles.get(i).unwrap();
-                        let is_win = candle.low <= take_profit;
-                        let is_loss = candle.high >= stop_loss;
 
-                        if is_win {
-                            outcome = (close - take_profit) / close;
-                            break;
-                        } else if is_loss {
-                            outcome = (close - stop_loss) / close;
-                            break;
-                        } else {
-                            i += 1;
-                        }
-                    }
-                }
             }
 
             if i >= candles.len() {
