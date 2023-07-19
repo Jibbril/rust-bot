@@ -46,7 +46,7 @@ impl RsiBasic {
             length: 14,
             upper_band: 70.0,
             lower_band: 30.0,
-            orientation: StrategyOrientation::Both,
+            orientation: StrategyOrientation::Long,
         }
     }
     fn get_orientation(&self, prev: &RSI, current: &RSI) -> Option<StrategyOrientation> {

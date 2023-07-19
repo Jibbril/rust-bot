@@ -70,7 +70,6 @@ impl AtrResolution {
                 let take_profit = price - self.take_profit_multiple * atr;
                 return Ok((take_profit, stop_loss));
             }
-            StrategyOrientation::Both => Err("Invalid Strategy Orientation.".into()),
         }
     }
 }

@@ -3,14 +3,15 @@ mod indicators;
 mod models;
 mod notifications;
 mod resolution_strategies;
+mod strategy_testing;
 mod trading_strategies;
 mod utils;
 
 use crate::{
     indicators::{atr::ATR, rsi::RSI, sma::SMA, PopulatesCandles},
-    trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
     models::interval::Interval,
     trading_strategies::strategy::Strategy,
+    trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
 };
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
@@ -39,7 +40,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         println!("{:#?}", setup.clone());
     }
 
-    notify(&setups[0], &strategy).await?;
+    // notify(&setups[0], &strategy).await?;
 
     Ok(())
 }
