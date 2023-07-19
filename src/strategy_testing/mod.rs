@@ -49,7 +49,7 @@ fn gather_results_data(
             let orientation = setup.orientation.clone();
 
             let mut outcome = 0.0;
-            let mut i = *candle_i;
+            let mut i = *candle_i + 1;
 
             while let Some(candle) = candles.get(i) {
                 let (is_win,is_loss) = match setup.orientation {
@@ -133,6 +133,7 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
         avg_loss_bars,
     }
 }
+#[derive(Debug,Clone)]
 pub struct TestResult {
     accuracy: f64,
     n: usize,

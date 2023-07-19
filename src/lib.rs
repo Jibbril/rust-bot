@@ -11,7 +11,7 @@ use crate::{
     indicators::{atr::ATR, rsi::RSI, sma::SMA, PopulatesCandles},
     models::interval::Interval,
     trading_strategies::strategy::Strategy,
-    trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
+    trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups}, strategy_testing::test_setups,
 };
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
@@ -41,6 +41,10 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // notify(&setups[0], &strategy).await?;
+
+    let results = test_setups(&setups, &ts.candles);
+
+    println!("Results:{:#?}",results); 
 
     Ok(())
 }
