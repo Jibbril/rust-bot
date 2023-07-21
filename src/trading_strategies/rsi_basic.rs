@@ -76,7 +76,7 @@ impl FindsSetups for RsiBasic {
             let prev_rsi = get_indicator(&prev_candle, &key, length)?;
             let current_rsi = get_indicator(candle, &key, length)?;
 
-            if let (Some(prev),Some(current)) = (prev_rsi,current_rsi) {
+            if let (Some(prev), Some(current)) = (prev_rsi, current_rsi) {
                 if let Some(orientation) = self.get_orientation(&prev, &current) {
                     let atr = AtrResolution::new(14, 1.0, 1.5);
                     let resolution_strategy = ResolutionStrategy::ATR(atr);
@@ -92,7 +92,7 @@ impl FindsSetups for RsiBasic {
                         stop_loss,
                         take_profit,
                     });
-                } 
+                }
             }
         }
 

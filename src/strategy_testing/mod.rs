@@ -1,11 +1,12 @@
-use std::collections::HashMap;
-
-use chrono::{DateTime, Utc};
+mod test_result;
 
 use crate::{
     models::candle::Candle,
     trading_strategies::{setup::Setup, strategy_orientation::StrategyOrientation},
 };
+use chrono::{DateTime, Utc};
+use std::collections::HashMap;
+use test_result::TestResult;
 
 pub fn test_setups(setups: &[Setup], candles: &Vec<Candle>) -> TestResult {
     let index_pairs = get_index_pairs(setups, candles);
@@ -39,59 +40,52 @@ fn gather_results_data(
     candles: &[Candle],
     index_pairs: &[(usize, usize)],
 ) -> Vec<(f64, usize, StrategyOrientation)> {
-    let results = index_pairs
+    index_pairs
         .iter()
-        .filter_map(|(setup_i, candle_i)| {
-            let setup = &setups[*setup_i];
+        .filter_map(|&(setup_i, candle_i)| {
+            let setup = &setups[setup_i];
             let close = setup.candle.close;
             let take_profit = setup.take_profit;
             let stop_loss = setup.stop_loss;
-            let orientation = setup.orientation.clone();
 
             let mut outcome = 0.0;
-            let mut i = *candle_i + 1;
+            let mut i = candle_i + 1;
 
             while let Some(candle) = candles.get(i) {
-                let (is_win,is_loss) = match setup.orientation {
-                    StrategyOrientation::Long => (
-                        candle.high >= take_profit,
-                        candle.low <= stop_loss
-                    ),
-                    StrategyOrientation::Short => (
-                        candle.low <= take_profit,
-                        candle.high >= stop_loss
-                    )
+                let (is_win, is_loss) = match setup.orientation {
+                    StrategyOrientation::Long => {
+                        (candle.high >= take_profit, candle.low <= stop_loss)
+                    }
+                    StrategyOrientation::Short => {
+                        (candle.low <= take_profit, candle.high >= stop_loss)
+                    }
                 };
 
                 if is_win {
                     outcome = match setup.orientation {
                         StrategyOrientation::Long => (take_profit - close) / close,
-                        StrategyOrientation::Short => (close - take_profit) / close
+                        StrategyOrientation::Short => (close - take_profit) / close,
                     };
                     break;
                 } else if is_loss {
                     outcome = match setup.orientation {
                         StrategyOrientation::Long => (stop_loss - close) / close,
-                        StrategyOrientation::Short => (close - stop_loss) / close
+                        StrategyOrientation::Short => (close - stop_loss) / close,
                     };
                     break;
                 } else {
                     i += 1;
                 }
-
             }
 
             if i >= candles.len() {
-                return None;
+                None
             } else {
                 let bars = i - candle_i;
-
-                Some((outcome, bars, orientation))
+                Some((outcome, bars, setup.orientation))
             }
         })
-        .collect();
-
-    results
+        .collect()
 }
 
 fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResult {
@@ -132,13 +126,4 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
         avg_win_bars,
         avg_loss_bars,
     }
-}
-#[derive(Debug,Clone)]
-pub struct TestResult {
-    accuracy: f64,
-    n: usize,
-    avg_win: f64,
-    avg_loss: f64,
-    avg_win_bars: f64,
-    avg_loss_bars: f64,
 }

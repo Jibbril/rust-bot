@@ -10,8 +10,9 @@ mod utils;
 use crate::{
     indicators::{atr::ATR, rsi::RSI, sma::SMA, PopulatesCandles},
     models::interval::Interval,
+    strategy_testing::test_setups,
     trading_strategies::strategy::Strategy,
-    trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups}, strategy_testing::test_setups,
+    trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
 };
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
@@ -40,11 +41,14 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         println!("{:#?}", setup.clone());
     }
 
-    // notify(&setups[0], &strategy).await?;
+    // Send email notifications
+    if false {
+        notify(&setups[0], &strategy).await?;
+    }
 
+    // Test result of taking setups
     let results = test_setups(&setups, &ts.candles);
-
-    println!("Results:{:#?}",results); 
+    println!("Results:{:#?}", results);
 
     Ok(())
 }
