@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn test_rsi_calculation() {
-        let candles = Candle::dummy_data(14, "alternating");
+        let candles = Candle::dummy_data(14, "alternating", 100.0);
         let rsi = RSI::calculate_with_opts(14, 13, &candles, CalculationMode::Close);
 
         assert!(rsi.is_some());
@@ -164,7 +164,7 @@ mod tests {
 
     #[test]
     fn test_rsi_calculation_not_enough_data() {
-        let candles = Candle::dummy_data(3, "");
+        let candles = Candle::dummy_data(3, "", 100.0);
         let rsi = RSI::calculate_with_opts(14, 13, &candles, CalculationMode::Close);
 
         assert!(rsi.is_none());
@@ -181,7 +181,7 @@ mod tests {
     #[test]
     fn rolling_rsi_test() {
         let n = 20;
-        let candles = Candle::dummy_data(n, "alternating");
+        let candles = Candle::dummy_data(n, "alternating", 100.0);
         let mut rsi = None;
 
         let rsis: Vec<Option<RSI>> = (0..n)

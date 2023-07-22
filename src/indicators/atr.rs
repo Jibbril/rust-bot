@@ -117,9 +117,8 @@ mod tests {
 
     #[test]
     fn calculate_atr() {
-        let candles = Candle::dummy_data(6, "positive");
+        let candles = Candle::dummy_data(6, "positive", 100.0);
         let atr = ATR::calculate(4, 5, &candles);
-        println!("ATR: {:#?}", atr);
         assert!(atr.is_some());
         let atr = atr.unwrap();
         assert_eq!(atr.value, 10.0);
@@ -127,7 +126,7 @@ mod tests {
 
     #[test]
     fn atr_not_enough_data() {
-        let candles = Candle::dummy_data(2, "positive");
+        let candles = Candle::dummy_data(2, "positive", 100.0);
         let sma = ATR::calculate(4, 3, &candles);
         assert!(sma.is_none());
     }
@@ -143,7 +142,7 @@ mod tests {
     fn rolling_atr() {
         let n = 20;
         let length = 7;
-        let candles = Candle::dummy_data(20, "positive");
+        let candles = Candle::dummy_data(20, "positive", 100.0);
         let mut atr = None;
 
         let atrs: Vec<Option<ATR>> = (0..n)
