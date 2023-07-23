@@ -1,5 +1,5 @@
 use super::{
-    setup::{FindsSetups, Setup, FindsReverseSetups},
+    setup::{FindsReverseSetups, FindsSetups, Setup},
     strategy_orientation::StrategyOrientation,
 };
 use crate::{
@@ -12,13 +12,13 @@ use crate::{
 use std::fmt::{Display, Formatter};
 
 /// # RSIBasic
-/// 
-/// Simple RSI strategy that initiates entries when RSI is returning from 
+///
+/// Simple RSI strategy that initiates entries when RSI is returning from
 /// extremes.
-/// 
-/// ## Example: 
-/// 
-/// If the upper band is set to 70.0 and the current RSI is above 70.0, a short 
+///
+/// ## Example:
+///
+/// If the upper band is set to 70.0 and the current RSI is above 70.0, a short
 /// setup will be triggered when the RSI goes below 70.
 #[derive(Debug, Clone)]
 pub struct RsiBasic {
@@ -73,17 +73,21 @@ impl RsiBasic {
     }
 
     fn get_reverse_orientation(&self, prev: &RSI, current: &RSI) -> Option<StrategyOrientation> {
-        if let Some(orientation) = self.get_orientation(prev,current) {
+        if let Some(orientation) = self.get_orientation(prev, current) {
             match orientation {
                 StrategyOrientation::Long => Some(StrategyOrientation::Short),
-                StrategyOrientation::Short => Some(StrategyOrientation::Long)
+                StrategyOrientation::Short => Some(StrategyOrientation::Long),
             }
         } else {
             None
         }
     }
 
-    fn find_setups_by_direction(&self, ts: &TimeSeries,  reversed: bool) -> GenericResult<Vec<Setup>> {
+    fn find_setups_by_direction(
+        &self,
+        ts: &TimeSeries,
+        reversed: bool,
+    ) -> GenericResult<Vec<Setup>> {
         let length = 14;
         let key = IndicatorType::RSI(length);
         let mut setups: Vec<Setup> = Vec::new();
@@ -97,10 +101,10 @@ impl RsiBasic {
             if let (Some(prev), Some(current)) = (prev_rsi, current_rsi) {
                 let orientation = if reversed {
                     self.get_reverse_orientation(&prev, &current)
-                } else  {
+                } else {
                     self.get_orientation(&prev, &current)
                 };
-                
+
                 if let Some(orientation) = orientation {
                     let atr = AtrResolution::new(14, 1.0, 1.5);
                     let resolution_strategy = ResolutionStrategy::ATR(atr);
@@ -121,7 +125,6 @@ impl RsiBasic {
         }
 
         Ok(setups)
-
     }
 }
 

@@ -107,17 +107,19 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
         }
     }
 
-    let wins_length = f_length_or_one(&wins);
-    let losses_length = f_length_or_one(&losses);
     let accuracy = if !data.is_empty() {
         (accuracy as f64) / data.len() as f64
     } else {
         0.0
     };
+
+    let wins_length = f_length_or_one(&wins);
+    let losses_length = f_length_or_one(&losses);
     let avg_win = wins.iter().sum::<f64>() / wins_length;
     let avg_loss = losses.iter().sum::<f64>() / losses_length;
     let avg_win_bars = win_bars.iter().sum::<f64>() / wins_length;
     let avg_loss_bars = loss_bars.iter().sum::<f64>() / losses_length;
+    let avg_profitability = accuracy * avg_win + (1.0 - accuracy) * avg_loss;
 
     let wins_std = std(&wins, avg_win);
     let losses_std = std(&losses, avg_loss);
@@ -127,7 +129,7 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
     TestResult {
         accuracy,
         n_setups: data.len(),
-        avg_profitability: accuracy * avg_win + (1.0-accuracy) * avg_loss,
+        avg_profitability,
         avg_win,
         avg_loss,
         avg_win_bars,

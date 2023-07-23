@@ -12,7 +12,10 @@ use crate::{
     models::interval::Interval,
     strategy_testing::test_setups,
     trading_strategies::strategy::Strategy,
-    trading_strategies::{rsi_basic::RsiBasic, setup::{FindsSetups, FindsReverseSetups}},
+    trading_strategies::{
+        rsi_basic::RsiBasic,
+        setup::{FindsReverseSetups, FindsSetups},
+    },
 };
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
@@ -48,7 +51,6 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Results:{:#?}", results);
     println!("Reverse results:{:#?}", reverse_results);
-
 
     Ok(())
 }
