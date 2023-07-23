@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn calculate_sma() {
-        let candles = Candle::dummy_data(4, "positive");
+        let candles = Candle::dummy_data(4, "positive", 100.0);
         let sma = SMA::calculate(4, 3, &candles);
         assert!(sma.is_some());
         let sma = sma.unwrap();
@@ -121,7 +121,7 @@ mod tests {
 
     #[test]
     fn sma_not_enough_data() {
-        let candles = Candle::dummy_data(2, "positive");
+        let candles = Candle::dummy_data(2, "positive", 100.0);
         let sma = SMA::calculate(4, 3, &candles);
         assert!(sma.is_none());
     }
@@ -137,7 +137,7 @@ mod tests {
     fn rolling_sma() {
         let n = 20;
         let length = 7;
-        let candles = Candle::dummy_data(20, "positive");
+        let candles = Candle::dummy_data(20, "positive", 100.0);
         let mut sma = None;
 
         let smas: Vec<Option<SMA>> = (0..n)

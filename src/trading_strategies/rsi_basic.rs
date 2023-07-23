@@ -11,6 +11,15 @@ use crate::{
 };
 use std::fmt::{Display, Formatter};
 
+/// # RSIBasic
+/// 
+/// Simple RSI strategy that initiates entries when RSI is returning from 
+/// extremes.
+/// 
+/// ## Example: 
+/// 
+/// If the upper band is set to 70.0 and the current RSI is above 70.0, a short 
+/// setup will be triggered when the RSI goes below 70.
 #[derive(Debug, Clone)]
 pub struct RsiBasic {
     pub length: usize,
@@ -46,9 +55,10 @@ impl RsiBasic {
             length: 14,
             upper_band: 70.0,
             lower_band: 30.0,
-            orientation: StrategyOrientation::Both,
+            orientation: StrategyOrientation::Long,
         }
     }
+
     fn get_orientation(&self, prev: &RSI, current: &RSI) -> Option<StrategyOrientation> {
         let long_condition = prev.value < self.lower_band && current.value > self.lower_band;
         let short_condition = prev.value > self.upper_band && current.value < self.upper_band;
@@ -73,14 +83,9 @@ impl FindsSetups for RsiBasic {
             let prev_candle = &ts.candles[i - 1];
 
             let prev_rsi = get_indicator(&prev_candle, &key, length)?;
+            let current_rsi = get_indicator(candle, &key, length)?;
 
-            if let Some(prev) = prev_rsi {
-                let current = get_indicator(candle, &key, length)?;
-                let current = match current {
-                    Some(rsi) => rsi,
-                    _ => return Err("Unable to retrieve current RSI.".into()),
-                };
-
+            if let (Some(prev), Some(current)) = (prev_rsi, current_rsi) {
                 if let Some(orientation) = self.get_orientation(&prev, &current) {
                     let atr = AtrResolution::new(14, 1.0, 1.5);
                     let resolution_strategy = ResolutionStrategy::ATR(atr);
@@ -96,8 +101,6 @@ impl FindsSetups for RsiBasic {
                         stop_loss,
                         take_profit,
                     });
-                } else {
-                    continue;
                 }
             }
         }
