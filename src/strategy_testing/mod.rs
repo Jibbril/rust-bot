@@ -3,6 +3,7 @@ mod test_result;
 use crate::{
     models::candle::Candle,
     trading_strategies::{setup::Setup, strategy_orientation::StrategyOrientation},
+    utils::{f_length_or_one, math::std},
 };
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
@@ -90,37 +91,38 @@ fn gather_results_data(
 
 fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResult {
     let mut accuracy = 0;
-    let mut wins = 0;
-    let mut losses = 0;
-    let mut avg_win = 0.0;
-    let mut avg_loss = 0.0;
-    let mut avg_win_bars = 0.0;
-    let mut avg_loss_bars = 0.0;
+    let mut wins = Vec::new();
+    let mut losses = Vec::new();
+    let mut win_bars = Vec::new();
+    let mut loss_bars = Vec::new();
 
     for (outcome, bars, _) in data.iter() {
         if *outcome >= 0.0 {
             accuracy += 1;
-            avg_win += *outcome;
-            avg_win_bars += *bars as f64;
-            wins += 1;
+            wins.push(*outcome);
+            win_bars.push(*bars as f64);
         } else {
-            avg_loss += *outcome;
-            avg_loss_bars += *bars as f64;
-            losses += 1;
+            losses.push(*outcome);
+            loss_bars.push(*bars as f64);
         }
     }
 
-    let wins_length = if wins > 0 { wins as f64 } else { 1.0 };
-    let losses_length = if losses > 0 { losses as f64 } else { 1.0 };
-    let accuracy = if data.len() > 0 {
+    let wins_length = f_length_or_one(&wins);
+    let losses_length = f_length_or_one(&losses);
+    let accuracy = if !data.is_empty() {
         (accuracy as f64) / data.len() as f64
     } else {
         0.0
     };
-    let avg_win = avg_win / wins_length;
-    let avg_loss = avg_loss / losses_length;
-    let avg_win_bars = avg_win_bars / wins_length;
-    let avg_loss_bars = avg_loss_bars / losses_length;
+    let avg_win = wins.iter().sum::<f64>() / wins_length;
+    let avg_loss = losses.iter().sum::<f64>() / losses_length;
+    let avg_win_bars = win_bars.iter().sum::<f64>() / wins_length;
+    let avg_loss_bars = loss_bars.iter().sum::<f64>() / losses_length;
+
+    let wins_std = std(&wins, avg_win);
+    let losses_std = std(&losses, avg_loss);
+    let win_bars_std = std(&win_bars, avg_win_bars);
+    let loss_bars_std = std(&loss_bars, avg_loss_bars);
 
     TestResult {
         accuracy,
@@ -129,6 +131,10 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
         avg_loss,
         avg_win_bars,
         avg_loss_bars,
+        wins_std,
+        losses_std,
+        win_bars_std,
+        loss_bars_std,
     }
 }
 
@@ -162,6 +168,10 @@ mod tests {
         assert!(results.accuracy == 0.0);
         assert!(results.avg_loss == 0.0);
         assert!(results.avg_loss_bars == 0.0);
+        assert_eq!(results.wins_std, 0.0);
+        assert_eq!(results.losses_std, 0.0);
+        assert_eq!(results.win_bars_std, 0.0);
+        assert_eq!(results.loss_bars_std, 0.0);
     }
 
     #[test]
@@ -192,12 +202,16 @@ mod tests {
         let results = test_setups(&setups.unwrap(), &ts.candles);
 
         // Ensure values are computed correctly
-        assert!(results.n == 1);
-        assert!(results.avg_win_bars == 2.0);
+        assert_eq!(results.n, 1);
+        assert_eq!(results.avg_win_bars, 2.0);
         assert!(results.avg_win - 0.078947368 < 0.01);
-        assert!(results.accuracy == 1.0);
-        assert!(results.avg_loss == 0.0);
-        assert!(results.avg_loss_bars == 0.0);
+        assert_eq!(results.accuracy, 1.0);
+        assert_eq!(results.avg_loss, 0.0);
+        assert_eq!(results.avg_loss_bars, 0.0);
+        assert_eq!(results.wins_std, 0.0);
+        assert_eq!(results.losses_std, 0.0);
+        assert_eq!(results.win_bars_std, 0.0);
+        assert_eq!(results.loss_bars_std, 0.0);
     }
 
     #[test]
@@ -270,12 +284,16 @@ mod tests {
 
         let results = test_setups(&setups, &candles);
 
-        assert!(results.n == 4);
-        assert!(results.avg_win_bars == 3.0);
-        assert!(results.avg_win == 0.4);
-        assert!(results.accuracy == 0.5);
-        assert!(results.avg_loss == -0.25);
-        assert!(results.avg_loss_bars == 2.0);
+        assert_eq!(results.n, 4);
+        assert_eq!(results.avg_win_bars, 3.0);
+        assert_eq!(results.avg_win, 0.4);
+        assert_eq!(results.accuracy, 0.5);
+        assert_eq!(results.avg_loss, -0.25);
+        assert_eq!(results.avg_loss_bars, 2.0);
+        assert!(results.wins_std - 0.14142135 < 0.001);
+        assert!(results.losses_std - 0.07071067 < 0.001);
+        assert!(results.win_bars_std - 1.41421356 < 0.001);
+        assert_eq!(results.loss_bars_std, 0.0);
     }
 
     fn gen_candle(val: f64, increment: i64) -> Candle {
