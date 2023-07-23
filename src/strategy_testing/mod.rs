@@ -126,7 +126,8 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
 
     TestResult {
         accuracy,
-        n: data.len(),
+        n_setups: data.len(),
+        avg_profitability: accuracy * avg_win + (1.0-accuracy) * avg_loss,
         avg_win,
         avg_loss,
         avg_win_bars,
@@ -162,7 +163,7 @@ mod tests {
 
         let results = test_setups(&setups, &candles);
 
-        assert!(results.n == 0);
+        assert!(results.n_setups == 0);
         assert!(results.avg_win_bars == 0.0);
         assert!(results.avg_win == 0.0);
         assert!(results.accuracy == 0.0);
@@ -202,7 +203,7 @@ mod tests {
         let results = test_setups(&setups.unwrap(), &ts.candles);
 
         // Ensure values are computed correctly
-        assert_eq!(results.n, 1);
+        assert_eq!(results.n_setups, 1);
         assert_eq!(results.avg_win_bars, 2.0);
         assert!(results.avg_win - 0.078947368 < 0.01);
         assert_eq!(results.accuracy, 1.0);
@@ -284,7 +285,7 @@ mod tests {
 
         let results = test_setups(&setups, &candles);
 
-        assert_eq!(results.n, 4);
+        assert_eq!(results.n_setups, 4);
         assert_eq!(results.avg_win_bars, 3.0);
         assert_eq!(results.avg_win, 0.4);
         assert_eq!(results.accuracy, 0.5);
