@@ -12,7 +12,10 @@ use crate::{
     models::interval::Interval,
     strategy_testing::test_setups,
     trading_strategies::strategy::Strategy,
-    trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups},
+    trading_strategies::{
+        rsi_basic::RsiBasic,
+        setup::{FindsReverseSetups, FindsSetups},
+    },
 };
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
@@ -35,11 +38,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // Implement Strategy to analyze TimeSeries
     let strategy = Strategy::RsiBasic(RsiBasic::new_default());
     let setups = strategy.find_setups(&ts)?;
-
-    println!("Found {} setups!", setups.len());
-    for setup in setups.iter() {
-        println!("{:#?}", setup.clone());
-    }
+    let reverse_setups = strategy.find_reverse_setups(&ts)?;
 
     // Send email notifications
     if false {
@@ -48,7 +47,10 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     // Test result of taking setups
     let results = test_setups(&setups, &ts.candles);
+    let reverse_results = test_setups(&reverse_setups, &ts.candles);
+
     println!("Results:{:#?}", results);
+    println!("Reverse results:{:#?}", reverse_results);
 
     Ok(())
 }
