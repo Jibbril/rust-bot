@@ -10,6 +10,10 @@ pub trait FindsSetups {
     fn find_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>>;
 }
 
+pub trait FindsReverseSetups {
+    fn find_reverse_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>>;
+}
+
 #[derive(Debug, Clone)]
 pub struct Setup {
     pub ticker: String,

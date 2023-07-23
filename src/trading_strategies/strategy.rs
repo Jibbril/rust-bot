@@ -1,6 +1,6 @@
 use super::{
     rsi_basic::RsiBasic,
-    setup::{FindsSetups, Setup},
+    setup::{FindsSetups, Setup, FindsReverseSetups},
 };
 use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
 use std::fmt::{Display, Formatter, Result};
@@ -23,5 +23,13 @@ impl FindsSetups for Strategy {
         match self {
             Self::RsiBasic(rsi) => rsi.find_setups(ts),
         }
+    }
+}
+
+impl FindsReverseSetups for Strategy {
+    fn find_reverse_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>> {
+         match self {
+            Self::RsiBasic(rsi) => rsi.find_reverse_setups(ts),
+         }
     }
 }
