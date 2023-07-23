@@ -112,9 +112,13 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
 
     let wins_length = if wins > 0 { wins as f64 } else { 1.0 };
     let losses_length = if losses > 0 { losses as f64 } else { 1.0 };
-    let accuracy = accuracy as f64;
+    let accuracy = if data.len() > 0 {
+        (accuracy as f64) / data.len() as f64
+    } else {
+        0.0
+    };
     let avg_win = avg_win / wins_length;
-    let avg_loss = 100.0 * avg_loss / losses_length;
+    let avg_loss = avg_loss / losses_length;
     let avg_win_bars = avg_win_bars / wins_length;
     let avg_loss_bars = avg_loss_bars / losses_length;
 
@@ -134,8 +138,31 @@ mod tests {
     use crate::{
         indicators::{rsi::RSI, PopulatesCandles},
         models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
-        trading_strategies::{rsi_basic::RsiBasic, setup::FindsSetups, strategy::Strategy},
+        resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
+        trading_strategies::{
+            rsi_basic::RsiBasic,
+            setup::{FindsSetups, Setup},
+            strategy::Strategy,
+            strategy_orientation::StrategyOrientation,
+        },
     };
+    use chrono::{Duration, Utc};
+    use std::collections::HashMap;
+
+    #[test]
+    fn test_empty_arrays() {
+        let candles = Vec::new();
+        let setups = Vec::new();
+
+        let results = test_setups(&setups, &candles);
+
+        assert!(results.n == 0);
+        assert!(results.avg_win_bars == 0.0);
+        assert!(results.avg_win == 0.0);
+        assert!(results.accuracy == 0.0);
+        assert!(results.avg_loss == 0.0);
+        assert!(results.avg_loss_bars == 0.0);
+    }
 
     #[test]
     fn test_setup_result() {
@@ -171,5 +198,95 @@ mod tests {
         assert!(results.accuracy == 1.0);
         assert!(results.avg_loss == 0.0);
         assert!(results.avg_loss_bars == 0.0);
+    }
+
+    #[test]
+    fn test_multiple_setups() {
+        let long_setup = gen_candle(100.0, 1);
+        let short_setup = gen_candle(150.0, 6);
+
+        let fail_long = gen_candle(100.0, 10);
+        let fail_short = gen_candle(70.0, 13);
+
+        let candles = vec![
+            gen_candle(90.0, 0),
+            long_setup.clone(),
+            gen_candle(130.0, 2),
+            gen_candle(105.0, 3),
+            gen_candle(135.0, 4),
+            gen_candle(150.0, 5),
+            short_setup.clone(),
+            gen_candle(125.0, 7),
+            gen_candle(105.0, 8),
+            gen_candle(93.0, 9),
+            fail_long.clone(),
+            gen_candle(93.0, 11),
+            gen_candle(80.0, 12),
+            fail_short.clone(),
+            gen_candle(85.0, 14),
+            gen_candle(91.0, 15),
+        ];
+
+        let resolution_strategy = ResolutionStrategy::ATR(AtrResolution::new(14, 1.0, 1.5));
+
+        let setups = vec![
+            Setup {
+                candle: long_setup,
+                ticker: "TEST".to_string(),
+                take_profit: 150.0,
+                stop_loss: 95.0,
+                interval: Interval::Daily,
+                orientation: StrategyOrientation::Long,
+                resolution_strategy: resolution_strategy.clone(),
+            },
+            Setup {
+                candle: short_setup,
+                ticker: "TEST".to_string(),
+                take_profit: 105.0,
+                stop_loss: 155.0,
+                interval: Interval::Daily,
+                orientation: StrategyOrientation::Short,
+                resolution_strategy: resolution_strategy.clone(),
+            },
+            Setup {
+                candle: fail_long,
+                ticker: "TEST".to_string(),
+                take_profit: 130.0,
+                stop_loss: 80.0,
+                interval: Interval::Daily,
+                orientation: StrategyOrientation::Long,
+                resolution_strategy: resolution_strategy.clone(),
+            },
+            Setup {
+                candle: fail_short,
+                ticker: "TEST".to_string(),
+                take_profit: 50.0,
+                stop_loss: 91.0,
+                interval: Interval::Daily,
+                orientation: StrategyOrientation::Short,
+                resolution_strategy: resolution_strategy,
+            },
+        ];
+
+        let results = test_setups(&setups, &candles);
+
+        assert!(results.n == 4);
+        assert!(results.avg_win_bars == 3.0);
+        assert!(results.avg_win == 0.4);
+        assert!(results.accuracy == 0.5);
+        assert!(results.avg_loss == -0.25);
+        assert!(results.avg_loss_bars == 2.0);
+    }
+
+    fn gen_candle(val: f64, increment: i64) -> Candle {
+        Candle {
+            open: val,
+            low: val,
+            high: val,
+            close: val,
+            timestamp: Utc::now() + Duration::days(increment),
+            volume: 1000.0,
+            indicators: HashMap::new(),
+        }
     }
 }
