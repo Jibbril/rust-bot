@@ -11,6 +11,15 @@ use crate::{
 };
 use std::fmt::{Display, Formatter};
 
+/// # RSIBasic
+/// 
+/// Simple RSI strategy that initiates entries when RSI is returning from 
+/// extremes.
+/// 
+/// ## Example: 
+/// 
+/// If the upper band is set to 70.0 and the current RSI is above 70.0, a short 
+/// setup will be triggered when the RSI goes below 70.
 #[derive(Debug, Clone)]
 pub struct RsiBasic {
     pub length: usize,
