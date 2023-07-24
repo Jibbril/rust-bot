@@ -3,7 +3,7 @@ use crate::{
         candle::Candle, generic_result::GenericResult, interval::Interval,
         strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
     },
-    resolution_strategies::ResolutionStrategy,
+    resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
 };
 #[derive(Debug, Clone)]
 pub struct Setup {
@@ -14,6 +14,21 @@ pub struct Setup {
     pub resolution_strategy: ResolutionStrategy,
     pub stop_loss: f64,
     pub take_profit: f64,
+}
+
+impl Setup {
+    pub fn dummy() -> Setup {
+        let candle = Candle::dummy_data(0, "", 100.0).pop().unwrap();
+        Setup {
+            ticker: "DUMMY".to_string(),
+            candle,
+            interval: Interval::Daily,
+            orientation: StrategyOrientation::Long,
+            resolution_strategy: ResolutionStrategy::ATR(AtrResolution::new(14, 1.0, 1.0)),
+            stop_loss: 0.0,
+            take_profit: 0.0,
+        }
+    }
 }
 
 pub trait FindsSetups {

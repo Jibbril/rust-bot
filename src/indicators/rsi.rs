@@ -8,12 +8,11 @@ use crate::models::{
 
 use super::{Indicator, IndicatorType, PopulatesCandles};
 
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, PartialEq, PartialOrd)]
 pub struct RSI {
+    pub value: f64,
     #[allow(dead_code)] // TODO: Remove once used
     pub length: usize,
-    #[allow(dead_code)] // TODO: Remove once used
-    pub value: f64,
     pub avg_gain: f64,
     pub avg_loss: f64,
 }

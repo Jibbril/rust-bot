@@ -35,4 +35,28 @@ impl Indicator {
             Indicator::ATR(opt) => opt.map(|atr| atr.value),
         }
     }
+
+    pub fn as_sma(&self) -> Option<SMA> {
+        if let Indicator::SMA(sma) = self {
+            sma.clone()
+        } else {
+            None
+        }
+    }
+
+    pub fn as_rsi(&self) -> Option<RSI> {
+        if let Indicator::RSI(rsi) = self {
+            rsi.clone()
+        } else {
+            None
+        }
+    }
+
+    pub fn as_atr(&self) -> Option<ATR> {
+        if let Indicator::ATR(atr) = self {
+            atr.clone()
+        } else {
+            None
+        }
+    }
 }
