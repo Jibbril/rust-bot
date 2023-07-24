@@ -9,13 +9,10 @@ mod utils;
 
 use crate::{
     indicators::{atr::ATR, rsi::RSI, sma::SMA, PopulatesCandles},
-    models::interval::Interval,
+    models::{interval::Interval, setup::{FindsSetups, FindsReverseSetups}},
     strategy_testing::test_setups,
     trading_strategies::strategy::Strategy,
-    trading_strategies::{
-        rsi_basic::RsiBasic,
-        setup::{FindsReverseSetups, FindsSetups},
-    },
+    trading_strategies:: rsi_basic::RsiBasic,
 };
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;

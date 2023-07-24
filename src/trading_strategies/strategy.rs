@@ -1,8 +1,5 @@
-use super::{
-    rsi_basic::RsiBasic,
-    setup::{FindsReverseSetups, FindsSetups, Setup},
-};
-use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
+use super::rsi_basic::RsiBasic;
+use crate::models::{generic_result::GenericResult, timeseries::TimeSeries, setup::{FindsSetups, Setup, FindsReverseSetups}};
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, Clone)]

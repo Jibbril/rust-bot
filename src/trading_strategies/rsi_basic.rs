@@ -1,7 +1,6 @@
-use super:: setup::{FindsReverseSetups, FindsSetups, Setup};
 use crate::{
     indicators::{rsi::RSI, Indicator, IndicatorType},
-    models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries, strategy_orientation::StrategyOrientation},
+    models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries, strategy_orientation::StrategyOrientation, setup::{Setup, FindsSetups, FindsReverseSetups}},
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
     },
