@@ -1,8 +1,8 @@
 mod test_result;
 
 use crate::{
-    models::candle::Candle,
-    trading_strategies::{setup::Setup, strategy_orientation::StrategyOrientation},
+    models::{candle::Candle, strategy_orientation::StrategyOrientation},
+    trading_strategies::setup::Setup,
     utils::{f_length_or_one, math::std},
 };
 use chrono::{DateTime, Utc};
@@ -146,13 +146,12 @@ mod tests {
     use super::test_setups;
     use crate::{
         indicators::{rsi::RSI, PopulatesCandles},
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries, strategy_orientation::StrategyOrientation},
         resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
         trading_strategies::{
             rsi_basic::RsiBasic,
             setup::{FindsSetups, Setup},
             strategy::Strategy,
-            strategy_orientation::StrategyOrientation,
         },
     };
     use chrono::{Duration, Utc};
