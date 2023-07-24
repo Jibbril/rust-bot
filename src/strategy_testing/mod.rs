@@ -145,12 +145,9 @@ mod tests {
     use super::test_setups;
     use crate::{
         indicators::{rsi::RSI, PopulatesCandles},
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries, strategy_orientation::StrategyOrientation, setup::{Setup, FindsSetups}},
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries, strategy_orientation::StrategyOrientation, setup::{Setup, FindsSetups}, strategy::Strategy},
         resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
-        trading_strategies::{
-            rsi_basic::RsiBasic,
-            strategy::Strategy,
-        },
+        trading_strategies:: rsi_basic::RsiBasic,
     };
     use chrono::{Duration, Utc};
     use std::collections::HashMap;

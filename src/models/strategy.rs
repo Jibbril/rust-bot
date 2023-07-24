@@ -1,5 +1,4 @@
-use super::rsi_basic::RsiBasic;
-use crate::models::{generic_result::GenericResult, timeseries::TimeSeries, setup::{FindsSetups, Setup, FindsReverseSetups}};
+use crate::{models::{generic_result::GenericResult, timeseries::TimeSeries, setup::{FindsSetups, Setup, FindsReverseSetups}}, trading_strategies::rsi_basic::RsiBasic};
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, Clone)]
