@@ -3,7 +3,8 @@ use crate::{
     models::{
         calculation_mode::{price_by_calc_mode, CalculationMode},
         candle::Candle,
-        generic_result::GenericResult, strategy_orientation::StrategyOrientation,
+        generic_result::GenericResult,
+        strategy_orientation::StrategyOrientation,
     },
 };
 

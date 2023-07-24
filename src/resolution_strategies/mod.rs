@@ -1,5 +1,7 @@
 pub mod atr_resolution;
-use crate::models::{candle::Candle, generic_result::GenericResult, strategy_orientation::StrategyOrientation};
+use crate::models::{
+    candle::Candle, generic_result::GenericResult, strategy_orientation::StrategyOrientation,
+};
 use atr_resolution::AtrResolution;
 
 #[derive(Debug, Clone)]

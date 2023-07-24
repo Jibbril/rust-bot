@@ -1,7 +1,7 @@
 mod test_result;
 
 use crate::{
-    models::{setup::Setup,candle::Candle, strategy_orientation::StrategyOrientation},
+    models::{candle::Candle, setup::Setup, strategy_orientation::StrategyOrientation},
     utils::{f_length_or_one, math::std},
 };
 use chrono::{DateTime, Utc};
@@ -145,9 +145,16 @@ mod tests {
     use super::test_setups;
     use crate::{
         indicators::{rsi::RSI, PopulatesCandles},
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries, strategy_orientation::StrategyOrientation, setup::{Setup, FindsSetups}, strategy::Strategy},
+        models::{
+            candle::Candle,
+            interval::Interval,
+            setup::{FindsSetups, Setup},
+            strategy::Strategy,
+            strategy_orientation::StrategyOrientation,
+            timeseries::TimeSeries,
+        },
         resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
-        trading_strategies:: rsi_basic::RsiBasic,
+        trading_strategies::rsi_basic::RsiBasic,
     };
     use chrono::{Duration, Utc};
     use std::collections::HashMap;
