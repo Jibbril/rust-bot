@@ -18,7 +18,7 @@ pub struct Setup {
 
 impl Setup {
     pub fn dummy() -> Setup {
-        let candle = Candle::dummy_data(0, "", 100.0).pop().unwrap();
+        let candle = Candle::dummy_data(1, "", 100.0).pop().unwrap();
         Setup {
             ticker: "DUMMY".to_string(),
             candle,
