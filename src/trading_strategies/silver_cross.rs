@@ -91,7 +91,7 @@ impl FindsSetups for SilverCross {
             }
         }
 
-        Ok(vec![Setup::dummy()])
+        Ok(setups)
     }
 }
 

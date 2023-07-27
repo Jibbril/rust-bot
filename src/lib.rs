@@ -15,7 +15,7 @@ use crate::{
         strategy::Strategy,
     },
     strategy_testing::test_setups,
-    trading_strategies::rsi_basic::RsiBasic,
+    trading_strategies::{rsi_basic::RsiBasic, silver_cross::SilverCross},
 };
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
@@ -32,25 +32,30 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     // Calculate indicator data for TimeSeries
     SMA::populate_candles(&mut ts.candles, 7)?;
+    SMA::populate_candles(&mut ts.candles, 21)?;
+    SMA::populate_candles(&mut ts.candles, 55)?;
     RSI::populate_candles(&mut ts.candles, 14)?;
     ATR::populate_candles(&mut ts.candles, 14)?;
 
     // Implement Strategy to analyze TimeSeries
-    let strategy = Strategy::RsiBasic(RsiBasic::new_default());
-    let setups = strategy.find_setups(&ts)?;
-    let reverse_setups = strategy.find_reverse_setups(&ts)?;
+    let rsi_strategy = Strategy::RsiBasic(RsiBasic::new_default());
+    let silver_cross_strategy = Strategy::SilverCross(SilverCross::new_default());
+
+    let rsi_setups = rsi_strategy.find_reverse_setups(&ts)?;
+    let silver_cross_setups = silver_cross_strategy.find_setups(&ts)?;
+
 
     // Send email notifications
     if false {
-        notify(&setups[0], &strategy).await?;
+        notify(&rsi_setups[0], &rsi_strategy).await?;
     }
 
     // Test result of taking setups
-    let results = test_setups(&setups, &ts.candles);
-    let reverse_results = test_setups(&reverse_setups, &ts.candles);
+    let rsi_results = test_setups(&rsi_setups, &ts.candles);
+    let silver_cross_results = test_setups(&silver_cross_setups, &ts.candles);
 
-    println!("Results:{:#?}", results);
-    println!("Reverse results:{:#?}", reverse_results);
+    println!("RSI results:{:#?}", rsi_results);
+    println!("Silver Cross results: {:#?}", silver_cross_results);
 
     Ok(())
 }
