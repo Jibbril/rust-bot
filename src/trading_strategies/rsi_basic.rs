@@ -1,10 +1,11 @@
-use super::{
-    setup::{FindsReverseSetups, FindsSetups, Setup},
-    strategy_orientation::StrategyOrientation,
-};
 use crate::{
-    indicators::{rsi::RSI, Indicator, IndicatorType},
-    models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries},
+    indicators::{rsi::RSI, IndicatorType},
+    models::{
+        generic_result::GenericResult,
+        setup::{FindsReverseSetups, FindsSetups, Setup},
+        strategy_orientation::StrategyOrientation,
+        timeseries::TimeSeries,
+    },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
     },
@@ -26,12 +27,6 @@ pub struct RsiBasic {
     pub upper_band: f64,
     pub lower_band: f64,
     pub orientation: StrategyOrientation,
-}
-
-impl Display for RsiBasic {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "RSI Basic")
-    }
 }
 
 impl RsiBasic {
@@ -95,8 +90,8 @@ impl RsiBasic {
         for (i, candle) in ts.candles.iter().enumerate().skip(1) {
             let prev_candle = &ts.candles[i - 1];
 
-            let prev_rsi = get_indicator(&prev_candle, &key, length)?;
-            let current_rsi = get_indicator(candle, &key, length)?;
+            let prev_rsi = prev_candle.get_indicator(&key)?.as_rsi();
+            let current_rsi = candle.get_indicator(&key)?.as_rsi();
 
             if let (Some(prev), Some(current)) = (prev_rsi, current_rsi) {
                 let orientation = if reversed {
@@ -140,17 +135,8 @@ impl FindsReverseSetups for RsiBasic {
     }
 }
 
-fn get_indicator(
-    candle: &Candle,
-    key: &IndicatorType,
-    length: usize,
-) -> GenericResult<Option<RSI>> {
-    candle
-        .indicators
-        .get(key)
-        .ok_or_else(|| format!("No RSI of length {}", length).into())
-        .and_then(|indicator| match indicator {
-            Indicator::RSI(rsi) => Ok(rsi.clone()),
-            _ => Ok(None),
-        })
+impl Display for RsiBasic {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "RSI Basic")
+    }
 }

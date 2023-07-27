@@ -1,3 +1,4 @@
+use super::generic_result::GenericResult;
 use crate::indicators::{Indicator, IndicatorType};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
@@ -49,5 +50,12 @@ impl Candle {
                 }
             })
             .collect()
+    }
+
+    pub fn get_indicator(&self, key: &IndicatorType) -> GenericResult<Indicator> {
+        self.indicators
+            .get(key)
+            .ok_or_else(|| format!("Unable to find indicator with type: {:#?}", key).into())
+            .and_then(|indicator| Ok(indicator.clone()))
     }
 }

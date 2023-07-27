@@ -1,7 +1,4 @@
-use crate::{
-    models::generic_result::GenericResult,
-    trading_strategies::{setup::Setup, strategy::Strategy},
-};
+use crate::models::{generic_result::GenericResult, setup::Setup, strategy::Strategy};
 use lettre::{
     message::header::ContentType, transport::smtp::authentication::Credentials, Message,
     SmtpTransport, Transport,

@@ -6,11 +6,11 @@ use crate::models::{
 
 use super::{Indicator, IndicatorType, PopulatesCandles};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct SMA {
     #[allow(dead_code)] // TODO: Remove once used
-    pub length: usize,
     pub value: f64,
+    pub length: usize,
 }
 
 impl PopulatesCandles for SMA {
