@@ -22,6 +22,7 @@ pub struct SilverCross {
 }
 
 impl SilverCross {
+    #[allow(dead_code)] // TODO: Remove once used
     pub fn new(orientation: StrategyOrientation) -> Self {
         SilverCross { orientation }
     }

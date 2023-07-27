@@ -1,7 +1,6 @@
 use crate::{
-    indicators::{rsi::RSI, Indicator, IndicatorType},
+    indicators::{rsi::RSI, IndicatorType},
     models::{
-        candle::Candle,
         generic_result::GenericResult,
         setup::{FindsReverseSetups, FindsSetups, Setup},
         strategy_orientation::StrategyOrientation,

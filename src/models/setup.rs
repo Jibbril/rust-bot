@@ -17,6 +17,7 @@ pub struct Setup {
 }
 
 impl Setup {
+    #[allow(dead_code)] // TODO: Remove once used
     pub fn dummy() -> Setup {
         let candle = Candle::dummy_data(1, "", 100.0).pop().unwrap();
         Setup {

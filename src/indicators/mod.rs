@@ -52,6 +52,7 @@ impl Indicator {
         }
     }
 
+    #[allow(dead_code)] // TODO: Remove once used
     pub fn as_atr(&self) -> Option<ATR> {
         if let Indicator::ATR(atr) = self {
             atr.clone()
