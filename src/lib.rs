@@ -44,7 +44,6 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let rsi_setups = rsi_strategy.find_reverse_setups(&ts)?;
     let silver_cross_setups = silver_cross_strategy.find_setups(&ts)?;
 
-
     // Send email notifications
     if false {
         notify(&rsi_setups[0], &rsi_strategy).await?;

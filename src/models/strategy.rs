@@ -11,7 +11,7 @@ use std::fmt::{Display, Formatter, Result};
 #[derive(Debug, Clone)]
 pub enum Strategy {
     RsiBasic(RsiBasic),
-    SilverCross(SilverCross)
+    SilverCross(SilverCross),
 }
 
 impl Display for Strategy {
@@ -36,7 +36,7 @@ impl FindsReverseSetups for Strategy {
     fn find_reverse_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>> {
         match self {
             Self::RsiBasic(rsi) => rsi.find_reverse_setups(ts),
-            _ => Ok(Vec::new())
+            _ => Ok(Vec::new()),
         }
     }
 }

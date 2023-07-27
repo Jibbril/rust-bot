@@ -1,8 +1,8 @@
+use super::generic_result::GenericResult;
 use crate::indicators::{Indicator, IndicatorType};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use super::generic_result::GenericResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Candle {
