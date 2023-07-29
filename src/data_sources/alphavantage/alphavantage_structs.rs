@@ -75,7 +75,7 @@ pub struct AlphaVantageApiResponse {
 }
 
 impl AlphaVantageApiResponse {
-    pub fn to_timeseries(&mut self, interval: Interval) -> GenericResult<TimeSeries> {
+    pub fn to_timeseries(&mut self, interval: &Interval) -> GenericResult<TimeSeries> {
         let candles: GenericResult<Vec<Candle>> = self
             .timeseries
             .iter()

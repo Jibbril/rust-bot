@@ -1,11 +1,11 @@
-mod structs;
+mod alphavantage_structs;
 
 use crate::models::generic_result::GenericResult;
 use crate::models::interval::Interval;
 use crate::models::timeseries::TimeSeries;
 use reqwest;
 use std::env;
-use structs::AlphaVantageApiResponse;
+use alphavantage_structs::AlphaVantageApiResponse;
 
 pub async fn get(symbol: &str, interval: &Interval) -> GenericResult<TimeSeries> {
     let function = "DIGITAL_CURRENCY_DAILY";
@@ -22,7 +22,7 @@ pub async fn get(symbol: &str, interval: &Interval) -> GenericResult<TimeSeries>
 async fn convert_data(res: reqwest::Response) -> GenericResult<TimeSeries> {
     let mut alpha_vantage_data: AlphaVantageApiResponse = res.json().await?;
 
-    let timeseries = alpha_vantage_data.to_timeseries(Interval::Daily);
+    let timeseries = alpha_vantage_data.to_timeseries(&Interval::Daily);
 
     timeseries.map(|ts| ts)
 }
