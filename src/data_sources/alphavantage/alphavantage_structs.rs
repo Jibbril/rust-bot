@@ -99,7 +99,7 @@ impl AlphaVantageApiResponse {
 
             TimeSeries {
                 ticker: self.metadata.digital_currency_code.to_string(),
-                interval,
+                interval: interval.clone(),
                 candles,
             }
         })
