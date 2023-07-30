@@ -2,13 +2,14 @@ use serde::Deserialize;
 use std::collections::HashMap;
 
 use crate::{
+    data_sources::ApiResponse,
     models::{
         candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
     },
-    utils::str_date_to_datetime, data_sources::ApiResponse,
+    utils::str_date_to_datetime,
 };
 
-#[allow(dead_code)] 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct AlphaVantageMetaData {
     #[serde(rename = "1. Information")]
@@ -66,7 +67,7 @@ struct AlphaVantageTimeSeries {
     _market_cap: String,
 }
 
-#[allow(dead_code)] 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct AlphaVantageApiResponse {
     #[serde(rename = "Meta Data")]

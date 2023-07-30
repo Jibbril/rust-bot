@@ -6,7 +6,7 @@ mod local;
 use crate::models::{generic_result::GenericResult, interval::Interval, timeseries::TimeSeries};
 
 // Available data sources
-#[allow(dead_code)] 
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DataSource {
     AlphaVantage,

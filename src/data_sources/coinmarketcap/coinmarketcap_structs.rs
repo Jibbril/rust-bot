@@ -1,14 +1,13 @@
 use serde::Deserialize;
 
-#[allow(dead_code)] 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct CoinMarketCapApiResponse {
     data: Vec<CoinData>,
-    status: Status
+    status: Status,
 }
 
-
-#[allow(dead_code)] 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct CoinData {
     circulating_supply: f64,
@@ -23,7 +22,7 @@ struct CoinData {
     platform: Option<serde_json::Value>, // or another struct, if the structure of "platform" is known
     quote: Quote,
     self_reported_circulating_supply: Option<serde_json::Value>, // or another type
-    self_reported_market_cap: Option<serde_json::Value>, // or another type
+    self_reported_market_cap: Option<serde_json::Value>,         // or another type
     slug: String,
     symbol: String,
     tags: Vec<String>,
@@ -31,13 +30,13 @@ struct CoinData {
     tvl_ratio: Option<serde_json::Value>, // or another type
 }
 
-#[allow(dead_code)] 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct Quote {
     usd: Currency,
 }
 
-#[allow(dead_code)] 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct Currency {
     fully_diluted_market_cap: f64,
@@ -56,7 +55,7 @@ struct Currency {
     volume_change_24h: f64,
 }
 
-#[allow(dead_code)] 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct Status {
     credit_count: i32,

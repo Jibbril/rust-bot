@@ -1,12 +1,12 @@
 mod alphavantage_structs;
 
+use super::ApiResponse;
 use crate::models::generic_result::GenericResult;
 use crate::models::interval::Interval;
 use crate::models::timeseries::TimeSeries;
+use alphavantage_structs::AlphaVantageApiResponse;
 use reqwest;
 use std::env;
-use alphavantage_structs::AlphaVantageApiResponse;
-use super::ApiResponse;
 
 pub async fn get(symbol: &str, interval: &Interval) -> GenericResult<TimeSeries> {
     let function = "DIGITAL_CURRENCY_DAILY";

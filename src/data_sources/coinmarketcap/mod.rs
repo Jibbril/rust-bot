@@ -3,15 +3,17 @@ use std::env;
 
 use reqwest::Client;
 
-use crate::{models::{generic_result::GenericResult, timeseries::TimeSeries, interval::Interval}, data_sources::coinmarketcap::coinmarketcap_structs::CoinMarketCapApiResponse};
+use crate::{
+    data_sources::coinmarketcap::coinmarketcap_structs::CoinMarketCapApiResponse,
+    models::{generic_result::GenericResult, interval::Interval, timeseries::TimeSeries},
+};
 
-
-pub async fn get() -> GenericResult<TimeSeries>{
+pub async fn get() -> GenericResult<TimeSeries> {
     let symbol = "BTC";
     let interval = &Interval::Daily;
 
     let api_key = env::var("COINMARKETCAP_KEY")?;
-    let url = construct_url(symbol,interval)?;
+    let url = construct_url(symbol, interval)?;
 
     let client = Client::new();
     let response = client

@@ -1,8 +1,14 @@
-use std::collections::HashMap;
+use crate::{
+    data_sources::ApiResponse,
+    models::{
+        candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
+    },
+    utils::secs_to_datetime,
+};
 use serde::Deserialize;
-use crate::{data_sources::ApiResponse, models::{interval::Interval, generic_result::GenericResult, timeseries::TimeSeries, candle::Candle}, utils::secs_to_datetime};
+use std::collections::HashMap;
 
-#[allow(dead_code)] 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 pub struct CryptoCompareApiResponse {
     #[serde(rename = "Response")]
@@ -21,7 +27,9 @@ pub struct CryptoCompareApiResponse {
 
 impl ApiResponse for CryptoCompareApiResponse {
     fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> GenericResult<TimeSeries> {
-        let candles: GenericResult<Vec<Candle>> = self.data.data
+        let candles: GenericResult<Vec<Candle>> = self
+            .data
+            .data
             .iter()
             .map(|entry| {
                 let timestamp = secs_to_datetime(entry.time)?;
@@ -44,13 +52,13 @@ impl ApiResponse for CryptoCompareApiResponse {
             TimeSeries {
                 ticker: symbol.to_string(),
                 interval: interval.clone(),
-                candles
+                candles,
             }
         })
     }
 }
 
-#[allow(dead_code)] 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 pub struct Data {
     #[serde(rename = "Aggregated")]
@@ -63,7 +71,7 @@ pub struct Data {
     data: Vec<DataEntry>,
 }
 
-#[allow(dead_code)] 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 pub struct DataEntry {
     #[serde(rename = "time")]
@@ -85,4 +93,3 @@ pub struct DataEntry {
     #[serde(rename = "conversionSymbol")]
     conversion_symbol: String,
 }
-

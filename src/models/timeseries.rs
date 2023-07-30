@@ -9,6 +9,10 @@ pub struct TimeSeries {
 
 impl TimeSeries {
     pub fn dummy() -> Self {
-        TimeSeries { ticker: "DUMMY".to_string(), interval: Interval::Daily, candles: Vec::new() }
+        TimeSeries {
+            ticker: "DUMMY".to_string(),
+            interval: Interval::Daily,
+            candles: Vec::new(),
+        }
     }
 }

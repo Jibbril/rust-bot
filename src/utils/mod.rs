@@ -1,6 +1,6 @@
 pub mod math;
 use crate::models::generic_result::GenericResult;
-use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Utc, TimeZone};
+use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
 
 pub fn str_date_to_datetime(s: &str) -> GenericResult<DateTime<Utc>> {
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
@@ -18,7 +18,7 @@ pub fn str_date_to_datetime(s: &str) -> GenericResult<DateTime<Utc>> {
 pub fn secs_to_datetime(timestamp: u64) -> GenericResult<DateTime<Utc>> {
     Utc.timestamp_opt(timestamp as i64, 0)
         .single()
-        .ok_or_else(|| format!("Invalid timestamp: {}", timestamp).into()) 
+        .ok_or_else(|| format!("Invalid timestamp: {}", timestamp).into())
 }
 
 pub fn length_or_one<T>(arr: &[T]) -> usize {
