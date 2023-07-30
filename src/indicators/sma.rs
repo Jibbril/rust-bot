@@ -15,10 +15,6 @@ pub struct SMA {
 
 impl PopulatesCandles for SMA {
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
-        if candles.len() < length {
-            return Err("Length of candles is shorter than indicator length.".into());
-        }
-
         let mut sma: Option<SMA> = None;
         let new_smas: Vec<Option<SMA>> = (0..candles.len())
             .map(|i| {
