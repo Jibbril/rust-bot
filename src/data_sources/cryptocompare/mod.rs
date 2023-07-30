@@ -33,15 +33,15 @@ fn construct_url(symbol: &str, interval: &Interval, limit: u32) -> String {
     let day = "histoday";
 
     let (interval, aggregate) = match interval {
-        Interval::Minute5 => (minute,5),
-        Interval::Minute15 => (minute,15),
-        Interval::Minute30 => (minute,30),
-        Interval::Hour1 => (hour,1),
-        Interval::Hour4 => (hour,4),
-        Interval::Hour12 => (hour,12),
-        Interval::Day1 => (day,1),
-        Interval::Day5 => (day,5),
-        Interval::Week1 => (day,5),
+        Interval::Minute5 => (minute, 5),
+        Interval::Minute15 => (minute, 15),
+        Interval::Minute30 => (minute, 30),
+        Interval::Hour1 => (hour, 1),
+        Interval::Hour4 => (hour, 4),
+        Interval::Hour12 => (hour, 12),
+        Interval::Day1 => (day, 1),
+        Interval::Day5 => (day, 5),
+        Interval::Week1 => (day, 5),
     };
 
     // TODO: Enable multiples using the aggregate parameter in the api

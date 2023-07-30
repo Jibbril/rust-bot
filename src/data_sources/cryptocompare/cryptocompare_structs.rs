@@ -50,7 +50,7 @@ impl ApiResponse for CryptoCompareApiResponse {
             candles.sort_by_key(|candle| candle.timestamp);
 
             // CryptoCompare returns the current interval as well, we only want
-            // historical data here. 
+            // historical data here.
             candles.pop();
 
             TimeSeries {

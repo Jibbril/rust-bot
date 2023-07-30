@@ -35,15 +35,15 @@ pub async fn request_data(
 
         match result {
             Ok(ts) => return Ok(ts),
-            _ => source = *s
+            _ => source = *s,
         }
-    } 
+    }
 
     ts = match source {
         DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
         DataSource::CoinMarketCap => coinmarketcap::get().await?,
         DataSource::CryptoCompare => cryptocompare::get(symbol, &interval).await?,
-        _ => panic!("Error")
+        _ => panic!("Error"),
     };
 
     if save_local {

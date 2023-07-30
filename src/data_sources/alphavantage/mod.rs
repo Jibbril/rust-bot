@@ -20,7 +20,11 @@ pub async fn get(symbol: &str, interval: &Interval) -> GenericResult<TimeSeries>
     }
 }
 
-async fn convert_data(symbol: &str, res: reqwest::Response, interval: &Interval) -> GenericResult<TimeSeries> {
+async fn convert_data(
+    symbol: &str,
+    res: reqwest::Response,
+    interval: &Interval,
+) -> GenericResult<TimeSeries> {
     let mut alpha_vantage_data: AlphaVantageApiResponse = res.json().await?;
 
     let timeseries = alpha_vantage_data.to_timeseries(symbol, interval);
@@ -32,7 +36,7 @@ fn construct_url(function: &str, symbol: &str, interval: &Interval) -> String {
     //TODO: Implement different intervals
     match interval {
         Interval::Day1 => (),
-        _ => panic!("{} interval not supported by Alpha Vantage.", interval)
+        _ => panic!("{} interval not supported by Alpha Vantage.", interval),
     }
 
     let market = "USD";
