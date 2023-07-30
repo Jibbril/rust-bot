@@ -15,21 +15,25 @@ pub async fn get(symbol: &str, interval: &Interval) -> GenericResult<TimeSeries>
     let response = reqwest::get(url).await?;
 
     match response.status() {
-        reqwest::StatusCode::OK => convert_data(symbol, response).await,
+        reqwest::StatusCode::OK => convert_data(symbol, response, interval).await,
         _ => Err("Request failed.".into()),
     }
 }
 
-async fn convert_data(symbol: &str, res: reqwest::Response) -> GenericResult<TimeSeries> {
+async fn convert_data(symbol: &str, res: reqwest::Response, interval: &Interval) -> GenericResult<TimeSeries> {
     let mut alpha_vantage_data: AlphaVantageApiResponse = res.json().await?;
 
-    let timeseries = alpha_vantage_data.to_timeseries(symbol, &Interval::Daily);
+    let timeseries = alpha_vantage_data.to_timeseries(symbol, interval);
 
     timeseries.map(|ts| ts)
 }
 
-fn construct_url(function: &str, symbol: &str, _interval: &Interval) -> String {
+fn construct_url(function: &str, symbol: &str, interval: &Interval) -> String {
     //TODO: Implement different intervals
+    match interval {
+        Interval::Day1 => (),
+        _ => panic!("{} interval not supported by Alpha Vantage.", interval)
+    }
 
     let market = "USD";
     let key = env::var("ALPHA_VANTAGE_KEY");

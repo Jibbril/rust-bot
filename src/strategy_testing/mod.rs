@@ -189,7 +189,7 @@ mod tests {
         let mut ts = TimeSeries {
             candles,
             ticker: "TEST".to_string(),
-            interval: Interval::Daily,
+            interval: Interval::Day1,
         };
 
         // Populate rsi indicator
@@ -253,7 +253,7 @@ mod tests {
                 ticker: "TEST".to_string(),
                 take_profit: 150.0,
                 stop_loss: 95.0,
-                interval: Interval::Daily,
+                interval: Interval::Day1,
                 orientation: StrategyOrientation::Long,
                 resolution_strategy: resolution_strategy.clone(),
             },
@@ -262,7 +262,7 @@ mod tests {
                 ticker: "TEST".to_string(),
                 take_profit: 105.0,
                 stop_loss: 155.0,
-                interval: Interval::Daily,
+                interval: Interval::Day1,
                 orientation: StrategyOrientation::Short,
                 resolution_strategy: resolution_strategy.clone(),
             },
@@ -271,7 +271,7 @@ mod tests {
                 ticker: "TEST".to_string(),
                 take_profit: 130.0,
                 stop_loss: 80.0,
-                interval: Interval::Daily,
+                interval: Interval::Day1,
                 orientation: StrategyOrientation::Long,
                 resolution_strategy: resolution_strategy.clone(),
             },
@@ -280,7 +280,7 @@ mod tests {
                 ticker: "TEST".to_string(),
                 take_profit: 50.0,
                 stop_loss: 91.0,
-                interval: Interval::Daily,
+                interval: Interval::Day1,
                 orientation: StrategyOrientation::Short,
                 resolution_strategy: resolution_strategy,
             },

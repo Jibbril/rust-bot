@@ -11,7 +11,7 @@ impl TimeSeries {
     pub fn dummy() -> Self {
         TimeSeries {
             ticker: "DUMMY".to_string(),
-            interval: Interval::Daily,
+            interval: Interval::Day1,
             candles: Vec::new(),
         }
     }
