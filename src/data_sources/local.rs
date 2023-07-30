@@ -19,11 +19,9 @@ pub async fn read(
 ) -> GenericResult<TimeSeries> {
     let path = construct_path(interval, symbol, source);
     let path = Path::new(&path).join(FILE_NAME);
-
     let file = File::open(&path)?;
-
+    
     let mut reader = Reader::from_reader(file);
-
     let mut candles = Vec::new();
 
     for result in reader.deserialize() {
