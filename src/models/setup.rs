@@ -23,7 +23,7 @@ impl Setup {
         Setup {
             ticker: "DUMMY".to_string(),
             candle,
-            interval: Interval::Daily,
+            interval: Interval::Day1,
             orientation: StrategyOrientation::Long,
             resolution_strategy: ResolutionStrategy::ATR(AtrResolution::new(14, 1.0, 1.0)),
             stop_loss: 0.0,

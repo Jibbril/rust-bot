@@ -27,10 +27,10 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // Get TimeSeries data
     let source = DataSource::CryptoCompare;
     let source = DataSource::Local(Box::new(source));
-    let interval = Interval::Daily;
+    let interval = Interval::Day1;
     let mut ts = request_data(&source, "BTC", interval, true).await?;
 
-    // Calculate indicator data for TimeSeries
+    // Calculate indicators for TimeSeries
     SMA::populate_candles(&mut ts.candles, 7)?;
     SMA::populate_candles(&mut ts.candles, 21)?;
     SMA::populate_candles(&mut ts.candles, 55)?;

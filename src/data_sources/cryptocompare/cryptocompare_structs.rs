@@ -49,6 +49,10 @@ impl ApiResponse for CryptoCompareApiResponse {
         candles.map(|mut candles| {
             candles.sort_by_key(|candle| candle.timestamp);
 
+            // CryptoCompare returns the current interval as well, we only want
+            // historical data here.
+            candles.pop();
+
             TimeSeries {
                 ticker: symbol.to_string(),
                 interval: interval.clone(),

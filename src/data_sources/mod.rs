@@ -25,11 +25,25 @@ pub async fn request_data(
     interval: Interval,
     save_local: bool,
 ) -> GenericResult<TimeSeries> {
-    let ts: TimeSeries = match source {
+    let ts: TimeSeries;
+
+    let mut source = source.clone();
+
+    // Attempt local retrieval if possible
+    if let DataSource::Local(s) = source {
+        let result = local::read(&s, &symbol, &interval).await;
+
+        match result {
+            Ok(ts) => return Ok(ts),
+            _ => source = *s,
+        }
+    }
+
+    ts = match source {
         DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
         DataSource::CoinMarketCap => coinmarketcap::get().await?,
         DataSource::CryptoCompare => cryptocompare::get(symbol, &interval).await?,
-        DataSource::Local(source) => local::read(&source, &symbol, &interval).await?,
+        _ => panic!("Error"),
     };
 
     if save_local {

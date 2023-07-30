@@ -10,7 +10,7 @@ use crate::{
 
 pub async fn get() -> GenericResult<TimeSeries> {
     let symbol = "BTC";
-    let interval = &Interval::Daily;
+    let interval = &Interval::Day1;
 
     let api_key = env::var("COINMARKETCAP_KEY")?;
     let url = construct_url(symbol, interval)?;

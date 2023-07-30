@@ -20,9 +20,8 @@ pub async fn read(
     let path = construct_path(interval, symbol, source);
     let path = Path::new(&path).join(FILE_NAME);
     let file = File::open(&path)?;
-
+    
     let mut reader = Reader::from_reader(file);
-
     let mut candles = Vec::new();
 
     for result in reader.deserialize() {
@@ -65,7 +64,15 @@ fn construct_path(interval: &Interval, ticker: &str, source: &DataSource) -> Str
     };
 
     let interval = match interval {
-        Interval::Daily => "daily",
+        Interval::Minute5 => "minute-5",
+        Interval::Minute15 => "minute-15",
+        Interval::Minute30 => "minute-30",
+        Interval::Hour1 => "hour-1",
+        Interval::Hour4 => "hour-4",
+        Interval::Hour12 => "hour-12",
+        Interval::Day1 => "day-1",
+        Interval::Day5 => "day-5",
+        Interval::Week1 => "week-1",
     };
 
     format!("data/{}/{}/{}", source, ticker, interval)
