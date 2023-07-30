@@ -30,7 +30,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let interval = Interval::Day1;
     let mut ts = request_data(&source, "BTC", interval, true).await?;
 
-    // Calculate indicators data for TimeSeries
+    // Calculate indicators for TimeSeries
     SMA::populate_candles(&mut ts.candles, 7)?;
     SMA::populate_candles(&mut ts.candles, 21)?;
     SMA::populate_candles(&mut ts.candles, 55)?;
