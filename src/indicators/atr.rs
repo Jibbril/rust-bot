@@ -15,10 +15,6 @@ pub struct ATR {
 
 impl PopulatesCandles for ATR {
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
-        if candles.len() < length {
-            return Err("Length of candles is shorter than indicator length.".into());
-        }
-
         let mut atr: Option<ATR> = None;
 
         let new_atrs: Vec<Option<ATR>> = (0..candles.len())

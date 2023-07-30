@@ -5,9 +5,10 @@ use crate::{
     models::{
         candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
     },
-    utils::str_date_to_datetime,
+    utils::str_date_to_datetime, data_sources::ApiResponse,
 };
 
+#[allow(dead_code)] 
 #[derive(Debug, Deserialize)]
 struct AlphaVantageMetaData {
     #[serde(rename = "1. Information")]
@@ -65,6 +66,7 @@ struct AlphaVantageTimeSeries {
     _market_cap: String,
 }
 
+#[allow(dead_code)] 
 #[derive(Debug, Deserialize)]
 pub struct AlphaVantageApiResponse {
     #[serde(rename = "Meta Data")]
@@ -74,8 +76,8 @@ pub struct AlphaVantageApiResponse {
     timeseries: HashMap<String, AlphaVantageTimeSeries>,
 }
 
-impl AlphaVantageApiResponse {
-    pub fn to_timeseries(&mut self, interval: &Interval) -> GenericResult<TimeSeries> {
+impl ApiResponse for AlphaVantageApiResponse {
+    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> GenericResult<TimeSeries> {
         let candles: GenericResult<Vec<Candle>> = self
             .timeseries
             .iter()
@@ -98,7 +100,7 @@ impl AlphaVantageApiResponse {
             candles.sort_by_key(|candle| candle.timestamp);
 
             TimeSeries {
-                ticker: self.metadata.digital_currency_code.to_string(),
+                ticker: symbol.to_string(),
                 interval: interval.clone(),
                 candles,
             }

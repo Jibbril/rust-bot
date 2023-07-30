@@ -3,8 +3,8 @@ mod coinmarketcap;
 mod cryptocompare;
 mod local;
 
-
 use crate::models::{generic_result::GenericResult, interval::Interval, timeseries::TimeSeries};
+
 // Available data sources
 #[allow(dead_code)] 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -13,6 +13,10 @@ pub enum DataSource {
     CoinMarketCap,
     CryptoCompare,
     Local(Box<DataSource>),
+}
+
+pub trait ApiResponse {
+    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> GenericResult<TimeSeries>;
 }
 
 pub async fn request_data(
@@ -24,7 +28,7 @@ pub async fn request_data(
     let ts: TimeSeries = match source {
         DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
         DataSource::CoinMarketCap => coinmarketcap::get().await?,
-        DataSource::CryptoCompare => cryptocompare::get().await?,
+        DataSource::CryptoCompare => cryptocompare::get(symbol, &interval).await?,
         DataSource::Local(source) => local::read(&source, &symbol, &interval).await?,
     };
 

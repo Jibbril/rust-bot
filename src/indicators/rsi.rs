@@ -19,10 +19,6 @@ pub struct RSI {
 
 impl PopulatesCandles for RSI {
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
-        if candles.len() < length {
-            return Err("Length of candles is shorter than indicator length.".into());
-        }
-
         let mut rsi: Option<RSI> = None;
         let new_rsis: Vec<Option<RSI>> = (0..candles.len())
             .map(|i| {

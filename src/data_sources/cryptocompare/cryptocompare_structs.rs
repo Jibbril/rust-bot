@@ -1,4 +1,6 @@
+use std::collections::HashMap;
 use serde::Deserialize;
+use crate::{data_sources::ApiResponse, models::{interval::Interval, generic_result::GenericResult, timeseries::TimeSeries, candle::Candle}, utils::secs_to_datetime};
 
 #[allow(dead_code)] 
 #[derive(Deserialize, Debug)]
@@ -15,6 +17,37 @@ pub struct CryptoCompareApiResponse {
     rate_limit: serde_json::Value,
     #[serde(rename = "Data")]
     data: Data,
+}
+
+impl ApiResponse for CryptoCompareApiResponse {
+    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> GenericResult<TimeSeries> {
+        let candles: GenericResult<Vec<Candle>> = self.data.data
+            .iter()
+            .map(|entry| {
+                let timestamp = secs_to_datetime(entry.time)?;
+
+                Ok(Candle {
+                    timestamp,
+                    open: entry.open,
+                    close: entry.close,
+                    high: entry.high,
+                    low: entry.low,
+                    volume: entry.volume_from,
+                    indicators: HashMap::new(),
+                })
+            })
+            .collect();
+
+        candles.map(|mut candles| {
+            candles.sort_by_key(|candle| candle.timestamp);
+
+            TimeSeries {
+                ticker: symbol.to_string(),
+                interval: interval.clone(),
+                candles
+            }
+        })
+    }
 }
 
 #[allow(dead_code)] 

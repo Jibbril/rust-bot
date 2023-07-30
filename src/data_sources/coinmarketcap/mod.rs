@@ -19,9 +19,7 @@ pub async fn get() -> GenericResult<TimeSeries>{
         .header("X-CMC_PRO_API_KEY", api_key)
         .send()
         .await?;
-    let response: CoinMarketCapApiResponse = response.json().await?;
-
-    println!("Response:{:#?}", response);
+    let _: CoinMarketCapApiResponse = response.json().await?;
 
     Ok(TimeSeries::dummy())
 }

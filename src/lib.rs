@@ -25,7 +25,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
 
     // Get TimeSeries data
-    let source = DataSource::AlphaVantage;
+    let source = DataSource::CryptoCompare;
     let source = DataSource::Local(Box::new(source));
     let interval = Interval::Daily;
     let mut ts = request_data(&source, "BTC", interval, true).await?;
