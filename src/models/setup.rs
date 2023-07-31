@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
 
 use crate::{
@@ -32,6 +33,23 @@ impl Setup {
             take_profit: 0.0,
         }
     }
+
+    pub fn to_csv_row(&self) -> CsvSetupRow {
+        CsvSetupRow {
+            ticker: self.ticker.clone(),
+            timestamp: self.candle.timestamp,
+            interval: self.interval.clone(),
+            orientation: self.orientation,
+            resolution_strategy: self.resolution_strategy.to_string(),
+            stop_loss: self.stop_loss,
+            take_profit: self.take_profit,
+            open: self.candle.open,
+            close: self.candle.close,
+            high: self.candle.high,
+            low: self.candle.low,
+            volume: self.candle.volume,
+        }
+    }
 }
 
 pub trait FindsSetups {
@@ -40,4 +58,20 @@ pub trait FindsSetups {
 
 pub trait FindsReverseSetups {
     fn find_reverse_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>>;
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CsvSetupRow {
+    pub ticker: String,
+    pub timestamp: DateTime<Utc>,
+    pub interval: Interval,
+    pub orientation: StrategyOrientation,
+    pub resolution_strategy: String,
+    pub stop_loss: f64,
+    pub take_profit: f64,
+    pub open: f64,
+    pub close: f64,
+    pub high: f64,
+    pub low: f64,
+    pub volume: f64,
 }

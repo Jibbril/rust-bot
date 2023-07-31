@@ -12,10 +12,9 @@ use super::CalculatesTradeBounds;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AtrResolution {
-    #[allow(dead_code)] // TODO: Remove once used
-    length: usize,
-    stop_loss_multiple: f64,
-    take_profit_multiple: f64,
+    pub length: usize,
+    pub stop_loss_multiple: f64,
+    pub take_profit_multiple: f64,
 }
 
 impl CalculatesTradeBounds for AtrResolution {

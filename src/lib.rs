@@ -15,7 +15,7 @@ use crate::{
         strategy::Strategy,
     },
     strategy_testing::test_setups,
-    trading_strategies::{rsi_basic::RsiBasic, silver_cross::SilverCross},
+    trading_strategies::{rsi_basic::RsiBasic, silver_cross::SilverCross}, utils::save_setups,
 };
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
@@ -43,6 +43,9 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let rsi_setups = rsi_strategy.find_reverse_setups(&ts)?;
     let silver_cross_setups = silver_cross_strategy.find_setups(&ts)?;
+
+    save_setups(&rsi_setups, "rsi-setups.csv")?;
+    save_setups(&silver_cross_setups, "silver-cross-setups.csv")?;
 
     // Send email notifications
     if false {

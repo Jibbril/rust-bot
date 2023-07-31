@@ -1,4 +1,6 @@
 pub mod atr_resolution;
+
+use std::fmt::{Formatter, Display, Result};
 use crate::models::{
     candle::Candle, generic_result::GenericResult, strategy_orientation::StrategyOrientation,
 };
@@ -19,6 +21,14 @@ impl CalculatesTradeBounds for ResolutionStrategy {
     ) -> GenericResult<(f64, f64)> {
         match self {
             ResolutionStrategy::ATR(atr) => atr.get_trade_bounds(candles, i, orientation),
+        }
+    }
+}
+
+impl Display for ResolutionStrategy {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            Self::ATR(atr) => write!(f, "ATR resolution({},{},{})",atr.length, atr.take_profit_multiple, atr.stop_loss_multiple)
         }
     }
 }
