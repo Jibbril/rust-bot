@@ -1,7 +1,8 @@
 use std::fmt::{Display, Formatter, Result};
+use serde::{Serialize, Deserialize};
 
 #[allow(dead_code)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Interval {
     Minute5,
     Minute15,

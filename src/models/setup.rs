@@ -1,3 +1,5 @@
+use serde::{Serialize, Deserialize};
+
 use crate::{
     models::{
         candle::Candle, generic_result::GenericResult, interval::Interval,
@@ -5,7 +7,7 @@ use crate::{
     },
     resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
 };
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Setup {
     pub ticker: String,
     pub candle: Candle,

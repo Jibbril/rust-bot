@@ -1,3 +1,4 @@
+use serde::{Serialize, Deserialize};
 use crate::{
     indicators::{atr::ATR, IndicatorType},
     models::{
@@ -7,10 +8,9 @@ use crate::{
         strategy_orientation::StrategyOrientation,
     },
 };
-
 use super::CalculatesTradeBounds;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AtrResolution {
     #[allow(dead_code)] // TODO: Remove once used
     length: usize,

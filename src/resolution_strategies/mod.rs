@@ -3,8 +3,9 @@ use crate::models::{
     candle::Candle, generic_result::GenericResult, strategy_orientation::StrategyOrientation,
 };
 use atr_resolution::AtrResolution;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ResolutionStrategy {
     ATR(AtrResolution),
 }
