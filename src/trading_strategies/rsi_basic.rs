@@ -101,7 +101,7 @@ impl RsiBasic {
                 };
 
                 if let Some(orientation) = orientation {
-                    let atr = AtrResolution::new(14, 1.0, 1.5);
+                    let atr = AtrResolution::new(14, 2.0, 1.0);
                     let resolution_strategy = ResolutionStrategy::ATR(atr);
                     let (take_profit, stop_loss) =
                         resolution_strategy.get_trade_bounds(&ts.candles, i, &orientation)?;
