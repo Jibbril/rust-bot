@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use super::CalculatesTradeBounds;
 use crate::{
     indicators::{atr::ATR, IndicatorType},
     models::{
@@ -8,7 +8,7 @@ use crate::{
         strategy_orientation::StrategyOrientation,
     },
 };
-use super::CalculatesTradeBounds;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AtrResolution {
@@ -33,6 +33,7 @@ impl CalculatesTradeBounds for AtrResolution {
         if let Some(atr) = indicator.and_then(|i| i.get_scalar_value()) {
             return AtrResolution::get_bounds(&self, price, atr, &orientation);
         }
+
         // If atr indicator not available on candle, calculate it from previous candles
         let atr = ATR::calculate(length, i, candles);
         if let Some(atr) = atr {

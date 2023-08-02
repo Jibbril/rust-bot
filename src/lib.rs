@@ -15,7 +15,8 @@ use crate::{
         strategy::Strategy,
     },
     strategy_testing::test_setups,
-    trading_strategies::rsi_basic::RsiBasic, utils::save_setups,
+    trading_strategies::rsi_basic::RsiBasic,
+    utils::save_setups,
 };
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;

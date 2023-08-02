@@ -1,5 +1,5 @@
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result};
-use serde::{Serialize, Deserialize};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]

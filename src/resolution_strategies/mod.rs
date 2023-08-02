@@ -1,11 +1,12 @@
 pub mod atr_resolution;
+pub mod dynamic_pivots;
 
-use std::fmt::{Formatter, Display, Result};
 use crate::models::{
     candle::Candle, generic_result::GenericResult, strategy_orientation::StrategyOrientation,
 };
 use atr_resolution::AtrResolution;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ResolutionStrategy {
@@ -28,7 +29,11 @@ impl CalculatesTradeBounds for ResolutionStrategy {
 impl Display for ResolutionStrategy {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            Self::ATR(atr) => write!(f, "ATR resolution({},{},{})",atr.length, atr.take_profit_multiple, atr.stop_loss_multiple)
+            Self::ATR(atr) => write!(
+                f,
+                "ATR resolution({},{},{})",
+                atr.length, atr.take_profit_multiple, atr.stop_loss_multiple
+            ),
         }
     }
 }
