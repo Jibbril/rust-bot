@@ -27,6 +27,7 @@ impl SilverCross {
         SilverCross { orientation }
     }
 
+    #[allow(dead_code)] // TODO: Remove once used
     pub fn new_default() -> Self {
         SilverCross {
             orientation: StrategyOrientation::Long,
