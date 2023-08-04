@@ -6,9 +6,7 @@ use super::PopulatesCandles;
 
 #[derive(Debug, Copy, Clone)]
 pub struct DynamicPivot {
-    // TODO: Replace with length
-    pub bars_left: usize,
-    pub bars_right: usize,
+    pub length: usize,
     pub high: f64,
     pub low: f64,
 }
@@ -18,8 +16,7 @@ impl PopulatesCandles for DynamicPivot {
         let mut new_pivots: Vec<Option<DynamicPivot>> = (0..length).map(|_| None).collect();
         
         let mut pivots: Option<DynamicPivot> = Some(DynamicPivot {
-            bars_left: length,
-            bars_right: length,
+            length,
             high: candles[length].high,
             low: candles[length].low
         });
@@ -123,8 +120,7 @@ impl DynamicPivot {
         }
 
         Some(DynamicPivot {
-            bars_left: length,
-            bars_right: length,
+            length,
             high,
             low
         })
