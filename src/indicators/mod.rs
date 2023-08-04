@@ -1,11 +1,13 @@
 pub mod atr;
 pub mod rsi;
 pub mod sma;
+pub mod dynamic_pivots;
 
 use atr::ATR;
 use rsi::RSI;
 use serde::Serialize;
 use sma::SMA;
+use dynamic_pivots::DynamicPivot;
 
 use crate::models::{candle::Candle, generic_result::GenericResult};
 
@@ -18,6 +20,7 @@ pub enum IndicatorType {
     SMA(usize),
     RSI(usize),
     ATR(usize),
+    DynamicPivot(usize),
 }
 
 #[derive(Debug, Clone)]
@@ -25,6 +28,7 @@ pub enum Indicator {
     SMA(Option<SMA>),
     RSI(Option<RSI>),
     ATR(Option<ATR>),
+    DynamicPivot(Option<DynamicPivot>),
 }
 
 impl Indicator {
@@ -33,6 +37,7 @@ impl Indicator {
             Indicator::SMA(opt) => opt.map(|sma| sma.value),
             Indicator::RSI(opt) => opt.map(|rsi| rsi.value),
             Indicator::ATR(opt) => opt.map(|atr| atr.value),
+            _ => None
         }
     }
 
@@ -56,6 +61,15 @@ impl Indicator {
     pub fn as_atr(&self) -> Option<ATR> {
         if let Indicator::ATR(atr) = self {
             atr.clone()
+        } else {
+            None
+        }
+    }
+
+    #[allow(dead_code)] // TODO: Remove once used
+    pub fn as_dynamic_pivots(&self) -> Option<DynamicPivot> {
+        if let Indicator::DynamicPivot(pivots) = self {
+            pivots.clone()
         } else {
             None
         }
