@@ -1,14 +1,13 @@
 pub mod atr;
+pub mod dynamic_pivots;
 pub mod rsi;
 pub mod sma;
-pub mod dynamic_pivots;
 
 use atr::ATR;
+use dynamic_pivots::DynamicPivot;
 use rsi::RSI;
 use serde::Serialize;
 use sma::SMA;
-use dynamic_pivots::DynamicPivot;
-
 use crate::models::{candle::Candle, generic_result::GenericResult};
 
 pub trait PopulatesCandles {
@@ -37,7 +36,7 @@ impl Indicator {
             Indicator::SMA(opt) => opt.map(|sma| sma.value),
             Indicator::RSI(opt) => opt.map(|rsi| rsi.value),
             Indicator::ATR(opt) => opt.map(|atr| atr.value),
-            _ => None
+            _ => None,
         }
     }
 

@@ -8,7 +8,7 @@ mod trading_strategies;
 mod utils;
 
 use crate::{
-    indicators::{atr::ATR, rsi::RSI, sma::SMA, PopulatesCandles, dynamic_pivots::DynamicPivot},
+    indicators::{atr::ATR, dynamic_pivots::DynamicPivot, rsi::RSI, sma::SMA, PopulatesCandles},
     models::{
         interval::Interval,
         setup::{FindsReverseSetups, FindsSetups},
