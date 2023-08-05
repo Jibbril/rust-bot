@@ -2,7 +2,7 @@ use super::CalculatesTradeBounds;
 use crate::{
     indicators::{atr::ATR, IndicatorType},
     models::{
-        calculation_mode::{price_by_calc_mode, CalculationMode},
+        calculation_mode::CalculationMode,
         candle::Candle,
         generic_result::GenericResult,
         strategy_orientation::StrategyOrientation,
@@ -26,7 +26,7 @@ impl CalculatesTradeBounds for AtrResolution {
     ) -> GenericResult<(f64, f64)> {
         // Check if atr indicator is available on candle, if so, use it
         let length = 14;
-        let price = price_by_calc_mode(&candles[i], &CalculationMode::Close);
+        let price = candles[i].price_by_mode(&CalculationMode::Close);
         let indicator_type = IndicatorType::ATR(length);
         let indicator = candles[i].indicators.get(&indicator_type);
 

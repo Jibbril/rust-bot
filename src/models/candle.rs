@@ -1,4 +1,4 @@
-use super::generic_result::GenericResult;
+use super::{generic_result::GenericResult, calculation_mode::CalculationMode};
 use crate::indicators::{Indicator, IndicatorType};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
@@ -50,6 +50,15 @@ impl Candle {
                 }
             })
             .collect()
+    }
+
+    pub fn price_by_mode(&self, mode: &CalculationMode) -> f64 {
+        match mode {
+            CalculationMode::Close => self.close,
+            CalculationMode::Open => self.open,
+            CalculationMode::High => self.high,
+            CalculationMode::Low => self.low,
+        }
     }
 
     pub fn get_indicator(&self, key: &IndicatorType) -> GenericResult<Indicator> {
