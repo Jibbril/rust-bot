@@ -1,4 +1,3 @@
-use super::CalculatesTradeBounds;
 use crate::{
     indicators::{atr::ATR, IndicatorType},
     models::{
@@ -9,6 +8,7 @@ use crate::{
     },
 };
 use serde::{Deserialize, Serialize};
+use super::{CalculatesStopLosses, CalculatesTakeProfits};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AtrResolution {
@@ -17,34 +17,63 @@ pub struct AtrResolution {
     pub take_profit_multiple: f64,
 }
 
-impl CalculatesTradeBounds for AtrResolution {
-    fn get_trade_bounds(
+impl CalculatesStopLosses for AtrResolution {
+    fn calculate_stop_loss(
         &self,
         candles: &Vec<Candle>,
         i: usize,
         orientation: &StrategyOrientation,
-    ) -> GenericResult<(f64, f64)> {
-        // Check if atr indicator is available on candle, if so, use it
-        let length = 14;
+        length: usize
+    ) -> GenericResult<f64> {
         let price = candles[i].price_by_mode(&CalculationMode::Close);
-        let indicator_type = IndicatorType::ATR(length);
-        let indicator = candles[i].indicators.get(&indicator_type);
+        let atr = self.get_atr(candles, i, length);
 
-        if let Some(atr) = indicator.and_then(|i| i.get_scalar_value()) {
-            return AtrResolution::get_bounds(&self, price, atr, &orientation);
-        }
-
-        // If atr indicator not available on candle, calculate it from previous candles
-        let atr = ATR::calculate(length, i, candles);
         if let Some(atr) = atr {
-            AtrResolution::get_bounds(self, price, atr.value, &orientation)
+            Ok(AtrResolution::get_stop_loss(self, price, atr.value, &orientation))
         } else {
-            Err("Unable to calculate trade bounds.".into())
+            Err("Unable to calculate stop-loss.".into())
+        }
+    }
+}
+
+impl CalculatesTakeProfits for AtrResolution {
+    fn calculate_take_profit(
+        &self,
+        candles: &Vec<Candle>,
+        i: usize,
+        orientation: &StrategyOrientation,
+        length: usize
+    ) -> GenericResult<f64> {
+        let price = candles[i].price_by_mode(&CalculationMode::Close);
+        let atr = self.get_atr(candles, i, length);
+
+        if let Some(atr) = atr {
+            Ok(AtrResolution::get_take_profit(self, price, atr.value, &orientation))
+        } else {
+            Err("Unable to calculate take-profit".into())
         }
     }
 }
 
 impl AtrResolution {
+    fn get_atr(
+        &self,
+        candles: &Vec<Candle>,
+        i: usize,
+        length: usize
+    ) -> Option<ATR> {
+        // Check if atr indicator is available on candle, if so, use it
+        let indicator_type = IndicatorType::ATR(length);
+        let indicator = candles[i].indicators.get(&indicator_type);
+
+        if let Some(atr) = indicator.and_then(|i| i.as_atr()) {
+            return Some(atr)
+        }
+
+        // If atr indicator not available on candle, calculate it from previous candles
+        ATR::calculate(length, i, candles)
+    }
+
     pub fn new(length: usize, stop_loss_multiple: f64, take_profit_multiple: f64) -> Self {
         AtrResolution {
             length,
@@ -53,23 +82,27 @@ impl AtrResolution {
         }
     }
 
-    pub fn get_bounds(
+    pub fn get_stop_loss(
         &self,
         price: f64,
         atr: f64,
         orientation: &StrategyOrientation,
-    ) -> GenericResult<(f64, f64)> {
+    ) -> f64 {
         match orientation {
-            StrategyOrientation::Long => {
-                let stop_loss = price - self.stop_loss_multiple * atr;
-                let take_profit = price + self.take_profit_multiple * atr;
-                return Ok((take_profit, stop_loss));
-            }
-            StrategyOrientation::Short => {
-                let stop_loss = price + self.stop_loss_multiple * atr;
-                let take_profit = price - self.take_profit_multiple * atr;
-                return Ok((take_profit, stop_loss));
-            }
+            StrategyOrientation::Long => price - self.stop_loss_multiple * atr,
+            StrategyOrientation::Short => price + self.stop_loss_multiple * atr
+        }
+    }
+
+    pub fn get_take_profit(
+        &self,
+        price: f64,
+        atr: f64,
+        orientation: &StrategyOrientation,
+    ) -> f64 {
+        match orientation {
+            StrategyOrientation::Long => price + self.take_profit_multiple * atr,
+            StrategyOrientation::Short => price - self.take_profit_multiple * atr
         }
     }
 }

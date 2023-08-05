@@ -31,15 +31,6 @@ pub enum Indicator {
 }
 
 impl Indicator {
-    pub fn get_scalar_value(&self) -> Option<f64> {
-        match self {
-            Indicator::SMA(opt) => opt.map(|sma| sma.value),
-            Indicator::RSI(opt) => opt.map(|rsi| rsi.value),
-            Indicator::ATR(opt) => opt.map(|atr| atr.value),
-            _ => None,
-        }
-    }
-
     pub fn as_sma(&self) -> Option<SMA> {
         if let Indicator::SMA(sma) = self {
             sma.clone()
