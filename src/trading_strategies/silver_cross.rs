@@ -7,7 +7,8 @@ use crate::{
         timeseries::TimeSeries,
     },
     resolution_strategies::{
-        atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
+        atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
+        ResolutionStrategy,
     },
 };
 use std::fmt::{Display, Formatter};
@@ -27,6 +28,7 @@ impl SilverCross {
         SilverCross { orientation }
     }
 
+    #[allow(dead_code)] // TODO: Remove once used
     pub fn new_default() -> Self {
         SilverCross {
             orientation: StrategyOrientation::Long,
@@ -76,15 +78,27 @@ impl FindsSetups for SilverCross {
                     let resolution_strategy =
                         ResolutionStrategy::ATR(AtrResolution::new(14, 1.0, 1.5));
 
-                    let (take_profit, stop_loss) =
-                        resolution_strategy.get_trade_bounds(&ts.candles, i, &orientation)?;
+                    let length = 14;
+                    let take_profit = resolution_strategy.calculate_take_profit(
+                        &ts.candles,
+                        i,
+                        &orientation,
+                        length,
+                    )?;
+                    let stop_loss = resolution_strategy.calculate_stop_loss(
+                        &ts.candles,
+                        i,
+                        &orientation,
+                        length,
+                    )?;
 
                     setups.push(Setup {
                         ticker: ts.ticker.clone(),
                         candle: candle.clone(),
                         interval: ts.interval.clone(),
                         orientation,
-                        resolution_strategy,
+                        stop_loss_resolution: resolution_strategy.clone(),
+                        take_profit_resolution: resolution_strategy,
                         stop_loss,
                         take_profit,
                     })

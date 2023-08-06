@@ -1,7 +1,5 @@
 use crate::models::{
-    calculation_mode::{price_by_calc_mode, CalculationMode},
-    candle::Candle,
-    generic_result::GenericResult,
+    calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
 };
 
 use super::{Indicator, IndicatorType, PopulatesCandles};
@@ -57,8 +55,8 @@ impl SMA {
         if i > arr_length || length > arr_length || i < length - 1 {
             None
         } else if let Some(prev_sma) = previous_sma {
-            let price_out = price_by_calc_mode(&candles[i - length], &mode);
-            let price_in = price_by_calc_mode(&candles[i], &mode);
+            let price_out = candles[i - length].price_by_mode(&mode);
+            let price_in = candles[i].price_by_mode(&mode);
 
             let sma = ((prev_sma.value * length as f64) - price_out + price_in) / length as f64;
 

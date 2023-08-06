@@ -1,7 +1,5 @@
 use crate::models::{
-    calculation_mode::{price_by_calc_mode, CalculationMode},
-    candle::Candle,
-    generic_result::GenericResult,
+    calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
 };
 
 use super::{Indicator, IndicatorType, PopulatesCandles};
@@ -97,7 +95,7 @@ impl ATR {
     }
 
     fn true_range(mode: &CalculationMode, prev: &Candle, curr: &Candle) -> f64 {
-        let prev_price = price_by_calc_mode(&prev, mode);
+        let prev_price = prev.price_by_mode(mode);
         let a = curr.high - curr.low;
         let b = (curr.high - prev_price).abs();
         let c = (curr.low - prev_price).abs();

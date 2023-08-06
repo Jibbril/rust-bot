@@ -8,6 +8,7 @@ use crate::{
 };
 use std::fmt::{Display, Formatter, Result};
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Strategy {
     RsiBasic(RsiBasic),

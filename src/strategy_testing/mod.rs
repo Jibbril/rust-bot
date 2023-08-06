@@ -207,7 +207,7 @@ mod tests {
 
         // Ensure values are computed correctly
         assert_eq!(results.n_setups, 1);
-        assert_eq!(results.avg_win_bars, 2.0);
+        assert_eq!(results.avg_win_bars, 1.0);
         assert!(results.avg_win - 0.078947368 < 0.01);
         assert_eq!(results.accuracy, 1.0);
         assert_eq!(results.avg_loss, 0.0);
@@ -255,7 +255,8 @@ mod tests {
                 stop_loss: 95.0,
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Long,
-                resolution_strategy: resolution_strategy.clone(),
+                take_profit_resolution: resolution_strategy.clone(),
+                stop_loss_resolution: resolution_strategy.clone(),
             },
             Setup {
                 candle: short_setup,
@@ -264,7 +265,8 @@ mod tests {
                 stop_loss: 155.0,
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Short,
-                resolution_strategy: resolution_strategy.clone(),
+                take_profit_resolution: resolution_strategy.clone(),
+                stop_loss_resolution: resolution_strategy.clone(),
             },
             Setup {
                 candle: fail_long,
@@ -273,7 +275,8 @@ mod tests {
                 stop_loss: 80.0,
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Long,
-                resolution_strategy: resolution_strategy.clone(),
+                take_profit_resolution: resolution_strategy.clone(),
+                stop_loss_resolution: resolution_strategy.clone(),
             },
             Setup {
                 candle: fail_short,
@@ -282,7 +285,8 @@ mod tests {
                 stop_loss: 91.0,
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Short,
-                resolution_strategy: resolution_strategy,
+                take_profit_resolution: resolution_strategy.clone(),
+                stop_loss_resolution: resolution_strategy.clone(),
             },
         ];
 

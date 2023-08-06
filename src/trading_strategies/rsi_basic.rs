@@ -7,7 +7,8 @@ use crate::{
         timeseries::TimeSeries,
     },
     resolution_strategies::{
-        atr_resolution::AtrResolution, CalculatesTradeBounds, ResolutionStrategy,
+        atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
+        ResolutionStrategy,
     },
 };
 use std::fmt::{Display, Formatter};
@@ -101,17 +102,28 @@ impl RsiBasic {
                 };
 
                 if let Some(orientation) = orientation {
-                    let atr = AtrResolution::new(14, 1.0, 1.5);
+                    let atr = AtrResolution::new(14, 2.0, 1.0);
                     let resolution_strategy = ResolutionStrategy::ATR(atr);
-                    let (take_profit, stop_loss) =
-                        resolution_strategy.get_trade_bounds(&ts.candles, i, &orientation)?;
+                    let take_profit = resolution_strategy.calculate_take_profit(
+                        &ts.candles,
+                        i,
+                        &orientation,
+                        length,
+                    )?;
+                    let stop_loss = resolution_strategy.calculate_stop_loss(
+                        &ts.candles,
+                        i,
+                        &orientation,
+                        length,
+                    )?;
 
                     setups.push(Setup {
                         ticker: ts.ticker.clone(),
                         candle: candle.clone(),
                         interval: ts.interval.clone(),
                         orientation,
-                        resolution_strategy,
+                        take_profit_resolution: resolution_strategy.clone(),
+                        stop_loss_resolution: resolution_strategy,
                         stop_loss,
                         take_profit,
                     });

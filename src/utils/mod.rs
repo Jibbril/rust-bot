@@ -1,6 +1,11 @@
 pub mod math;
-use crate::models::generic_result::GenericResult;
+
+use crate::models::{generic_result::GenericResult, setup::Setup};
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
+use std::{
+    fs::{create_dir_all, File},
+    path::Path,
+};
 
 pub fn str_date_to_datetime(s: &str) -> GenericResult<DateTime<Utc>> {
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
@@ -31,4 +36,23 @@ pub fn length_or_one<T>(arr: &[T]) -> usize {
 
 pub fn f_length_or_one<T>(arr: &[T]) -> f64 {
     length_or_one(arr) as f64
+}
+
+pub fn save_setups(setups: &[Setup], name: &str) -> GenericResult<()> {
+    let folder_path = "data/temp/setups/{}";
+    let folder_path = Path::new(&folder_path);
+
+    create_dir_all(&folder_path)?;
+
+    let file = File::create(folder_path.join(name))?;
+
+    let mut writer = csv::Writer::from_writer(file);
+
+    for setup in setups {
+        writer.serialize(setup.to_csv_row())?;
+    }
+
+    writer.flush()?;
+
+    Ok(())
 }
