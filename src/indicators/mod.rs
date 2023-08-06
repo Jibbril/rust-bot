@@ -3,12 +3,12 @@ pub mod dynamic_pivots;
 pub mod rsi;
 pub mod sma;
 
+use crate::models::{candle::Candle, generic_result::GenericResult};
 use atr::ATR;
 use dynamic_pivots::DynamicPivot;
 use rsi::RSI;
 use serde::Serialize;
 use sma::SMA;
-use crate::models::{candle::Candle, generic_result::GenericResult};
 
 pub trait PopulatesCandles {
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()>;

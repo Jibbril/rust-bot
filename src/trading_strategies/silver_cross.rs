@@ -7,7 +7,8 @@ use crate::{
         timeseries::TimeSeries,
     },
     resolution_strategies::{
-        atr_resolution::AtrResolution, ResolutionStrategy, CalculatesTakeProfits, CalculatesStopLosses,
+        atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
+        ResolutionStrategy,
     },
 };
 use std::fmt::{Display, Formatter};
@@ -78,8 +79,18 @@ impl FindsSetups for SilverCross {
                         ResolutionStrategy::ATR(AtrResolution::new(14, 1.0, 1.5));
 
                     let length = 14;
-                    let take_profit = resolution_strategy.calculate_take_profit(&ts.candles, i, &orientation, length)?;
-                    let stop_loss = resolution_strategy.calculate_stop_loss(&ts.candles, i, &orientation, length)?;
+                    let take_profit = resolution_strategy.calculate_take_profit(
+                        &ts.candles,
+                        i,
+                        &orientation,
+                        length,
+                    )?;
+                    let stop_loss = resolution_strategy.calculate_stop_loss(
+                        &ts.candles,
+                        i,
+                        &orientation,
+                        length,
+                    )?;
 
                     setups.push(Setup {
                         ticker: ts.ticker.clone(),

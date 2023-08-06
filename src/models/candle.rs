@@ -1,4 +1,4 @@
-use super::{generic_result::GenericResult, calculation_mode::CalculationMode};
+use super::{calculation_mode::CalculationMode, generic_result::GenericResult};
 use crate::indicators::{Indicator, IndicatorType};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};

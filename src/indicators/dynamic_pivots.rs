@@ -1,11 +1,8 @@
+use super::PopulatesCandles;
 use crate::{
     indicators::{Indicator, IndicatorType},
-    models::{
-        candle::Candle,
-        generic_result::GenericResult,
-    },
+    models::{candle::Candle, generic_result::GenericResult},
 };
-use super::PopulatesCandles;
 
 #[derive(Debug, Copy, Clone)]
 pub struct DynamicPivot {

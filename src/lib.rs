@@ -9,11 +9,7 @@ mod utils;
 
 use crate::{
     indicators::{atr::ATR, dynamic_pivots::DynamicPivot, rsi::RSI, PopulatesCandles},
-    models::{
-        interval::Interval,
-        setup::FindsReverseSetups,
-        strategy::Strategy,
-    },
+    models::{interval::Interval, setup::FindsReverseSetups, strategy::Strategy},
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
     utils::save_setups,

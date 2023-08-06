@@ -44,7 +44,7 @@ impl Setup {
             interval: self.interval.clone(),
             orientation: self.orientation,
             stop_loss_resolution: self.stop_loss_resolution.to_string(),
-            take_profit_resolution: self.take_profit_resolution.to_string(), 
+            take_profit_resolution: self.take_profit_resolution.to_string(),
             stop_loss: self.stop_loss,
             take_profit: self.take_profit,
             open: self.candle.open,

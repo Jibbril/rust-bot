@@ -1,18 +1,18 @@
 pub mod atr_resolution;
 pub mod dynamic_pivot;
 
+use self::dynamic_pivot::DynamicPivotResolution;
 use crate::models::{
     candle::Candle, generic_result::GenericResult, strategy_orientation::StrategyOrientation,
 };
 use atr_resolution::AtrResolution;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result};
-use self::dynamic_pivot::DynamicPivotResolution;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ResolutionStrategy {
     ATR(AtrResolution),
-    DynamicPivot(DynamicPivotResolution)
+    DynamicPivot(DynamicPivotResolution),
 }
 
 impl CalculatesStopLosses for ResolutionStrategy {
@@ -21,11 +21,15 @@ impl CalculatesStopLosses for ResolutionStrategy {
         candles: &Vec<Candle>,
         i: usize,
         orientation: &StrategyOrientation,
-        length: usize
+        length: usize,
     ) -> GenericResult<f64> {
         match self {
-            ResolutionStrategy::ATR(atr) => atr.calculate_stop_loss(candles, i, orientation, length),
-            ResolutionStrategy::DynamicPivot(pivot) => pivot.calculate_stop_loss(candles,i,orientation,length),
+            ResolutionStrategy::ATR(atr) => {
+                atr.calculate_stop_loss(candles, i, orientation, length)
+            }
+            ResolutionStrategy::DynamicPivot(pivot) => {
+                pivot.calculate_stop_loss(candles, i, orientation, length)
+            }
         }
     }
 }
@@ -36,11 +40,15 @@ impl CalculatesTakeProfits for ResolutionStrategy {
         candles: &Vec<Candle>,
         i: usize,
         orientation: &StrategyOrientation,
-        length: usize
+        length: usize,
     ) -> GenericResult<f64> {
         match self {
-            ResolutionStrategy::ATR(atr) => atr.calculate_take_profit(candles, i, orientation, length),
-            ResolutionStrategy::DynamicPivot(_) => Err("DynamicPivotResolution cannot be used to calculate take-profits.".into()),
+            ResolutionStrategy::ATR(atr) => {
+                atr.calculate_take_profit(candles, i, orientation, length)
+            }
+            ResolutionStrategy::DynamicPivot(_) => {
+                Err("DynamicPivotResolution cannot be used to calculate take-profits.".into())
+            }
         }
     }
 }
@@ -53,7 +61,7 @@ impl Display for ResolutionStrategy {
                 "ATR resolution({},{},{})",
                 atr.length, atr.take_profit_multiple, atr.stop_loss_multiple
             ),
-            Self::DynamicPivot(pivot) => write!(f,"DynamicPivot({})", pivot.length),
+            Self::DynamicPivot(pivot) => write!(f, "DynamicPivot({})", pivot.length),
         }
     }
 }

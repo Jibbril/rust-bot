@@ -1,7 +1,5 @@
 use crate::models::{
-    calculation_mode::CalculationMode,
-    candle::Candle,
-    generic_result::GenericResult,
+    calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
 };
 
 use super::{Indicator, IndicatorType, PopulatesCandles};

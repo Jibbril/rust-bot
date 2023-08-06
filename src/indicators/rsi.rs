@@ -1,9 +1,7 @@
 use serde::Serialize;
 
 use crate::models::{
-    calculation_mode::CalculationMode,
-    candle::Candle,
-    generic_result::GenericResult,
+    calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
 };
 
 use super::{Indicator, IndicatorType, PopulatesCandles};
@@ -60,7 +58,7 @@ impl RSI {
             None
         } else if let Some(prev_rsi) = prev_rsi {
             let current = candles[i].price_by_mode(&mode);
-            let previous = candles[i-1].price_by_mode(&mode);
+            let previous = candles[i - 1].price_by_mode(&mode);
 
             let f_length = length as f64;
             let mut gains = prev_rsi.avg_gain * (f_length - 1.0);
@@ -126,7 +124,7 @@ impl RSI {
 
         for i in 1..segment.len() {
             let current = segment[i].price_by_mode(&mode);
-            let previous = segment[i-1].price_by_mode(&mode);
+            let previous = segment[i - 1].price_by_mode(&mode);
 
             let change = current - previous;
             if change > 0.0 {
