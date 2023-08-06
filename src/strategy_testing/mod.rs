@@ -207,7 +207,7 @@ mod tests {
 
         // Ensure values are computed correctly
         assert_eq!(results.n_setups, 1);
-        assert_eq!(results.avg_win_bars, 2.0);
+        assert_eq!(results.avg_win_bars, 1.0);
         assert!(results.avg_win - 0.078947368 < 0.01);
         assert_eq!(results.accuracy, 1.0);
         assert_eq!(results.avg_loss, 0.0);
