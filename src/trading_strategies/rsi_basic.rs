@@ -111,7 +111,8 @@ impl RsiBasic {
                         candle: candle.clone(),
                         interval: ts.interval.clone(),
                         orientation,
-                        resolution_strategy,
+                        take_profit_resolution: resolution_strategy.clone(),
+                        stop_loss_resolution: resolution_strategy,
                         stop_loss,
                         take_profit,
                     });

@@ -86,7 +86,8 @@ impl FindsSetups for SilverCross {
                         candle: candle.clone(),
                         interval: ts.interval.clone(),
                         orientation,
-                        resolution_strategy,
+                        stop_loss_resolution: resolution_strategy.clone(),
+                        take_profit_resolution: resolution_strategy,
                         stop_loss,
                         take_profit,
                     })

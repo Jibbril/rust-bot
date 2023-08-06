@@ -2,7 +2,6 @@ use crate::{models::{
     candle::Candle, generic_result::GenericResult, strategy_orientation::StrategyOrientation, 
 }, indicators::IndicatorType};
 use serde::{Deserialize, Serialize};
-
 use super::CalculatesStopLosses;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,5 +41,11 @@ impl CalculatesStopLosses for DynamicPivotResolution {
         }
         
         Err("Unable to find DynamicPivot indicator in TimeSeries.".into())
+    }
+}
+
+impl DynamicPivotResolution {
+    pub fn new(length: usize) -> Self {
+        Self { length }
     }
 }

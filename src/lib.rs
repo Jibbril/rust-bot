@@ -39,8 +39,6 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     ATR::populate_candles(&mut ts.candles, 14)?;
     DynamicPivot::populate_candles(&mut ts.candles, 15)?;
 
-    println!("Candles:{:#?}", ts.candles);
-
     // Implement Strategy to analyze TimeSeries
     let rsi_strategy = Strategy::RsiBasic(RsiBasic::new_default());
 
