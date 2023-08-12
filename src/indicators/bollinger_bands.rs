@@ -114,3 +114,65 @@ impl BollingerBands {
         }
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::models::candle::Candle;
+    use super::BollingerBands;
+
+    #[test]
+    fn calculate_bollinger_bands() {
+        let candles = Candle::dummy_data(20, "positive", 100.0);
+
+        let bb = BollingerBands::calculate( 10, 19, &candles);        
+        assert!(bb.is_some());
+        let bb = bb.unwrap();
+        assert!(bb.upper-315.5530070819<0.0001)
+    }
+
+    #[test]
+    fn bb_not_enough_data() {
+        let candles = Candle::dummy_data(2, "positive", 100.0);
+
+        let bb = BollingerBands::calculate(20, 19, &candles);
+
+        assert!(bb.is_none());
+    }
+
+
+    #[test]
+    fn bb_no_candles() {
+        let candles: Vec<Candle> = Vec::new();
+        
+        let bb = BollingerBands::calculate(20, 19, &candles);
+
+        assert!(bb.is_none());
+    }
+
+
+    #[test]
+    fn rolling_bb() {
+        let n = 40;
+        let length = 20;
+        let candles = Candle::dummy_data(n, "positive", 100.0);
+
+        let mut bb: Option<BollingerBands> = None;
+        let bbs: Vec<Option<BollingerBands>> = (0..candles.len())
+            .map(|i|  {
+                bb = BollingerBands::calculate_rolling(length, i, &candles,&bb);
+                bb
+            })
+            .collect();
+
+        for (i, bb) in bbs.iter().enumerate() {
+            if i < length - 1 {
+                assert!(bb.is_none())
+            } else {
+                assert!(bb.is_some())
+            }
+        }
+
+        assert!(bbs[n - 1].unwrap().upper  - 523.3215956619 < 0.00001)
+    }
+}
