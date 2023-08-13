@@ -14,6 +14,7 @@ use dynamic_pivots::DynamicPivot;
 use rsi::RSI;
 use serde::Serialize;
 use sma::SMA;
+use bbwp::BBWP;
 
 pub trait PopulatesCandles {
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()>;
@@ -27,6 +28,7 @@ pub enum IndicatorType {
     ATR(usize),
     BollingerBands(usize),
     BBW(usize),
+    BBWP(usize),
     DynamicPivot(usize),
 }
 
@@ -37,6 +39,7 @@ pub enum Indicator {
     ATR(Option<ATR>),
     BollingerBands(Option<BollingerBands>),
     BBW(Option<BBW>),
+    BBWP(Option<BBWP>),
     DynamicPivot(Option<DynamicPivot>),
 }
 
@@ -86,6 +89,15 @@ impl Indicator {
     pub fn as_bbw(&self) -> Option<BBW> {
         if let Indicator::BBW(bbw) = self {
             bbw.clone()
+        } else {
+            None
+        }
+    }
+
+    #[allow(dead_code)] // TODO: Remove once used
+    pub fn as_bbwp(&self) -> Option<BBWP> {
+        if let Indicator::BBWP(bbwp) = self {
+            bbwp.clone()
         } else {
             None
         }
