@@ -6,7 +6,7 @@ pub mod dynamic_pivots;
 pub mod rsi;
 pub mod sma;
 
-use crate::models::{candle::Candle, generic_result::GenericResult};
+use crate::models::{ generic_result::GenericResult, timeseries::TimeSeries};
 use atr::ATR;
 use bbw::BBW;
 use bollinger_bands::BollingerBands;
@@ -17,8 +17,8 @@ use sma::SMA;
 use bbwp::BBWP;
 
 pub trait PopulatesCandles {
-    fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()>;
-    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()>;
+    fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()>;
+    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()>;
 }
 
 #[allow(dead_code)]

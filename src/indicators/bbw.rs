@@ -1,4 +1,4 @@
-use crate::models::{candle::Candle, generic_result::GenericResult};
+use crate::models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries};
 
 use super::{bollinger_bands::BollingerBands, Indicator, IndicatorType, PopulatesCandles};
 
@@ -11,22 +11,22 @@ pub struct BBW {
 }
 
 impl PopulatesCandles for BBW {
-    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()> {
-        Self::populate_candles(candles, 20)    
+    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
+        Self::populate_candles(ts, 20)    
     }
 
-    fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {
         let mut bbw: Option<BBW> = None;
-        let new_bbws: Vec<Option<BBW>> = (0..candles.len())
+        let new_bbws: Vec<Option<BBW>> = (0..ts.candles.len())
             .map(|i| {
-                bbw = Self::calculate_rolling(length, i, candles, &bbw);
+                bbw = Self::calculate_rolling(length, i, &ts.candles, &bbw);
                 bbw
             })
             .collect();
 
         let indicator_type = IndicatorType::BBW(length);
 
-        for (i, candle) in candles.iter_mut().enumerate() {
+        for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_bb = Indicator::BBW(new_bbws[i]);
 
             candle.indicators.insert(indicator_type, new_bb);

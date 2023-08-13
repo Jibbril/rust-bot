@@ -1,6 +1,6 @@
 use crate::{
     indicators::IndicatorType,
-    models::{candle::Candle, generic_result::GenericResult},
+    models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries},
     utils::math::std,
 };
 
@@ -16,18 +16,18 @@ pub struct BollingerBands {
 }
 
 impl PopulatesCandles for BollingerBands {
-    fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {
         let mut bb: Option<BollingerBands> = None;
-        let new_bbs: Vec<Option<BollingerBands>> = (0..candles.len())
+        let new_bbs: Vec<Option<BollingerBands>> = (0..ts.candles.len())
             .map(|i| {
-                bb = Self::calculate_rolling(length, i, candles, &bb);
+                bb = Self::calculate_rolling(length, i, &ts.candles, &bb);
                 bb
             })
             .collect();
 
         let indicator_type = IndicatorType::BollingerBands(length);
 
-        for (i, candle) in candles.iter_mut().enumerate() {
+        for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_bb = Indicator::BollingerBands(new_bbs[i]);
 
             candle.indicators.insert(indicator_type, new_bb);
@@ -36,8 +36,8 @@ impl PopulatesCandles for BollingerBands {
         Ok(())
     }
 
-    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()> {
-         Self::populate_candles(candles, 20)
+    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
+         Self::populate_candles(ts, 20)
     }
 }
 

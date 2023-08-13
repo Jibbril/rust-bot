@@ -1,4 +1,4 @@
-use crate::models::{generic_result::GenericResult, candle::Candle};
+use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
 use super::{bbw::BBW, PopulatesCandles};
 
 /// Bollinger Band Width Percentile
@@ -11,17 +11,17 @@ pub struct BBWP {
 }
 
 impl PopulatesCandles for BBWP {
-    fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
+    fn populate_candles(_ts: &mut TimeSeries, _length: usize) -> GenericResult<()> {
+        // TODO: Add check for the BBW indicator needed.
+
         todo!()
     }
 
-    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()> {
-        Self::populate_candles(candles, 20)
+    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
+        Self::populate_candles(ts, 20)
     }
 }
 
 impl BBWP {
-    pub fn calculate(length: usize, i: usize, candles: &[Candle]) -> Option<BBWP> {
-        todo!()
-    } 
+
 }

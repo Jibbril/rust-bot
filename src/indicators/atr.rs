@@ -1,5 +1,5 @@
 use crate::models::{
-    calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
+    calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult, timeseries::TimeSeries,
 };
 
 use super::{Indicator, IndicatorType, PopulatesCandles};
@@ -12,19 +12,19 @@ pub struct ATR {
 }
 
 impl PopulatesCandles for ATR {
-    fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {
         let mut atr: Option<ATR> = None;
 
-        let new_atrs: Vec<Option<ATR>> = (0..candles.len())
+        let new_atrs: Vec<Option<ATR>> = (0..ts.candles.len())
             .map(|i| {
-                atr = Self::calculate_rolling(length, i, candles, &atr);
+                atr = Self::calculate_rolling(length, i, &ts.candles, &atr);
                 atr
             })
             .collect();
 
         let indicator_type = IndicatorType::ATR(length);
 
-        for (i, candle) in candles.iter_mut().enumerate() {
+        for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_atr = Indicator::ATR(new_atrs[i]);
 
             candle.indicators.insert(indicator_type, new_atr);
@@ -33,8 +33,8 @@ impl PopulatesCandles for ATR {
         Ok(())
     }
 
-    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()> {
-        Self::populate_candles(candles, 14)
+    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
+        Self::populate_candles(ts, 14)
     }
 }
 
