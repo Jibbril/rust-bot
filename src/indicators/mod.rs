@@ -4,6 +4,7 @@ pub mod rsi;
 pub mod sma;
 pub mod bbwp;
 pub mod bollinger_bands;
+pub mod bbw;
 
 use crate::models::{candle::Candle, generic_result::GenericResult};
 use atr::ATR;
@@ -12,6 +13,7 @@ use rsi::RSI;
 use serde::Serialize;
 use sma::SMA;
 use bollinger_bands::BollingerBands;
+use bbw::BBW;
 
 
 pub trait PopulatesCandles {
@@ -24,6 +26,7 @@ pub enum IndicatorType {
     RSI(usize),
     ATR(usize),
     BollingerBands(usize),
+    BBW(usize),
     DynamicPivot(usize),
 }
 
@@ -33,6 +36,7 @@ pub enum Indicator {
     RSI(Option<RSI>),
     ATR(Option<ATR>),
     BollingerBands(Option<BollingerBands>),
+    BBW(Option<BBW>),
     DynamicPivot(Option<DynamicPivot>),
 }
 
@@ -73,6 +77,15 @@ impl Indicator {
     pub fn as_bollinger_bands(&self) -> Option<BollingerBands> {
         if let Indicator::BollingerBands(bb) = self {
             bb.clone()
+        } else {
+            None
+        }
+    }
+
+    #[allow(dead_code)] // TODO: Remove once used
+    pub fn as_bbw(&self) -> Option<BBW> {
+        if let Indicator::BBW(bbw) = self {
+            bbw.clone()
         } else {
             None
         }

@@ -35,7 +35,7 @@ impl PopulatesCandles for BollingerBands {
 }
 
 impl BollingerBands {
-    fn calculation_ok(i: usize, len: usize, arr_len: usize) -> bool {
+    pub fn calculation_ok(i: usize, len: usize, arr_len: usize) -> bool {
         i < arr_len && len <= arr_len && i >= len - 1 && len > 0 
     }
 
@@ -44,7 +44,7 @@ impl BollingerBands {
     }
 
     #[allow(dead_code)]
-    fn calculate(
+    pub fn calculate(
         length: usize,
         i: usize,
         candles: &[Candle],
@@ -78,7 +78,7 @@ impl BollingerBands {
         }
     }
 
-    fn calculate_rolling(
+    pub fn calculate_rolling(
         length: usize,
         i: usize,
         candles: &[Candle],
@@ -140,7 +140,6 @@ mod tests {
         assert!(bb.is_none());
     }
 
-
     #[test]
     fn bb_no_candles() {
         let candles: Vec<Candle> = Vec::new();
@@ -149,7 +148,6 @@ mod tests {
 
         assert!(bb.is_none());
     }
-
 
     #[test]
     fn rolling_bb() {
