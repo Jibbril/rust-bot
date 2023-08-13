@@ -4,7 +4,6 @@ use super::{PopulatesCandles, sma::SMA, Indicator};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BollingerBands {
-    #[allow(dead_code)] // TODO: Remove once used
     pub upper: f64,
     pub lower: f64,
     pub sma: SMA,

@@ -75,3 +75,62 @@ impl BBW {
         (bb.upper - bb.lower) / bb.sma.value
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::{models::candle::Candle, indicators::bbw::BBW};
+
+    #[test]
+    fn calculate_bbw() {
+        let candles = Candle::dummy_data(20, "positive", 100.0);
+
+        let bbw = BBW::calculate( 10, 19, &candles);        
+        assert!(bbw.is_some());
+        let bbw = bbw.unwrap();
+        assert!(bbw.value-0.4749255457 < 0.0001)
+    }
+
+    #[test]
+    fn bbw_not_enough_data() {
+        let candles = Candle::dummy_data(2, "positive", 100.0);
+
+        let bbw = BBW::calculate(20, 19, &candles);
+
+        assert!(bbw.is_none());
+    }
+
+    #[test]
+    fn bbw_no_candles() {
+        let candles: Vec<Candle> = Vec::new();
+        
+        let bb = BBW::calculate(20, 19, &candles);
+
+        assert!(bb.is_none());
+    }
+
+    #[test]
+    fn rolling_bbw() {
+        let n = 40;
+        let length = 20;
+        let candles = Candle::dummy_data(n, "positive", 100.0);
+
+        let mut bbw: Option<BBW> = None;
+        let bbws: Vec<Option<BBW>> = (0..candles.len())
+            .map(|i|  {
+                bbw = BBW::calculate_rolling(length, i, &candles,&bbw);
+                bbw
+            })
+            .collect();
+
+        for (i, bbw) in bbws.iter().enumerate() {
+            if i < length - 1 {
+                assert!(bbw.is_none())
+            } else {
+                assert!(bbw.is_some())
+            }
+        }
+
+        assert!(bbws[n - 1].unwrap().value-0.58430417610<0.00001)
+    }
+}
