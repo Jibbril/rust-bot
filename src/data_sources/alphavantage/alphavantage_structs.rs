@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::{
     data_sources::ApiResponse,
@@ -104,6 +104,7 @@ impl ApiResponse for AlphaVantageApiResponse {
                 ticker: symbol.to_string(),
                 interval: interval.clone(),
                 candles,
+                indicators: HashSet::new(),
             }
         })
     }

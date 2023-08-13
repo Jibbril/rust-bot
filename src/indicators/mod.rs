@@ -21,6 +21,7 @@ pub trait PopulatesCandles {
     fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()>;
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, Serialize)]
 pub enum IndicatorType {
     SMA(usize),
@@ -32,6 +33,7 @@ pub enum IndicatorType {
     DynamicPivot(usize),
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Indicator {
     SMA(Option<SMA>),

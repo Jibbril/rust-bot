@@ -7,7 +7,7 @@ use crate::models::{
 use super::DataSource;
 use std::{
     fs::{create_dir_all, File},
-    path::Path,
+    path::Path, collections::HashSet,
 };
 
 const FILE_NAME: &str = "data.csv";
@@ -33,6 +33,7 @@ pub async fn read(
         ticker: symbol.to_string(),
         interval: interval.clone(),
         candles,
+        indicators: HashSet::new(),
     })
 }
 

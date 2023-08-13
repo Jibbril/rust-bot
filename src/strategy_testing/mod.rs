@@ -157,7 +157,7 @@ mod tests {
         trading_strategies::rsi_basic::RsiBasic,
     };
     use chrono::{Duration, Utc};
-    use std::collections::HashMap;
+    use std::collections::{HashMap, HashSet};
 
     #[test]
     fn test_empty_arrays() {
@@ -190,6 +190,7 @@ mod tests {
             candles,
             ticker: "TEST".to_string(),
             interval: Interval::Day1,
+            indicators: HashSet::new(),
         };
 
         // Populate rsi indicator
