@@ -1,6 +1,10 @@
-use crate::{models::{candle::Candle, generic_result::GenericResult}, utils::math::std, indicators::IndicatorType};
+use crate::{
+    indicators::IndicatorType,
+    models::{candle::Candle, generic_result::GenericResult},
+    utils::math::std,
+};
 
-use super::{PopulatesCandles, sma::SMA, Indicator};
+use super::{sma::SMA, Indicator, PopulatesCandles};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BollingerBands {
@@ -15,8 +19,8 @@ impl PopulatesCandles for BollingerBands {
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
         let mut bb: Option<BollingerBands> = None;
         let new_bbs: Vec<Option<BollingerBands>> = (0..candles.len())
-            .map(|i|  {
-                bb = Self::calculate_rolling(length, i, candles,&bb);
+            .map(|i| {
+                bb = Self::calculate_rolling(length, i, candles, &bb);
                 bb
             })
             .collect();
@@ -35,7 +39,7 @@ impl PopulatesCandles for BollingerBands {
 
 impl BollingerBands {
     pub fn calculation_ok(i: usize, len: usize, arr_len: usize) -> bool {
-        i < arr_len && len <= arr_len && i >= len - 1 && len > 0 
+        i < arr_len && len <= arr_len && i >= len - 1 && len > 0
     }
 
     fn typical_price(c: &Candle) -> f64 {
@@ -43,11 +47,7 @@ impl BollingerBands {
     }
 
     #[allow(dead_code)]
-    pub fn calculate(
-        length: usize,
-        i: usize,
-        candles: &[Candle],
-    ) -> Option<BollingerBands> {
+    pub fn calculate(length: usize, i: usize, candles: &[Candle]) -> Option<BollingerBands> {
         if !Self::calculation_ok(i, length, candles.len()) {
             None
         } else {
@@ -56,9 +56,7 @@ impl BollingerBands {
             let segment = &candles[start..end];
 
             // typical price sum
-            let tps: Vec<f64> = segment.iter()
-                .map(|c| Self::typical_price(c))
-                .collect(); 
+            let tps: Vec<f64> = segment.iter().map(|c| Self::typical_price(c)).collect();
 
             let ma = tps.iter().sum::<f64>() / (length as f64);
             let std = std(&tps, ma);
@@ -71,7 +69,7 @@ impl BollingerBands {
                 upper,
                 lower,
                 std,
-                sma: SMA {length, value: ma},
+                sma: SMA { length, value: ma },
                 length,
             })
         }
@@ -81,32 +79,38 @@ impl BollingerBands {
         length: usize,
         i: usize,
         candles: &[Candle],
-        previous_bb: &Option<BollingerBands>
+        previous_bb: &Option<BollingerBands>,
     ) -> Option<BollingerBands> {
         if !Self::calculation_ok(i, length, candles.len()) {
-            return None
+            return None;
         } else if let Some(prev_bb) = previous_bb {
             let f_length = length as f64;
             let price_in = Self::typical_price(&candles[i]);
-            let price_out = Self::typical_price(&candles[i-length]);
+            let price_out = Self::typical_price(&candles[i - length]);
             let old_sma = prev_bb.sma.value;
-            
+
             let new_sma = old_sma + (price_in - price_out) / f_length;
 
-            let new_var = prev_bb.std.powi(2) + ((price_in - old_sma) * (price_in - new_sma) - (price_out - old_sma) * (price_out - new_sma)) / f_length;
+            let new_var = prev_bb.std.powi(2)
+                + ((price_in - old_sma) * (price_in - new_sma)
+                    - (price_out - old_sma) * (price_out - new_sma))
+                    / f_length;
 
             let new_std = new_var.sqrt();
 
             let std_n = 2.0;
             let upper = new_sma + std_n * new_std;
-            let lower = new_sma - std_n * new_std; 
-            
+            let lower = new_sma - std_n * new_std;
+
             Some(BollingerBands {
                 upper,
                 lower,
                 std: new_std,
-                sma: SMA {length, value: new_sma },
-                length
+                sma: SMA {
+                    length,
+                    value: new_sma,
+                },
+                length,
             })
         } else {
             Self::calculate(length, i, candles)
@@ -114,20 +118,19 @@ impl BollingerBands {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::models::candle::Candle;
     use super::BollingerBands;
+    use crate::models::candle::Candle;
 
     #[test]
     fn calculate_bollinger_bands() {
         let candles = Candle::dummy_data(20, "positive", 100.0);
 
-        let bb = BollingerBands::calculate( 10, 19, &candles);        
+        let bb = BollingerBands::calculate(10, 19, &candles);
         assert!(bb.is_some());
         let bb = bb.unwrap();
-        assert!(bb.upper-315.5530070819<0.0001)
+        assert!(bb.upper - 315.5530070819 < 0.0001)
     }
 
     #[test]
@@ -142,7 +145,7 @@ mod tests {
     #[test]
     fn bb_no_candles() {
         let candles: Vec<Candle> = Vec::new();
-        
+
         let bb = BollingerBands::calculate(20, 19, &candles);
 
         assert!(bb.is_none());
@@ -156,8 +159,8 @@ mod tests {
 
         let mut bb: Option<BollingerBands> = None;
         let bbs: Vec<Option<BollingerBands>> = (0..candles.len())
-            .map(|i|  {
-                bb = BollingerBands::calculate_rolling(length, i, &candles,&bb);
+            .map(|i| {
+                bb = BollingerBands::calculate_rolling(length, i, &candles, &bb);
                 bb
             })
             .collect();
@@ -170,6 +173,6 @@ mod tests {
             }
         }
 
-        assert!(bbs[n - 1].unwrap().upper  - 523.3215956619 < 0.00001)
+        assert!(bbs[n - 1].unwrap().upper - 523.3215956619 < 0.00001)
     }
 }

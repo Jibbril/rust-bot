@@ -1,20 +1,19 @@
 pub mod atr;
+pub mod bbw;
+pub mod bbwp;
+pub mod bollinger_bands;
 pub mod dynamic_pivots;
 pub mod rsi;
 pub mod sma;
-pub mod bbwp;
-pub mod bollinger_bands;
-pub mod bbw;
 
 use crate::models::{candle::Candle, generic_result::GenericResult};
 use atr::ATR;
+use bbw::BBW;
+use bollinger_bands::BollingerBands;
 use dynamic_pivots::DynamicPivot;
 use rsi::RSI;
 use serde::Serialize;
 use sma::SMA;
-use bollinger_bands::BollingerBands;
-use bbw::BBW;
-
 
 pub trait PopulatesCandles {
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()>;
