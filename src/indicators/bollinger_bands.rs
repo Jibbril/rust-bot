@@ -37,7 +37,7 @@ impl PopulatesCandles for BollingerBands {
     }
 
     fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-         Self::populate_candles(ts, 20)
+        Self::populate_candles(ts, 20)
     }
 }
 

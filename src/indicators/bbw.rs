@@ -12,7 +12,7 @@ pub struct BBW {
 
 impl PopulatesCandles for BBW {
     fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        Self::populate_candles(ts, 20)    
+        Self::populate_candles(ts, 20)
     }
 
     fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {

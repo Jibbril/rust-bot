@@ -6,8 +6,9 @@ use crate::models::{
 
 use super::DataSource;
 use std::{
+    collections::HashSet,
     fs::{create_dir_all, File},
-    path::Path, collections::HashSet,
+    path::Path,
 };
 
 const FILE_NAME: &str = "data.csv";

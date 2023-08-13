@@ -9,7 +9,7 @@ pub struct TimeSeries {
     pub ticker: String,
     pub interval: Interval,
     pub candles: Vec<Candle>,
-    pub indicators: HashSet<IndicatorType>
+    pub indicators: HashSet<IndicatorType>,
 }
 
 impl TimeSeries {

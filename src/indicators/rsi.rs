@@ -1,7 +1,8 @@
 use serde::Serialize;
 
 use crate::models::{
-    calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult, timeseries::TimeSeries,
+    calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
+    timeseries::TimeSeries,
 };
 
 use super::{Indicator, IndicatorType, PopulatesCandles};

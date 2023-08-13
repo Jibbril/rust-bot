@@ -13,7 +13,7 @@ pub struct DynamicPivot {
 
 impl PopulatesCandles for DynamicPivot {
     fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        Self::populate_candles(ts, 15)    
+        Self::populate_candles(ts, 15)
     }
 
     fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {

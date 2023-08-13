@@ -1,5 +1,5 @@
-use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
 use super::{bbw::BBW, PopulatesCandles};
+use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
 
 /// Bollinger Band Width Percentile
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
@@ -22,6 +22,4 @@ impl PopulatesCandles for BBWP {
     }
 }
 
-impl BBWP {
-
-}
+impl BBWP {}

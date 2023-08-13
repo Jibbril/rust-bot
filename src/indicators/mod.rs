@@ -6,15 +6,15 @@ pub mod dynamic_pivots;
 pub mod rsi;
 pub mod sma;
 
-use crate::models::{ generic_result::GenericResult, timeseries::TimeSeries};
+use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
 use atr::ATR;
 use bbw::BBW;
+use bbwp::BBWP;
 use bollinger_bands::BollingerBands;
 use dynamic_pivots::DynamicPivot;
 use rsi::RSI;
 use serde::Serialize;
 use sma::SMA;
-use bbwp::BBWP;
 
 pub trait PopulatesCandles {
     fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()>;
