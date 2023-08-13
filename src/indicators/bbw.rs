@@ -11,6 +11,10 @@ pub struct BBW {
 }
 
 impl PopulatesCandles for BBW {
+    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()> {
+        Self::populate_candles(candles, 20)    
+    }
+
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
         let mut bbw: Option<BBW> = None;
         let new_bbws: Vec<Option<BBW>> = (0..candles.len())

@@ -17,6 +17,7 @@ use sma::SMA;
 
 pub trait PopulatesCandles {
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()>;
+    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()>;
 }
 
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, Serialize)]

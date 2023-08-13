@@ -32,6 +32,10 @@ impl PopulatesCandles for ATR {
 
         Ok(())
     }
+
+    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()> {
+        Self::populate_candles(candles, 14)
+    }
 }
 
 impl ATR {

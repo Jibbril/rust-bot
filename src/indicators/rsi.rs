@@ -16,6 +16,10 @@ pub struct RSI {
 }
 
 impl PopulatesCandles for RSI {
+    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()> {
+        Self::populate_candles(candles, 14)
+    }
+
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
         let mut rsi: Option<RSI> = None;
         let new_rsis: Vec<Option<RSI>> = (0..candles.len())

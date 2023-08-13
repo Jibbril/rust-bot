@@ -12,6 +12,10 @@ pub struct DynamicPivot {
 }
 
 impl PopulatesCandles for DynamicPivot {
+    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()> {
+        Self::populate_candles(candles, 15)    
+    }
+
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
         let mut new_pivots: Vec<Option<DynamicPivot>> = (0..length).map(|_| None).collect();
 

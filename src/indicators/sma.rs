@@ -12,6 +12,9 @@ pub struct SMA {
 }
 
 impl PopulatesCandles for SMA {
+    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()> {
+        Self::populate_candles(candles, 8)
+    }
     fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
         let mut sma: Option<SMA> = None;
         let new_smas: Vec<Option<SMA>> = (0..candles.len())

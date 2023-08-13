@@ -35,6 +35,10 @@ impl PopulatesCandles for BollingerBands {
 
         Ok(())
     }
+
+    fn populate_candles_default(candles: &mut Vec<Candle>) -> GenericResult<()> {
+         Self::populate_candles(candles, 20)
+    }
 }
 
 impl BollingerBands {

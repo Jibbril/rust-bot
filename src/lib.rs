@@ -8,7 +8,7 @@ mod trading_strategies;
 mod utils;
 
 use crate::{
-    indicators::{atr::ATR, dynamic_pivots::DynamicPivot, rsi::RSI, PopulatesCandles},
+    indicators::{atr::ATR, bbw::BBW, rsi::RSI, PopulatesCandles},
     models::{interval::Interval, setup::FindsReverseSetups, strategy::Strategy},
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
@@ -28,12 +28,16 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut ts = request_data(&source, "BTC", interval, true).await?;
 
     // Calculate indicators for TimeSeries
-    // SMA::populate_candles(&mut ts.candles, 6)?;
-    // SMA::populate_candles(&mut ts.candles, 20)?;
-    // SMA::populate_candles(&mut ts.candles, 54)?;
-    RSI::populate_candles(&mut ts.candles, 14)?;
-    ATR::populate_candles(&mut ts.candles, 14)?;
-    DynamicPivot::populate_candles(&mut ts.candles, 15)?;
+    // SMA::populate_candles_default(&mut ts.candles)?;
+    // SMA::populate_candles_default(&mut ts.candles)?;
+    // SMA::populate_candles_default(&mut ts.candles)?;
+    // BollingerBands::populate_candles_default(&mut ts.candles)?;
+    // DynamicPivot::populate_candles_default(&mut ts.candles)?;
+    BBW::populate_candles_default(&mut ts.candles)?;
+    RSI::populate_candles_default(&mut ts.candles)?;
+    ATR::populate_candles_default(&mut ts.candles)?;
+
+    println!("Candles:{:#?}", ts.candles);
 
     // Implement Strategy to analyze TimeSeries
     let rsi_strategy = Strategy::RsiBasic(RsiBasic::new_default());
@@ -48,9 +52,9 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Test result of taking setups
-    let rsi_results = test_setups(&rsi_setups, &ts.candles);
+    let _ = test_setups(&rsi_setups, &ts.candles);
 
-    println!("RSI results:{:#?}", rsi_results);
+    // println!("RSI results:{:#?}", rsi_results);
 
     Ok(())
 }
