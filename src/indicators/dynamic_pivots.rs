@@ -1,4 +1,4 @@
-use super::{PopulatesCandles, indicator::Indicator, indicator_type::IndicatorType};
+use super::{ indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles};
 use crate:: models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries} ;
 
 #[derive(Debug, Copy, Clone)]

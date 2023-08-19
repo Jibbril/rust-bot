@@ -1,6 +1,6 @@
 use crate::models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries};
 
-use super::{bollinger_bands::BollingerBands, PopulatesCandles, indicator::Indicator, indicator_type::IndicatorType};
+use super::{bollinger_bands::BollingerBands,  indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles};
 
 /// Bollinger Band Width
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]

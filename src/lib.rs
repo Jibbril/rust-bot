@@ -8,7 +8,7 @@ mod trading_strategies;
 mod utils;
 
 use crate::{
-    indicators::{atr::ATR, rsi::RSI, PopulatesCandles, bbwp::BBWP},
+    indicators::{atr::ATR, rsi::RSI,  bbwp::BBWP, populates_candles::PopulatesCandles},
     models::{interval::Interval, setup::FindsReverseSetups, strategy::Strategy},
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,

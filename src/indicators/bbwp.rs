@@ -1,4 +1,4 @@
-use super::{bbw::BBW, PopulatesCandles, sma::SMA, indicator::Indicator, indicator_type::IndicatorType};
+use super::{bbw::BBW, sma::SMA, indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles};
 use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
 
 /// Bollinger Band Width Percentile
