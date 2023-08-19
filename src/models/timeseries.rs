@@ -1,7 +1,5 @@
 use std::collections::HashSet;
-
-use crate::indicators::IndicatorType;
-
+use crate::indicators::indicator_type::IndicatorType;
 use super::{candle::Candle, interval::Interval};
 
 #[derive(Debug, Clone)]

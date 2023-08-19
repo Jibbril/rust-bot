@@ -1,10 +1,9 @@
 use crate::{
-    indicators::IndicatorType,
     models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries},
     utils::math::std,
 };
 
-use super::{sma::SMA, PopulatesCandles, indicator::Indicator};
+use super::{sma::SMA, PopulatesCandles, indicator::Indicator, indicator_type::IndicatorType};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BollingerBands {

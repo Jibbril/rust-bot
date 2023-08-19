@@ -1,9 +1,8 @@
 use super::CalculatesStopLosses;
 use crate::{
-    indicators::IndicatorType,
     models::{
         candle::Candle, generic_result::GenericResult, strategy_orientation::StrategyOrientation,
-    },
+    }, indicators::indicator_type::IndicatorType,
 };
 use serde::{Deserialize, Serialize};
 

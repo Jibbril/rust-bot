@@ -1,5 +1,5 @@
 use super::{calculation_mode::CalculationMode, generic_result::GenericResult};
-use crate::indicators::{IndicatorType, indicator::Indicator};
+use crate::indicators::{indicator::Indicator, indicator_type::IndicatorType};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

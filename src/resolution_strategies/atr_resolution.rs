@@ -1,6 +1,6 @@
 use super::{CalculatesStopLosses, CalculatesTakeProfits};
 use crate::{
-    indicators::{atr::ATR, IndicatorType},
+    indicators::{atr::ATR, indicator_type::IndicatorType},
     models::{
         calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
         strategy_orientation::StrategyOrientation,

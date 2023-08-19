@@ -1,8 +1,5 @@
-use super::{PopulatesCandles, indicator::Indicator};
-use crate::{
-    indicators::IndicatorType,
-    models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries},
-};
+use super::{PopulatesCandles, indicator::Indicator, indicator_type::IndicatorType};
+use crate:: models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries} ;
 
 #[derive(Debug, Copy, Clone)]
 pub struct DynamicPivot {
