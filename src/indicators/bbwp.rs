@@ -1,5 +1,5 @@
-use super::{bbw::BBW, PopulatesCandles, sma::SMA};
-use crate::{models::{generic_result::GenericResult, timeseries::TimeSeries}, indicators::{IndicatorType, Indicator}};
+use super::{bbw::BBW, PopulatesCandles, sma::SMA, indicator::Indicator};
+use crate::{models::{generic_result::GenericResult, timeseries::TimeSeries}, indicators::IndicatorType};
 
 /// Bollinger Band Width Percentile
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]

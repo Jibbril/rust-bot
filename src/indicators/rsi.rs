@@ -5,7 +5,7 @@ use crate::models::{
     timeseries::TimeSeries,
 };
 
-use super::{Indicator, IndicatorType, PopulatesCandles};
+use super::{IndicatorType, PopulatesCandles, indicator::Indicator};
 
 #[derive(Debug, Copy, Clone, Serialize, PartialEq, PartialOrd)]
 pub struct RSI {

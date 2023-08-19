@@ -1,6 +1,6 @@
-use super::PopulatesCandles;
+use super::{PopulatesCandles, indicator::Indicator};
 use crate::{
-    indicators::{Indicator, IndicatorType},
+    indicators::IndicatorType,
     models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries},
 };
 

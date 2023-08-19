@@ -4,7 +4,7 @@ use crate::{
     utils::math::std,
 };
 
-use super::{sma::SMA, Indicator, PopulatesCandles};
+use super::{sma::SMA, PopulatesCandles, indicator::Indicator};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BollingerBands {
