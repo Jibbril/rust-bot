@@ -5,9 +5,9 @@ use crate::models::{generic_result::GenericResult, interval::Interval, timeserie
 use reqwest::Client;
 use std::env;
 
-pub async fn get(symbol: &str, interval: &Interval) -> GenericResult<TimeSeries> {
+pub async fn get(symbol: &str, interval: &Interval, exchange: Option<String>) -> GenericResult<TimeSeries> {
     let api_key = env::var("CRYPTOCOMPARE_KEY")?;
-    let url = construct_url(symbol, interval, 2000);
+    let url = construct_url(symbol, interval, 2000, exchange);
 
     let client = Client::new();
     let response = client
@@ -26,11 +26,13 @@ pub async fn get(symbol: &str, interval: &Interval) -> GenericResult<TimeSeries>
     }
 }
 
-fn construct_url(symbol: &str, interval: &Interval, limit: u32) -> String {
+fn construct_url(symbol: &str, interval: &Interval, limit: u32, exchange: Option<String>) -> String {
     let market = "USD";
     let minute = "histominute";
     let hour = "histohour";
     let day = "histoday";
+
+    let exchange = exchange.unwrap_or("CCCAGG".to_string());
 
     let (interval, aggregate) = match interval {
         Interval::Minute5 => (minute, 5),
@@ -47,7 +49,7 @@ fn construct_url(symbol: &str, interval: &Interval, limit: u32) -> String {
     // TODO: Enable multiples using the aggregate parameter in the api
 
     format!(
-        "https://min-api.cryptocompare.com/data/v2/{}?fsym={}&tsym={}&limit={}&aggregate={}",
-        interval, symbol, market, limit, aggregate
+        "https://min-api.cryptocompare.com/data/v2/{}?fsym={}&tsym={}&limit={}&aggregate={}&e={}",
+        interval, symbol, market, limit, aggregate, exchange
     )
 }

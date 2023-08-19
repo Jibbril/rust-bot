@@ -8,7 +8,7 @@ mod trading_strategies;
 mod utils;
 
 use crate::{
-    indicators::{atr::ATR, bbw::BBW, rsi::RSI, PopulatesCandles},
+    indicators::{atr::ATR, rsi::RSI, PopulatesCandles, bbwp::BBWP},
     models::{interval::Interval, setup::FindsReverseSetups, strategy::Strategy},
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
@@ -22,7 +22,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
 
     // Get TimeSeries data
-    let source = DataSource::CryptoCompare;
+    let source = DataSource::CryptoCompare(Some("Coinbase".to_string()));
     let source = DataSource::Local(Box::new(source));
     let interval = Interval::Day1;
     let mut ts = request_data(&source, "BTC", interval, true).await?;
@@ -33,7 +33,8 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // SMA::populate_candles_default(&mut ts.candles)?;
     // BollingerBands::populate_candles_default(&mut ts.candles)?;
     // DynamicPivot::populate_candles_default(&mut ts.candles)?;
-    BBW::populate_candles_default(&mut ts)?;
+    // BBW::populate_candles_default(&mut ts)?;
+    BBWP::populate_candles_default(&mut ts)?;
     RSI::populate_candles_default(&mut ts)?;
     ATR::populate_candles_default(&mut ts)?;
 

@@ -61,7 +61,7 @@ fn construct_path(interval: &Interval, ticker: &str, source: &DataSource) -> Str
     let source = match source {
         DataSource::AlphaVantage => "alphavantage",
         DataSource::CoinMarketCap => "coinmarketcap",
-        DataSource::CryptoCompare => "cryptocompare",
+        DataSource::CryptoCompare(_) => "cryptocompare",
         DataSource::Local(_) => "local",
     };
 

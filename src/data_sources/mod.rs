@@ -11,7 +11,7 @@ use crate::models::{generic_result::GenericResult, interval::Interval, timeserie
 pub enum DataSource {
     AlphaVantage,
     CoinMarketCap,
-    CryptoCompare,
+    CryptoCompare(Option<String>),
     Local(Box<DataSource>),
 }
 
@@ -23,7 +23,7 @@ pub async fn request_data(
     source: &DataSource,
     symbol: &str,
     interval: Interval,
-    save_local: bool,
+    save_local: bool
 ) -> GenericResult<TimeSeries> {
     let ts: TimeSeries;
 
@@ -39,10 +39,10 @@ pub async fn request_data(
         }
     }
 
-    ts = match source {
+    ts = match &source {
         DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
         DataSource::CoinMarketCap => coinmarketcap::get().await?,
-        DataSource::CryptoCompare => cryptocompare::get(symbol, &interval).await?,
+        DataSource::CryptoCompare(exchange) => cryptocompare::get(symbol, &interval, exchange.clone()).await?,
         _ => panic!("Error"),
     };
 
