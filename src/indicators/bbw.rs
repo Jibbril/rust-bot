@@ -1,6 +1,6 @@
 use crate::models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries};
 
-use super::{bollinger_bands::BollingerBands,  indicator::Indicator, indicator_type::IndicatorType, populates_candles::{PopulatesCandles, IndicatorArgs}};
+use super::{bollinger_bands::BollingerBands,  indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles, indicator_args::IndicatorArgs};
 
 /// Bollinger Band Width
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
@@ -82,7 +82,7 @@ impl BBW {
 
 #[cfg(test)]
 mod tests {
-    use crate::{indicators::{bbw::BBW, populates_candles::IndicatorArgs}, models::candle::Candle};
+    use crate::{indicators::{bbw::BBW, indicator_args::IndicatorArgs}, models::candle::Candle};
 
     #[test]
     fn calculate_bbw() {

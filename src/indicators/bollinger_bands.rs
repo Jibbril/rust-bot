@@ -3,7 +3,7 @@ use crate::{
     utils::math::std,
 };
 
-use super::{sma::SMA,  indicator::Indicator, indicator_type::IndicatorType, populates_candles::{PopulatesCandles, IndicatorArgs}};
+use super::{sma::SMA,  indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles, indicator_args::IndicatorArgs};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BollingerBands {
@@ -127,7 +127,7 @@ impl BollingerBands {
 #[cfg(test)]
 mod tests {
     use super::BollingerBands;
-    use crate::{models::candle::Candle, indicators::populates_candles::IndicatorArgs};
+    use crate::{models::candle::Candle, indicators::indicator_args::IndicatorArgs};
 
     #[test]
     fn calculate_bollinger_bands() {
