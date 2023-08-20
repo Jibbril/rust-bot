@@ -1,4 +1,4 @@
-use super::{bbw::BBW, sma::SMA, indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles};
+use super::{bbw::BBW, sma::SMA, indicator::Indicator, indicator_type::IndicatorType, populates_candles::{PopulatesCandles, IndicatorArgs}};
 use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
 
 /// Bollinger Band Width Percentile
@@ -13,13 +13,14 @@ pub struct BBWP {
 }
 
 impl PopulatesCandles for BBWP {
-    fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {
-        let lookback = 252;
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+        let (length,lookback, sma_length) = args.extract_bbwp_args_res()?;
         let indicator_type = IndicatorType::BBW(length);
 
         // Populate candles with BBWP if not already there
         if !ts.indicators.contains(&indicator_type) {
-            BBW::populate_candles(ts, length)?
+            let args = IndicatorArgs::BollingerBandArgs(length, 1.0);
+            BBW::populate_candles(ts, args)?
         }
         
         // Calculate BBWP values for TimeSeries
@@ -54,16 +55,16 @@ impl PopulatesCandles for BBWP {
             .collect();
 
         // Calculate 5-period SMA for BBWP values
-        for i in 5..new_bbwps.len() {
-            let sum: f64 = new_bbwps[i - 5..i].iter()
+        for i in sma_length..new_bbwps.len() {
+            let sum: f64 = new_bbwps[i - sma_length..i].iter()
                 .filter_map(|bbwp| bbwp.as_ref())
                 .map(|bbwp| bbwp.value)
                 .sum();
 
             if let Some(bbwp) = new_bbwps[i].as_mut() {
                 bbwp.sma = SMA {
-                    value: sum / 5.0,
-                    length: 5
+                    value: sum / (sma_length as f64),
+                    length: sma_length
                 };
             }
         } 
@@ -80,7 +81,8 @@ impl PopulatesCandles for BBWP {
     }
 
     fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        Self::populate_candles(ts, 13)
+        let args = IndicatorArgs::BBWPArgs(13, 252, 5);
+        Self::populate_candles(ts, args)
     }
 }
 

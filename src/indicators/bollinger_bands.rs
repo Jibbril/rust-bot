@@ -3,7 +3,7 @@ use crate::{
     utils::math::std,
 };
 
-use super::{sma::SMA,  indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles};
+use super::{sma::SMA,  indicator::Indicator, indicator_type::IndicatorType, populates_candles::{PopulatesCandles, IndicatorArgs}};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BollingerBands {
@@ -15,11 +15,12 @@ pub struct BollingerBands {
 }
 
 impl PopulatesCandles for BollingerBands {
-    fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+        let (length,_) = args.extract_bb_args_res()?;
         let mut bb: Option<BollingerBands> = None;
         let new_bbs: Vec<Option<BollingerBands>> = (0..ts.candles.len())
             .map(|i| {
-                bb = Self::calculate_rolling(length, i, &ts.candles, &bb);
+                bb = Self::calculate_rolling(args, i, &ts.candles, &bb);
                 bb
             })
             .collect();
@@ -36,7 +37,8 @@ impl PopulatesCandles for BollingerBands {
     }
 
     fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        Self::populate_candles(ts, 20)
+        let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
+        Self::populate_candles(ts, args)
     }
 }
 
@@ -50,7 +52,8 @@ impl BollingerBands {
     }
 
     #[allow(dead_code)]
-    pub fn calculate(length: usize, i: usize, candles: &[Candle]) -> Option<BollingerBands> {
+    pub fn calculate(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BollingerBands> {
+        let (length,_) = args.extract_bb_args_opt()?;
         if !Self::calculation_ok(i, length, candles.len()) {
             None
         } else {
@@ -79,11 +82,12 @@ impl BollingerBands {
     }
 
     pub fn calculate_rolling(
-        length: usize,
+        args: IndicatorArgs,
         i: usize,
         candles: &[Candle],
         previous_bb: &Option<BollingerBands>,
     ) -> Option<BollingerBands> {
+        let (length,std_n) = args.extract_bb_args_opt()?;
         if !Self::calculation_ok(i, length, candles.len()) {
             return None;
         } else if let Some(prev_bb) = previous_bb {
@@ -101,7 +105,6 @@ impl BollingerBands {
 
             let new_std = new_var.sqrt();
 
-            let std_n = 2.0;
             let upper = new_sma + std_n * new_std;
             let lower = new_sma - std_n * new_std;
 
@@ -116,7 +119,7 @@ impl BollingerBands {
                 length,
             })
         } else {
-            Self::calculate(length, i, candles)
+            Self::calculate(args, i, candles)
         }
     }
 }
@@ -124,13 +127,14 @@ impl BollingerBands {
 #[cfg(test)]
 mod tests {
     use super::BollingerBands;
-    use crate::models::candle::Candle;
+    use crate::{models::candle::Candle, indicators::populates_candles::IndicatorArgs};
 
     #[test]
     fn calculate_bollinger_bands() {
         let candles = Candle::dummy_data(20, "positive", 100.0);
 
-        let bb = BollingerBands::calculate(10, 19, &candles);
+        let args = IndicatorArgs::BollingerBandArgs(10, 2.0);
+        let bb = BollingerBands::calculate(args, 19, &candles);
         assert!(bb.is_some());
         let bb = bb.unwrap();
         assert!(bb.upper - 315.5530070819 < 0.0001)
@@ -140,7 +144,8 @@ mod tests {
     fn bb_not_enough_data() {
         let candles = Candle::dummy_data(2, "positive", 100.0);
 
-        let bb = BollingerBands::calculate(20, 19, &candles);
+        let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
+        let bb = BollingerBands::calculate(args, 19, &candles);
 
         assert!(bb.is_none());
     }
@@ -149,7 +154,8 @@ mod tests {
     fn bb_no_candles() {
         let candles: Vec<Candle> = Vec::new();
 
-        let bb = BollingerBands::calculate(20, 19, &candles);
+        let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
+        let bb = BollingerBands::calculate(args, 19, &candles);
 
         assert!(bb.is_none());
     }
@@ -158,12 +164,13 @@ mod tests {
     fn rolling_bb() {
         let n = 40;
         let length = 20;
+        let args = IndicatorArgs::BollingerBandArgs(length, 2.0);
         let candles = Candle::dummy_data(n, "positive", 100.0);
 
         let mut bb: Option<BollingerBands> = None;
         let bbs: Vec<Option<BollingerBands>> = (0..candles.len())
             .map(|i| {
-                bb = BollingerBands::calculate_rolling(length, i, &candles, &bb);
+                bb = BollingerBands::calculate_rolling(args, i, &candles, &bb);
                 bb
             })
             .collect();

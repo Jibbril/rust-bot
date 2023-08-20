@@ -3,7 +3,7 @@ use crate::models::{
     timeseries::TimeSeries,
 };
 
-use super::{ indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles};
+use super::{ indicator::Indicator, indicator_type::IndicatorType, populates_candles::{PopulatesCandles, IndicatorArgs}};
 
 #[derive(Debug, Copy, Clone)]
 pub struct ATR {
@@ -13,7 +13,8 @@ pub struct ATR {
 }
 
 impl PopulatesCandles for ATR {
-    fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+        let length = args.extract_length_arg_res()?;
         let mut atr: Option<ATR> = None;
 
         let new_atrs: Vec<Option<ATR>> = (0..ts.candles.len())
@@ -35,7 +36,8 @@ impl PopulatesCandles for ATR {
     }
 
     fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        Self::populate_candles(ts, 14)
+        let args = IndicatorArgs::LengthArg(14);
+        Self::populate_candles(ts, args)
     }
 }
 

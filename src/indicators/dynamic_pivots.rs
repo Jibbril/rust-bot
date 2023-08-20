@@ -1,4 +1,4 @@
-use super::{ indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles};
+use super::{ indicator::Indicator, indicator_type::IndicatorType, populates_candles::{PopulatesCandles, IndicatorArgs}};
 use crate:: models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries} ;
 
 #[derive(Debug, Copy, Clone)]
@@ -10,10 +10,12 @@ pub struct DynamicPivot {
 
 impl PopulatesCandles for DynamicPivot {
     fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        Self::populate_candles(ts, 15)
+        let args = IndicatorArgs::LengthArg(15);
+        Self::populate_candles(ts, args)
     }
 
-    fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+        let length = args.extract_length_arg_res()?;
         let mut new_pivots: Vec<Option<DynamicPivot>> = (0..length).map(|_| None).collect();
 
         let mut pivots: Option<DynamicPivot> = Some(DynamicPivot {

@@ -5,7 +5,7 @@ use crate::models::{
     timeseries::TimeSeries,
 };
 
-use super::{ indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles};
+use super::{ indicator::Indicator, indicator_type::IndicatorType, populates_candles::{PopulatesCandles, IndicatorArgs}};
 
 #[derive(Debug, Copy, Clone, Serialize, PartialEq, PartialOrd)]
 pub struct RSI {
@@ -18,10 +18,12 @@ pub struct RSI {
 
 impl PopulatesCandles for RSI {
     fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        Self::populate_candles(ts, 14)
+        let args = IndicatorArgs::LengthArg(14);
+        Self::populate_candles(ts, args)
     }
 
-    fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+        let length = args.extract_length_arg_res()?;
         let mut rsi: Option<RSI> = None;
         let new_rsis: Vec<Option<RSI>> = (0..ts.candles.len())
             .map(|i| {

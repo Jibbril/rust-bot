@@ -3,7 +3,7 @@ use crate::models::{
     timeseries::TimeSeries,
 };
 
-use super::{ indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles};
+use super::{ indicator::Indicator, indicator_type::IndicatorType, populates_candles::{PopulatesCandles, IndicatorArgs}};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct SMA {
@@ -14,9 +14,11 @@ pub struct SMA {
 
 impl PopulatesCandles for SMA {
     fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        Self::populate_candles(ts, 8)
+        let args = IndicatorArgs::LengthArg(8);
+        Self::populate_candles(ts, args)
     }
-    fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+        let length = args.extract_length_arg_res()?;
         let mut sma: Option<SMA> = None;
         let new_smas: Vec<Option<SMA>> = (0..ts.candles.len())
             .map(|i| {

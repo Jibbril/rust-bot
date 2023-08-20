@@ -144,7 +144,7 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
 mod tests {
     use super::test_setups;
     use crate::{
-        indicators::{rsi::RSI,  populates_candles::PopulatesCandles},
+        indicators::{rsi::RSI,  populates_candles::{PopulatesCandles, IndicatorArgs}},
         models::{
             candle::Candle,
             interval::Interval,
@@ -194,7 +194,8 @@ mod tests {
         };
 
         // Populate rsi indicator
-        let _ = RSI::populate_candles(&mut ts, 14);
+        let args = IndicatorArgs::LengthArg(14);
+        let _ = RSI::populate_candles(&mut ts, args);
 
         // Create RSIBasic strategy
         let strat = Strategy::RsiBasic(RsiBasic::new_default());

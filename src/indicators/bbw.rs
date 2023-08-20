@@ -1,25 +1,26 @@
 use crate::models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries};
 
-use super::{bollinger_bands::BollingerBands,  indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles};
+use super::{bollinger_bands::BollingerBands,  indicator::Indicator, indicator_type::IndicatorType, populates_candles::{PopulatesCandles, IndicatorArgs}};
 
 /// Bollinger Band Width
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BBW {
-    #[allow(dead_code)] // TODO: Remove once used
     pub bb: BollingerBands,
     pub value: f64,
 }
 
 impl PopulatesCandles for BBW {
     fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        Self::populate_candles(ts, 20)
+        let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
+        Self::populate_candles(ts, args)
     }
 
-    fn populate_candles(ts: &mut TimeSeries, length: usize) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+        let (length,_) = args.extract_bb_args_res()?;
         let mut bbw: Option<BBW> = None;
         let new_bbws: Vec<Option<BBW>> = (0..ts.candles.len())
             .map(|i| {
-                bbw = Self::calculate_rolling(length, i, &ts.candles, &bbw);
+                bbw = Self::calculate_rolling(args, i, &ts.candles, &bbw);
                 bbw
             })
             .collect();
@@ -37,11 +38,13 @@ impl PopulatesCandles for BBW {
 }
 
 impl BBW {
-    pub fn calculate(length: usize, i: usize, candles: &[Candle]) -> Option<BBW> {
+    pub fn calculate(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BBW> {
+        let (length, _) = args.extract_bb_args_opt()?;
+
         if !BollingerBands::calculation_ok(i, length, candles.len()) {
             None
         } else {
-            let bb = BollingerBands::calculate(length, i, candles)?;
+            let bb = BollingerBands::calculate(args, i, candles)?;
             Some(BBW {
                 bb,
                 value: Self::calculate_bbw(&bb),
@@ -50,23 +53,25 @@ impl BBW {
     }
 
     pub fn calculate_rolling(
-        length: usize,
+        args: IndicatorArgs,
         i: usize,
         candles: &[Candle],
         prev_bbw: &Option<BBW>,
     ) -> Option<BBW> {
+        let (length, _) = args.extract_bb_args_opt()?;
+        
         if !BollingerBands::calculation_ok(i, length, candles.len()) {
             return None;
         } else if let Some(prev_bbw) = prev_bbw {
             let prev_bb = Some(prev_bbw.bb);
-            let bb = BollingerBands::calculate_rolling(length, i, candles, &prev_bb)?;
+            let bb = BollingerBands::calculate_rolling(args, i, candles, &prev_bb)?;
 
             Some(BBW {
                 bb,
                 value: Self::calculate_bbw(&bb),
             })
         } else {
-            Self::calculate(length, i, candles)
+            Self::calculate(args, i, candles)
         }
     }
 
@@ -77,13 +82,14 @@ impl BBW {
 
 #[cfg(test)]
 mod tests {
-    use crate::{indicators::bbw::BBW, models::candle::Candle};
+    use crate::{indicators::{bbw::BBW, populates_candles::IndicatorArgs}, models::candle::Candle};
 
     #[test]
     fn calculate_bbw() {
         let candles = Candle::dummy_data(20, "positive", 100.0);
 
-        let bbw = BBW::calculate(10, 19, &candles);
+        let args = IndicatorArgs::BollingerBandArgs(10,2.0);
+        let bbw = BBW::calculate(args, 19, &candles);
         assert!(bbw.is_some());
         let bbw = bbw.unwrap();
         assert!(bbw.value - 0.4749255457 < 0.0001)
@@ -93,7 +99,8 @@ mod tests {
     fn bbw_not_enough_data() {
         let candles = Candle::dummy_data(2, "positive", 100.0);
 
-        let bbw = BBW::calculate(20, 19, &candles);
+        let args = IndicatorArgs::BollingerBandArgs(20,2.0);
+        let bbw = BBW::calculate(args, 19, &candles);
 
         assert!(bbw.is_none());
     }
@@ -102,7 +109,8 @@ mod tests {
     fn bbw_no_candles() {
         let candles: Vec<Candle> = Vec::new();
 
-        let bb = BBW::calculate(20, 19, &candles);
+        let args = IndicatorArgs::BollingerBandArgs(20,2.0);
+        let bb = BBW::calculate(args, 19, &candles);
 
         assert!(bb.is_none());
     }
@@ -111,12 +119,13 @@ mod tests {
     fn rolling_bbw() {
         let n = 40;
         let length = 20;
+        let args = IndicatorArgs::BollingerBandArgs(length, 2.0);
         let candles = Candle::dummy_data(n, "positive", 100.0);
 
         let mut bbw: Option<BBW> = None;
         let bbws: Vec<Option<BBW>> = (0..candles.len())
             .map(|i| {
-                bbw = BBW::calculate_rolling(length, i, &candles, &bbw);
+                bbw = BBW::calculate_rolling(args, i, &candles, &bbw);
                 bbw
             })
             .collect();
