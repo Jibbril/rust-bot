@@ -144,7 +144,9 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
 mod tests {
     use super::test_setups;
     use crate::{
-        indicators::{rsi::RSI,  populates_candles::PopulatesCandles, indicator_args::IndicatorArgs},
+        indicators::{
+            indicator_args::IndicatorArgs, populates_candles::PopulatesCandles, rsi::RSI,
+        },
         models::{
             candle::Candle,
             interval::Interval,

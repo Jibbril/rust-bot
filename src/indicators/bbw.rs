@@ -1,6 +1,9 @@
 use crate::models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries};
 
-use super::{bollinger_bands::BollingerBands,  indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles, indicator_args::IndicatorArgs};
+use super::{
+    bollinger_bands::BollingerBands, indicator::Indicator, indicator_args::IndicatorArgs,
+    indicator_type::IndicatorType, populates_candles::PopulatesCandles,
+};
 
 /// Bollinger Band Width
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
@@ -16,7 +19,7 @@ impl PopulatesCandles for BBW {
     }
 
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let (length,_) = args.extract_bb_args_res()?;
+        let (length, _) = args.extract_bb_args_res()?;
         let new_bbws: Vec<Option<BBW>> = (0..ts.candles.len())
             .map(|i| Self::calculate_rolling(args, i, &ts.candles))
             .collect();
@@ -50,13 +53,9 @@ impl BBW {
         }
     }
 
-    pub fn calculate_rolling(
-        args: IndicatorArgs,
-        i: usize,
-        candles: &[Candle]
-    ) -> Option<BBW> {
+    pub fn calculate_rolling(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BBW> {
         let (length, _) = args.extract_bb_args_opt()?;
-        
+
         if !BollingerBands::calculation_ok(i, length, candles.len()) {
             return None;
         } else {
@@ -71,13 +70,16 @@ impl BBW {
 
 #[cfg(test)]
 mod tests {
-    use crate::{indicators::{bbw::BBW, indicator_args::IndicatorArgs}, models::candle::Candle};
+    use crate::{
+        indicators::{bbw::BBW, indicator_args::IndicatorArgs},
+        models::candle::Candle,
+    };
 
     #[test]
     fn calculate_bbw() {
         let candles = Candle::dummy_data(20, "positive", 100.0);
 
-        let args = IndicatorArgs::BollingerBandArgs(10,2.0);
+        let args = IndicatorArgs::BollingerBandArgs(10, 2.0);
         let bbw = BBW::calculate(args, 19, &candles);
         assert!(bbw.is_some());
         let bbw = bbw.unwrap();
@@ -88,7 +90,7 @@ mod tests {
     fn bbw_not_enough_data() {
         let candles = Candle::dummy_data(2, "positive", 100.0);
 
-        let args = IndicatorArgs::BollingerBandArgs(20,2.0);
+        let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
         let bbw = BBW::calculate(args, 19, &candles);
 
         assert!(bbw.is_none());
@@ -98,7 +100,7 @@ mod tests {
     fn bbw_no_candles() {
         let candles: Vec<Candle> = Vec::new();
 
-        let args = IndicatorArgs::BollingerBandArgs(20,2.0);
+        let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
         let bb = BBW::calculate(args, 19, &candles);
 
         assert!(bb.is_none());

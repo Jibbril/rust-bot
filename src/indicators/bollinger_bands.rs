@@ -3,7 +3,10 @@ use crate::{
     utils::math::std,
 };
 
-use super::{sma::SMA,  indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles, indicator_args::IndicatorArgs};
+use super::{
+    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    populates_candles::PopulatesCandles, sma::SMA,
+};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BollingerBands {
@@ -16,7 +19,7 @@ pub struct BollingerBands {
 
 impl PopulatesCandles for BollingerBands {
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let (length,_) = args.extract_bb_args_res()?;
+        let (length, _) = args.extract_bb_args_res()?;
         let mut bb: Option<BollingerBands> = None;
         let new_bbs: Vec<Option<BollingerBands>> = (0..ts.candles.len())
             .map(|i| {
@@ -55,7 +58,7 @@ impl BollingerBands {
 
     #[allow(dead_code)]
     pub fn calculate(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BollingerBands> {
-        let (length,std_n) = args.extract_bb_args_opt()?;
+        let (length, std_n) = args.extract_bb_args_opt()?;
         if !Self::calculation_ok(i, length, candles.len()) {
             None
         } else {
@@ -86,9 +89,9 @@ impl BollingerBands {
         args: IndicatorArgs,
         i: usize,
         candles: &[Candle],
-        previous_bb: &Option<BollingerBands>
+        previous_bb: &Option<BollingerBands>,
     ) -> Option<BollingerBands> {
-        let (length,_) = args.extract_bb_args_opt()?;
+        let (length, _) = args.extract_bb_args_opt()?;
         if !Self::calculation_ok(i, length, candles.len()) {
             return None;
         } else if let Some(_prev_bb) = previous_bb {
@@ -130,7 +133,7 @@ impl BollingerBands {
 #[cfg(test)]
 mod tests {
     use super::BollingerBands;
-    use crate::{models::candle::Candle, indicators::indicator_args::IndicatorArgs};
+    use crate::{indicators::indicator_args::IndicatorArgs, models::candle::Candle};
 
     #[test]
     fn calculate_bollinger_bands() {

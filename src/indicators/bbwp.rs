@@ -1,4 +1,7 @@
-use super::{bbw::BBW, sma::SMA, indicator::Indicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles, indicator_args::IndicatorArgs};
+use super::{
+    bbw::BBW, indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    populates_candles::PopulatesCandles, sma::SMA,
+};
 use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
 
 /// Bollinger Band Width Percentile
@@ -9,12 +12,12 @@ pub struct BBWP {
     pub length: usize,
     pub lookback: usize,
     pub bbw: BBW,
-    pub sma: SMA
+    pub sma: SMA,
 }
 
 impl PopulatesCandles for BBWP {
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let (length,lookback, sma_length) = args.extract_bbwp_args_res()?;
+        let (length, lookback, sma_length) = args.extract_bbwp_args_res()?;
         let indicator_type = IndicatorType::BBW(length);
 
         // Populate candles with BBWP if not already there
@@ -22,20 +25,26 @@ impl PopulatesCandles for BBWP {
             let args = IndicatorArgs::BollingerBandArgs(length, 1.0);
             BBW::populate_candles(ts, args)?
         }
-        
+
         // Calculate BBWP values for TimeSeries
-        let mut new_bbwps:Vec<Option<BBWP>> = ts.candles.iter()
+        let mut new_bbwps: Vec<Option<BBWP>> = ts
+            .candles
+            .iter()
             .enumerate()
-            .map(|(i,candle)| {
-                if i < length { return None }
-                
+            .map(|(i, candle)| {
+                if i < length {
+                    return None;
+                }
+
                 let bbw = candle.indicators.get(&indicator_type)?.as_bbw()?;
                 let start = if i >= lookback { i - lookback } else { 0 };
                 let segment = &ts.candles[start..i];
-                
-                let count = segment.iter()
+
+                let count = segment
+                    .iter()
                     .filter(|s| {
-                        s.indicators.get(&indicator_type)
+                        s.indicators
+                            .get(&indicator_type)
                             .and_then(|old_ind| old_ind.as_bbw())
                             .map_or(false, |old_bbw| old_bbw.value < bbw.value)
                     })
@@ -48,16 +57,20 @@ impl PopulatesCandles for BBWP {
                     lookback,
                     bbw,
                     value: bbwp,
-                    sma: SMA { value: 0.0, length: 0 }
+                    sma: SMA {
+                        value: 0.0,
+                        length: 0,
+                    },
                 })
             })
             .collect();
 
         // Calculate 5-period SMA for BBWP values
         for i in sma_length..new_bbwps.len() {
-            let start = i - sma_length+1;
+            let start = i - sma_length + 1;
             let end = i + 1;
-            let sum: f64 = new_bbwps[start..end].iter()
+            let sum: f64 = new_bbwps[start..end]
+                .iter()
                 .filter_map(|bbwp| bbwp.as_ref())
                 .map(|bbwp| bbwp.value)
                 .sum();
@@ -65,10 +78,10 @@ impl PopulatesCandles for BBWP {
             if let Some(bbwp) = new_bbwps[i].as_mut() {
                 bbwp.sma = SMA {
                     value: sum / (sma_length as f64),
-                    length: sma_length
+                    length: sma_length,
                 };
             }
-        } 
+        }
 
         let indicator_type = IndicatorType::BBWP(length, lookback);
 

@@ -1,4 +1,7 @@
-use super::{sma::SMA, rsi::RSI, atr::ATR, bollinger_bands::BollingerBands, bbw::BBW, bbwp::BBWP, dynamic_pivots::DynamicPivot};
+use super::{
+    atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivot,
+    rsi::RSI, sma::SMA,
+};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]

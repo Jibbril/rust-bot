@@ -1,6 +1,6 @@
-use std::collections::HashSet;
-use crate::indicators::indicator_type::IndicatorType;
 use super::{candle::Candle, interval::Interval};
+use crate::indicators::indicator_type::IndicatorType;
+use std::collections::HashSet;
 
 #[derive(Debug, Clone)]
 pub struct TimeSeries {

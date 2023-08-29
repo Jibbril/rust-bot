@@ -1,5 +1,5 @@
 use crate::{
-    indicators::{rsi::RSI, indicator_type::IndicatorType},
+    indicators::{indicator_type::IndicatorType, rsi::RSI},
     models::{
         generic_result::GenericResult,
         setup::{FindsReverseSetups, FindsSetups, Setup},

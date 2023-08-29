@@ -1,5 +1,5 @@
 use crate::{
-    indicators::{sma::SMA, indicator_type::IndicatorType},
+    indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
         generic_result::GenericResult,
         setup::{FindsSetups, Setup},

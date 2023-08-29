@@ -5,7 +5,11 @@ use crate::models::{generic_result::GenericResult, interval::Interval, timeserie
 use reqwest::Client;
 use std::env;
 
-pub async fn get(symbol: &str, interval: &Interval, exchange: Option<String>) -> GenericResult<TimeSeries> {
+pub async fn get(
+    symbol: &str,
+    interval: &Interval,
+    exchange: Option<String>,
+) -> GenericResult<TimeSeries> {
     let api_key = env::var("CRYPTOCOMPARE_KEY")?;
     let url = construct_url(symbol, interval, 2000, exchange);
 
@@ -26,7 +30,12 @@ pub async fn get(symbol: &str, interval: &Interval, exchange: Option<String>) ->
     }
 }
 
-fn construct_url(symbol: &str, interval: &Interval, limit: u32, exchange: Option<String>) -> String {
+fn construct_url(
+    symbol: &str,
+    interval: &Interval,
+    limit: u32,
+    exchange: Option<String>,
+) -> String {
     let market = "USD";
     let minute = "histominute";
     let hour = "histohour";

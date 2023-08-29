@@ -23,7 +23,7 @@ pub async fn request_data(
     source: &DataSource,
     symbol: &str,
     interval: Interval,
-    save_local: bool
+    save_local: bool,
 ) -> GenericResult<TimeSeries> {
     let ts: TimeSeries;
 
@@ -42,7 +42,9 @@ pub async fn request_data(
     ts = match &source {
         DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
         DataSource::CoinMarketCap => coinmarketcap::get().await?,
-        DataSource::CryptoCompare(exchange) => cryptocompare::get(symbol, &interval, exchange.clone()).await?,
+        DataSource::CryptoCompare(exchange) => {
+            cryptocompare::get(symbol, &interval, exchange.clone()).await?
+        }
         _ => panic!("Error"),
     };
 
