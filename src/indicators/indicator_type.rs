@@ -8,6 +8,6 @@ pub enum IndicatorType {
     ATR(usize),
     BollingerBands(usize),
     BBW(usize),
-    BBWP(usize),
+    BBWP(usize,usize), // length, lookback
     DynamicPivot(usize),
 }

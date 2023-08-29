@@ -17,12 +17,8 @@ impl PopulatesCandles for BBW {
 
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
         let (length,_) = args.extract_bb_args_res()?;
-        let mut bbw: Option<BBW> = None;
         let new_bbws: Vec<Option<BBW>> = (0..ts.candles.len())
-            .map(|i| {
-                bbw = Self::calculate_rolling(args, i, &ts.candles, &bbw);
-                bbw
-            })
+            .map(|i| Self::calculate_rolling(args, i, &ts.candles))
             .collect();
 
         let indicator_type = IndicatorType::BBW(length);
@@ -32,6 +28,8 @@ impl PopulatesCandles for BBW {
 
             candle.indicators.insert(indicator_type, new_bb);
         }
+
+        ts.indicators.insert(indicator_type);
 
         Ok(())
     }
@@ -55,21 +53,12 @@ impl BBW {
     pub fn calculate_rolling(
         args: IndicatorArgs,
         i: usize,
-        candles: &[Candle],
-        prev_bbw: &Option<BBW>,
+        candles: &[Candle]
     ) -> Option<BBW> {
         let (length, _) = args.extract_bb_args_opt()?;
         
         if !BollingerBands::calculation_ok(i, length, candles.len()) {
             return None;
-        } else if let Some(prev_bbw) = prev_bbw {
-            let prev_bb = Some(prev_bbw.bb);
-            let bb = BollingerBands::calculate_rolling(args, i, candles, &prev_bb)?;
-
-            Some(BBW {
-                bb,
-                value: Self::calculate_bbw(&bb),
-            })
         } else {
             Self::calculate(args, i, candles)
         }
@@ -122,12 +111,8 @@ mod tests {
         let args = IndicatorArgs::BollingerBandArgs(length, 2.0);
         let candles = Candle::dummy_data(n, "positive", 100.0);
 
-        let mut bbw: Option<BBW> = None;
         let bbws: Vec<Option<BBW>> = (0..candles.len())
-            .map(|i| {
-                bbw = BBW::calculate_rolling(args, i, &candles, &bbw);
-                bbw
-            })
+            .map(|i| BBW::calculate_rolling(args, i, &candles))
             .collect();
 
         for (i, bbw) in bbws.iter().enumerate() {

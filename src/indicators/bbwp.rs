@@ -28,9 +28,8 @@ impl PopulatesCandles for BBWP {
             .enumerate()
             .map(|(i,candle)| {
                 if i < length { return None }
-
+                
                 let bbw = candle.indicators.get(&indicator_type)?.as_bbw()?;
-
                 let start = if i >= lookback { i - lookback } else { 0 };
                 let segment = &ts.candles[start..i];
                 
@@ -56,7 +55,9 @@ impl PopulatesCandles for BBWP {
 
         // Calculate 5-period SMA for BBWP values
         for i in sma_length..new_bbwps.len() {
-            let sum: f64 = new_bbwps[i - sma_length..i].iter()
+            let start = i - sma_length+1;
+            let end = i + 1;
+            let sum: f64 = new_bbwps[start..end].iter()
                 .filter_map(|bbwp| bbwp.as_ref())
                 .map(|bbwp| bbwp.value)
                 .sum();
@@ -69,13 +70,15 @@ impl PopulatesCandles for BBWP {
             }
         } 
 
-        let indicator_type = IndicatorType::BBWP(length);
+        let indicator_type = IndicatorType::BBWP(length, lookback);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_bbwp = Indicator::BBWP(new_bbwps[i]);
 
             candle.indicators.insert(indicator_type, new_bbwp);
         }
+
+        ts.indicators.insert(indicator_type);
 
         Ok(())
     }

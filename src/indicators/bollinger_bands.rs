@@ -33,6 +33,8 @@ impl PopulatesCandles for BollingerBands {
             candle.indicators.insert(indicator_type, new_bb);
         }
 
+        ts.indicators.insert(indicator_type);
+
         Ok(())
     }
 
@@ -53,7 +55,7 @@ impl BollingerBands {
 
     #[allow(dead_code)]
     pub fn calculate(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BollingerBands> {
-        let (length,_) = args.extract_bb_args_opt()?;
+        let (length,std_n) = args.extract_bb_args_opt()?;
         if !Self::calculation_ok(i, length, candles.len()) {
             None
         } else {
@@ -62,12 +64,11 @@ impl BollingerBands {
             let segment = &candles[start..end];
 
             // typical price sum
-            let tps: Vec<f64> = segment.iter().map(|c| Self::typical_price(c)).collect();
+            let tps: Vec<f64> = segment.iter().map(|c| c.close).collect();
 
             let ma = tps.iter().sum::<f64>() / (length as f64);
             let std = std(&tps, ma);
 
-            let std_n = 2.0;
             let upper = ma + std_n * std;
             let lower = ma - std_n * std;
 
@@ -85,39 +86,41 @@ impl BollingerBands {
         args: IndicatorArgs,
         i: usize,
         candles: &[Candle],
-        previous_bb: &Option<BollingerBands>,
+        previous_bb: &Option<BollingerBands>
     ) -> Option<BollingerBands> {
-        let (length,std_n) = args.extract_bb_args_opt()?;
+        let (length,_) = args.extract_bb_args_opt()?;
         if !Self::calculation_ok(i, length, candles.len()) {
             return None;
-        } else if let Some(prev_bb) = previous_bb {
-            let f_length = length as f64;
-            let price_in = Self::typical_price(&candles[i]);
-            let price_out = Self::typical_price(&candles[i - length]);
-            let old_sma = prev_bb.sma.value;
+        } else if let Some(_prev_bb) = previous_bb {
+            Self::calculate(args, i, candles)
+            // BELOW PRODUCES INCORRECT RESULTS, FIND BETTER ALGORITHM
+            // let f_length = length as f64;
+            // let price_in = Self::typical_price(&candles[i]);
+            // let price_out = Self::typical_price(&candles[i - length]);
+            // let old_sma = prev_bb.sma.value;
 
-            let new_sma = old_sma + (price_in - price_out) / f_length;
+            // let new_sma = old_sma + (price_in - price_out) / f_length;
 
-            let new_var = prev_bb.std.powi(2)
-                + ((price_in - old_sma) * (price_in - new_sma)
-                    - (price_out - old_sma) * (price_out - new_sma))
-                    / f_length;
+            // let new_var = prev_bb.std.powi(2)
+            //     + ((price_in - old_sma) * (price_in - new_sma)
+            //         - (price_out - old_sma) * (price_out - new_sma))
+            //         / f_length;
 
-            let new_std = new_var.sqrt();
+            // let new_std = new_var.sqrt();
 
-            let upper = new_sma + std_n * new_std;
-            let lower = new_sma - std_n * new_std;
+            // let upper = new_sma + std_n * new_std;
+            // let lower = new_sma - std_n * new_std;
 
-            Some(BollingerBands {
-                upper,
-                lower,
-                std: new_std,
-                sma: SMA {
-                    length,
-                    value: new_sma,
-                },
-                length,
-            })
+            // Some(BollingerBands {
+            //     upper,
+            //     lower,
+            //     std: new_std,
+            //     sma: SMA {
+            //         length,
+            //         value: new_sma,
+            //     },
+            //     length,
+            // })
         } else {
             Self::calculate(args, i, candles)
         }

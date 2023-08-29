@@ -35,6 +35,8 @@ impl PopulatesCandles for SMA {
             candle.indicators.insert(indicator_type, new_sma);
         }
 
+        ts.indicators.insert(indicator_type);
+
         Ok(())
     }
 }

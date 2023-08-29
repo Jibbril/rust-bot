@@ -40,6 +40,8 @@ impl PopulatesCandles for DynamicPivot {
             candle.indicators.insert(indicator_type, new_pivots);
         }
 
+        ts.indicators.insert(indicator_type);
+
         Ok(())
     }
 }

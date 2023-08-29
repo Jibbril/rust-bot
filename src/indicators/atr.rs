@@ -32,6 +32,8 @@ impl PopulatesCandles for ATR {
             candle.indicators.insert(indicator_type, new_atr);
         }
 
+        ts.indicators.insert(indicator_type);
+
         Ok(())
     }
 
