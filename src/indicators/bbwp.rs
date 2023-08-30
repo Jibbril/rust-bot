@@ -7,7 +7,6 @@ use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
 /// Bollinger Band Width Percentile
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BBWP {
-    #[allow(dead_code)] // TODO: Remove once used
     pub value: f64,
     pub length: usize,
     pub lookback: usize,
@@ -17,18 +16,46 @@ pub struct BBWP {
 
 impl PopulatesCandles for BBWP {
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let (length, lookback, sma_length) = args.extract_bbwp_args_res()?;
+        let (length,_,sma_length) = args.extract_bbwp_args_res()?;
         let indicator_type = IndicatorType::BBW(length);
+        let mut remove_bbws = false;
 
-        // Populate candles with BBWP if not already there
+        // Populate candles with BBW if not already there
         if !ts.indicators.contains(&indicator_type) {
             let args = IndicatorArgs::BollingerBandArgs(length, 1.0);
-            BBW::populate_candles(ts, args)?
+            BBW::populate_candles(ts, args)?;
+            remove_bbws = true;
         }
 
         // Calculate BBWP values for TimeSeries
-        let mut new_bbwps: Vec<Option<BBWP>> = ts
-            .candles
+        let mut new_bbwps = Self::calculate_bbwps(ts, &args)?;
+        Self::populate_smas(&mut new_bbwps, sma_length)?;
+
+        // Remove bbws again if temporarily added
+        if remove_bbws {
+            for candle in ts.candles.iter_mut() { 
+                candle.indicators.remove(&indicator_type);
+            }
+            ts.indicators.remove(&indicator_type);
+        }
+
+        Self::insert_indicators(ts, &new_bbwps, &args)?;
+
+        Ok(())
+    }
+
+    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
+        let args = IndicatorArgs::BBWPArgs(13, 252, 5);
+        Self::populate_candles(ts, args)
+    }
+}
+
+impl BBWP {
+    pub fn calculate_bbwps(ts: &mut TimeSeries, args: &IndicatorArgs) -> GenericResult<Vec<Option<BBWP>>> {
+        let (length, lookback, _) = args.extract_bbwp_args_res()?;
+        let indicator_type = IndicatorType::BBW(length);
+
+        let bbwps = ts.candles
             .iter()
             .enumerate()
             .map(|(i, candle)| {
@@ -65,41 +92,42 @@ impl PopulatesCandles for BBWP {
             })
             .collect();
 
-        // Calculate 5-period SMA for BBWP values
-        for i in sma_length..new_bbwps.len() {
-            let start = i - sma_length + 1;
+        Ok(bbwps)
+    }
+
+    pub fn populate_smas(bbwps: &mut [Option<BBWP>], length: usize) -> GenericResult<()> {
+        // Calculate SMA for BBWP values
+        for i in length..bbwps.len() {
+            let start = i - length + 1;
             let end = i + 1;
-            let sum: f64 = new_bbwps[start..end]
+            let sum: f64 = bbwps[start..end]
                 .iter()
                 .filter_map(|bbwp| bbwp.as_ref())
                 .map(|bbwp| bbwp.value)
                 .sum();
 
-            if let Some(bbwp) = new_bbwps[i].as_mut() {
+            if let Some(bbwp) = bbwps[i].as_mut() {
                 bbwp.sma = SMA {
-                    value: sum / (sma_length as f64),
-                    length: sma_length,
+                    value: sum / (length as f64),
+                    length,
                 };
             }
         }
 
+        Ok(())
+    }
+
+    pub fn insert_indicators(ts: &mut TimeSeries, bbwps: &[Option<BBWP>], args: &IndicatorArgs) -> GenericResult<()> {
+        let (length, lookback, _) = args.extract_bbwp_args_res()?;
         let indicator_type = IndicatorType::BBWP(length, lookback);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
-            let new_bbwp = Indicator::BBWP(new_bbwps[i]);
-
-            candle.indicators.insert(indicator_type, new_bbwp);
+            let bbwp = Indicator::BBWP(bbwps[i]);
+            candle.indicators.insert(indicator_type, bbwp);
         }
 
         ts.indicators.insert(indicator_type);
 
         Ok(())
     }
-
-    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        let args = IndicatorArgs::BBWPArgs(13, 252, 5);
-        Self::populate_candles(ts, args)
-    }
 }
-
-impl BBWP {}
