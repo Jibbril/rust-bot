@@ -52,10 +52,6 @@ impl BollingerBands {
         i < arr_len && len <= arr_len && i >= len - 1 && len > 0
     }
 
-    fn typical_price(c: &Candle) -> f64 {
-        (c.high + c.low + c.close) / 3.0
-    }
-
     #[allow(dead_code)]
     pub fn calculate(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BollingerBands> {
         let (length, std_n) = args.extract_bb_args_opt()?;
