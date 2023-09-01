@@ -1,8 +1,8 @@
-use super::PopulatesCandles;
-use crate::{
-    indicators::{Indicator, IndicatorType},
-    models::{candle::Candle, generic_result::GenericResult},
+use super::{
+    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    populates_candles::PopulatesCandles,
 };
+use crate::models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries};
 
 #[derive(Debug, Copy, Clone)]
 pub struct DynamicPivot {
@@ -12,30 +12,38 @@ pub struct DynamicPivot {
 }
 
 impl PopulatesCandles for DynamicPivot {
-    fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
+    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
+        let args = IndicatorArgs::LengthArg(15);
+        Self::populate_candles(ts, args)
+    }
+
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+        let length = args.extract_length_arg_res()?;
         let mut new_pivots: Vec<Option<DynamicPivot>> = (0..length).map(|_| None).collect();
 
         let mut pivots: Option<DynamicPivot> = Some(DynamicPivot {
             length,
-            high: candles[length].high,
-            low: candles[length].low,
+            high: ts.candles[length].high,
+            low: ts.candles[length].low,
         });
 
         // Push initial pivots
         new_pivots.push(pivots);
 
-        for i in length + 1..candles.len() {
-            pivots = Self::calculate_rolling(length, i, candles, &pivots);
+        for i in length + 1..ts.candles.len() {
+            pivots = Self::calculate_rolling(length, i, &ts.candles, &pivots);
             new_pivots.push(pivots);
         }
 
         let indicator_type = IndicatorType::DynamicPivot(length);
 
-        for (i, candle) in candles.iter_mut().enumerate() {
+        for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_pivots = Indicator::DynamicPivot(new_pivots[i]);
 
             candle.indicators.insert(indicator_type, new_pivots);
         }
+
+        ts.indicators.insert(indicator_type);
 
         Ok(())
     }

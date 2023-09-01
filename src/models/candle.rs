@@ -1,5 +1,5 @@
 use super::{calculation_mode::CalculationMode, generic_result::GenericResult};
-use crate::indicators::{Indicator, IndicatorType};
+use crate::indicators::{indicator::Indicator, indicator_type::IndicatorType};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -18,7 +18,27 @@ pub struct Candle {
 }
 
 impl Candle {
-    #[allow(dead_code)] // TODO: Remove once used
+    pub fn dummy_from_arr(nums: &[f64]) -> Vec<Candle> {
+        let mut val: f64 = 1000.0;
+        let mut now = Utc::now();
+
+        nums.iter()
+            .map(|num| {
+                val = val.max(val + *num) as f64;
+                now += Duration::days(1);
+                Candle {
+                    timestamp: now,
+                    open: val,
+                    close: val,
+                    high: val,
+                    low: val,
+                    volume: 1000.0,
+                    indicators: HashMap::new(),
+                }
+            })
+            .collect()
+    }
+
     pub fn dummy_data(n: usize, mode: &str, init_val: f64) -> Vec<Candle> {
         let mut val = init_val;
 

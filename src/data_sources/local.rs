@@ -6,6 +6,7 @@ use crate::models::{
 
 use super::DataSource;
 use std::{
+    collections::HashSet,
     fs::{create_dir_all, File},
     path::Path,
 };
@@ -33,6 +34,7 @@ pub async fn read(
         ticker: symbol.to_string(),
         interval: interval.clone(),
         candles,
+        indicators: HashSet::new(),
     })
 }
 
@@ -59,7 +61,7 @@ fn construct_path(interval: &Interval, ticker: &str, source: &DataSource) -> Str
     let source = match source {
         DataSource::AlphaVantage => "alphavantage",
         DataSource::CoinMarketCap => "coinmarketcap",
-        DataSource::CryptoCompare => "cryptocompare",
+        DataSource::CryptoCompare(_) => "cryptocompare",
         DataSource::Local(_) => "local",
     };
 

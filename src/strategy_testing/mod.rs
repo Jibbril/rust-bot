@@ -144,7 +144,9 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
 mod tests {
     use super::test_setups;
     use crate::{
-        indicators::{rsi::RSI, PopulatesCandles},
+        indicators::{
+            indicator_args::IndicatorArgs, populates_candles::PopulatesCandles, rsi::RSI,
+        },
         models::{
             candle::Candle,
             interval::Interval,
@@ -157,7 +159,7 @@ mod tests {
         trading_strategies::rsi_basic::RsiBasic,
     };
     use chrono::{Duration, Utc};
-    use std::collections::HashMap;
+    use std::collections::{HashMap, HashSet};
 
     #[test]
     fn test_empty_arrays() {
@@ -190,10 +192,12 @@ mod tests {
             candles,
             ticker: "TEST".to_string(),
             interval: Interval::Day1,
+            indicators: HashSet::new(),
         };
 
         // Populate rsi indicator
-        let _ = RSI::populate_candles(&mut ts.candles, 14);
+        let args = IndicatorArgs::LengthArg(14);
+        let _ = RSI::populate_candles(&mut ts, args);
 
         // Create RSIBasic strategy
         let strat = Strategy::RsiBasic(RsiBasic::new_default());

@@ -1,8 +1,12 @@
 use crate::models::{
     calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
+    timeseries::TimeSeries,
 };
 
-use super::{Indicator, IndicatorType, PopulatesCandles};
+use super::{
+    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    populates_candles::PopulatesCandles,
+};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct SMA {
@@ -12,22 +16,29 @@ pub struct SMA {
 }
 
 impl PopulatesCandles for SMA {
-    fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
+    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
+        let args = IndicatorArgs::LengthArg(8);
+        Self::populate_candles(ts, args)
+    }
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+        let length = args.extract_length_arg_res()?;
         let mut sma: Option<SMA> = None;
-        let new_smas: Vec<Option<SMA>> = (0..candles.len())
+        let new_smas: Vec<Option<SMA>> = (0..ts.candles.len())
             .map(|i| {
-                sma = Self::calculate_rolling(length, i, candles, &sma);
+                sma = Self::calculate_rolling(length, i, &ts.candles, &sma);
                 sma
             })
             .collect();
 
         let indicator_type = IndicatorType::SMA(length);
 
-        for (i, candle) in candles.iter_mut().enumerate() {
+        for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_sma = Indicator::SMA(new_smas[i]);
 
             candle.indicators.insert(indicator_type, new_sma);
         }
+
+        ts.indicators.insert(indicator_type);
 
         Ok(())
     }

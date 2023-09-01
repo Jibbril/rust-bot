@@ -2,9 +2,13 @@ use serde::Serialize;
 
 use crate::models::{
     calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
+    timeseries::TimeSeries,
 };
 
-use super::{Indicator, IndicatorType, PopulatesCandles};
+use super::{
+    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    populates_candles::PopulatesCandles,
+};
 
 #[derive(Debug, Copy, Clone, Serialize, PartialEq, PartialOrd)]
 pub struct RSI {
@@ -16,22 +20,30 @@ pub struct RSI {
 }
 
 impl PopulatesCandles for RSI {
-    fn populate_candles(candles: &mut Vec<Candle>, length: usize) -> GenericResult<()> {
+    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
+        let args = IndicatorArgs::LengthArg(14);
+        Self::populate_candles(ts, args)
+    }
+
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+        let length = args.extract_length_arg_res()?;
         let mut rsi: Option<RSI> = None;
-        let new_rsis: Vec<Option<RSI>> = (0..candles.len())
+        let new_rsis: Vec<Option<RSI>> = (0..ts.candles.len())
             .map(|i| {
-                rsi = Self::calculate_rolling(i, &candles, &rsi);
+                rsi = Self::calculate_rolling(i, &ts.candles, &rsi);
                 rsi
             })
             .collect();
 
         let indicator_type = IndicatorType::RSI(length);
 
-        for (i, candle) in candles.iter_mut().enumerate() {
+        for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_rsi = Indicator::RSI(new_rsis[i]);
 
             candle.indicators.insert(indicator_type, new_rsi);
         }
+
+        ts.indicators.insert(indicator_type);
 
         Ok(())
     }

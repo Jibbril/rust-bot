@@ -6,7 +6,7 @@ use crate::{
     utils::secs_to_datetime,
 };
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[allow(dead_code)]
 #[derive(Deserialize, Debug)]
@@ -57,6 +57,7 @@ impl ApiResponse for CryptoCompareApiResponse {
                 ticker: symbol.to_string(),
                 interval: interval.clone(),
                 candles,
+                indicators: HashSet::new(),
             }
         })
     }

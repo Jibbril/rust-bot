@@ -39,7 +39,7 @@ pub fn f_length_or_one<T>(arr: &[T]) -> f64 {
 }
 
 pub fn save_setups(setups: &[Setup], name: &str) -> GenericResult<()> {
-    let folder_path = "data/temp/setups/{}";
+    let folder_path = "data/temp/setups";
     let folder_path = Path::new(&folder_path);
 
     create_dir_all(&folder_path)?;
