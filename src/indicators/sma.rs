@@ -1,16 +1,15 @@
-use crate::models::{
+use crate::{models::{
     calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
     timeseries::TimeSeries,
-};
+}, utils::math::{sma, sma_rolling}};
 
 use super::{
-    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    indicator::{Indicator, MovingAverage}, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
     populates_candles::PopulatesCandles,
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct SMA {
-    #[allow(dead_code)] // TODO: Remove once used
     pub value: f64,
     pub length: usize,
 }
@@ -33,7 +32,8 @@ impl PopulatesCandles for SMA {
         let indicator_type = IndicatorType::SMA(length);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
-            let new_sma = Indicator::SMA(new_smas[i]);
+            let new_sma = MovingAverage::Simple(new_smas[i]);
+            let new_sma = Indicator::MA(new_sma);
 
             candle.indicators.insert(indicator_type, new_sma);
         }
@@ -56,24 +56,30 @@ impl SMA {
     }
 
     fn calculate_rolling_with_opts(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         mode: CalculationMode,
         previous_sma: &Option<SMA>,
     ) -> Option<SMA> {
         let arr_length = candles.len();
-        if i > arr_length || length > arr_length || i < length - 1 {
+        if i > arr_length || len > arr_length || i < len - 1 {
             None
         } else if let Some(prev_sma) = previous_sma {
-            let price_out = candles[i - length].price_by_mode(&mode);
-            let price_in = candles[i].price_by_mode(&mode);
+            let sma = sma_rolling(
+                candles[i].price_by_mode(&mode), 
+                candles[i - len].price_by_mode(&mode), 
+                prev_sma.value, 
+                len as f64
+            );
 
-            let sma = ((prev_sma.value * length as f64) - price_out + price_in) / length as f64;
 
-            Some(SMA { length, value: sma })
+            Some(SMA { 
+                length: len, 
+                value: sma
+            })
         } else {
-            Self::calculate(length, i, candles)
+            Self::calculate(len, i, candles)
         }
     }
 
@@ -95,16 +101,12 @@ impl SMA {
             let start = i + 1 - length;
             let end = i + 1;
             let segment = &candles[start..end];
-            let f_length = length as f64;
 
-            let sma = match mode {
-                CalculationMode::Open => segment.iter().map(|c| c.open).sum::<f64>() / f_length,
-                CalculationMode::High => segment.iter().map(|c| c.high).sum::<f64>() / f_length,
-                CalculationMode::Low => segment.iter().map(|c| c.low).sum::<f64>() / f_length,
-                CalculationMode::Close => segment.iter().map(|c| c.close).sum::<f64>() / f_length,
-            };
+            let values: Vec<f64> = segment.iter()
+                .map(|c| c.price_by_mode(&mode))
+                .collect();
 
-            Some(SMA { length, value: sma })
+            Some(SMA { length, value: sma(&values) })
         }
     }
 }

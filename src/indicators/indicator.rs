@@ -1,12 +1,12 @@
 use super::{
     atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivot,
-    rsi::RSI, sma::SMA,
+    rsi::RSI, sma::SMA, ema::EMA,
 };
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Indicator {
-    SMA(Option<SMA>),
+    MA(MovingAverage),
     RSI(Option<RSI>),
     ATR(Option<ATR>),
     BollingerBands(Option<BollingerBands>),
@@ -15,12 +15,35 @@ pub enum Indicator {
     DynamicPivot(Option<DynamicPivot>),
 }
 
+#[derive(Debug, Clone)]
+pub enum MovingAverage {
+    Simple(Option<SMA>),
+    Exponential(Option<EMA>),
+}
+
 impl Indicator {
     pub fn as_sma(&self) -> Option<SMA> {
-        if let Indicator::SMA(sma) = self {
-            sma.clone()
-        } else {
-            None
+        let ma = match self {
+            Indicator::MA(ma) => ma,
+            _ => return None
+        };
+
+        match ma {
+            MovingAverage::Simple(s) => s.clone(),
+            _ => None,
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn as_ema(&self) -> Option<EMA> {
+        let ma = match self {
+            Indicator::MA(ma) => ma,
+            _ => return None
+        };
+
+        match ma {
+            MovingAverage::Exponential(e) => e.clone(),
+            _ => None,
         }
     }
 

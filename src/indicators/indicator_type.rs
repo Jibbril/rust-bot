@@ -4,6 +4,7 @@ use serde::Serialize;
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, Serialize)]
 pub enum IndicatorType {
     SMA(usize),
+    EMA(usize),
     RSI(usize),
     ATR(usize),
     BollingerBands(usize),

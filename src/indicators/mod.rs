@@ -9,3 +9,4 @@ pub mod indicator_type;
 pub mod populates_candles;
 pub mod rsi;
 pub mod sma;
+pub mod ema;

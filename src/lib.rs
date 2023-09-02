@@ -8,7 +8,7 @@ mod trading_strategies;
 mod utils;
 
 use crate::{
-    indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI},
+    indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI, ema::EMA},
     models::{interval::Interval, setup::FindsReverseSetups, strategy::Strategy},
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
@@ -34,6 +34,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // BollingerBands::populate_candles_default(&mut ts.candles)?;
     // DynamicPivot::populate_candles_default(&mut ts.candles)?;
     // BBW::populate_candles_default(&mut ts)?;
+    // EMA::populate_candles_default(&mut ts)?;
     BBWP::populate_candles_default(&mut ts)?;
     RSI::populate_candles_default(&mut ts)?;
     ATR::populate_candles_default(&mut ts)?;

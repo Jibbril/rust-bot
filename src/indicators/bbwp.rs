@@ -140,6 +140,7 @@ impl BBWP {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::BBWP;
     use crate::{
@@ -186,7 +187,7 @@ mod tests {
             -6.67113, -2.68339, 3.49222, 6.76455, 4.46842, -6.42984, 8.81598, -2.36711, -2.45753,
             -3.82352, -6.04056, 8.48688,
         ];
-        let candles = Candle::dummy_from_arr(&arr);
+        let candles = Candle::dummy_from_increments(&arr);
 
         let mut ts = TimeSeries {
             candles,
