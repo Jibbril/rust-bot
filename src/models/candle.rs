@@ -18,7 +18,44 @@ pub struct Candle {
 }
 
 impl Candle {
+    #[allow(dead_code)]
+    pub fn dummy_from_val(val: f64) -> Candle {
+        let now = Utc::now();
+
+        Candle {
+            timestamp: now,
+            open: val,
+            close: val,
+            high: val,
+            low: val,
+            volume: 1000.0,
+            indicators: HashMap::new(),
+        }
+    }
+
+    #[allow(dead_code)]
     pub fn dummy_from_arr(nums: &[f64]) -> Vec<Candle> {
+        let mut now = Utc::now();
+
+        nums.iter()
+            .map(|num| {
+                now += Duration::days(1);
+                let val = *num;
+                Candle {
+                    timestamp: now,
+                    open: val,
+                    close: val,
+                    high: val,
+                    low: val,
+                    volume: 1000.0,
+                    indicators: HashMap::new(),
+                }
+            })
+            .collect()
+    }
+
+    #[allow(dead_code)]
+    pub fn dummy_from_increments(nums: &[f64]) -> Vec<Candle> {
         let mut val: f64 = 1000.0;
         let mut now = Utc::now();
 

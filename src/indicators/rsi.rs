@@ -14,7 +14,7 @@ use super::{
 pub struct RSI {
     pub value: f64,
     #[allow(dead_code)] // TODO: Remove once used
-    pub length: usize,
+    pub len: usize,
     pub avg_gain: f64,
     pub avg_loss: f64,
 }
@@ -26,7 +26,7 @@ impl PopulatesCandles for RSI {
     }
 
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let length = args.extract_length_arg_res()?;
+        let len = args.extract_len_res()?;
         let mut rsi: Option<RSI> = None;
         let new_rsis: Vec<Option<RSI>> = (0..ts.candles.len())
             .map(|i| {
@@ -35,7 +35,7 @@ impl PopulatesCandles for RSI {
             })
             .collect();
 
-        let indicator_type = IndicatorType::RSI(length);
+        let indicator_type = IndicatorType::RSI(len);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_rsi = Indicator::RSI(new_rsis[i]);
@@ -60,21 +60,21 @@ impl RSI {
     }
 
     fn calculate_rolling_with_opts(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         mode: CalculationMode,
         prev_rsi: &Option<RSI>,
     ) -> Option<RSI> {
-        if i < length - 1 || i >= candles.len() || candles.len() < length {
+        if i < len - 1 || i >= candles.len() || candles.len() < len {
             None
         } else if let Some(prev_rsi) = prev_rsi {
             let current = candles[i].price_by_mode(&mode);
             let previous = candles[i - 1].price_by_mode(&mode);
 
-            let f_length = length as f64;
-            let mut gains = prev_rsi.avg_gain * (f_length - 1.0);
-            let mut losses = prev_rsi.avg_loss * (f_length - 1.0);
+            let f_len = len as f64;
+            let mut gains = prev_rsi.avg_gain * (f_len - 1.0);
+            let mut losses = prev_rsi.avg_loss * (f_len - 1.0);
 
             let change = current - previous;
             if change >= 0.0 {
@@ -88,10 +88,10 @@ impl RSI {
             let rsi = 100.0 - (100.0 / (1.0 + rs));
 
             Some(RSI {
-                length,
+                len,
                 value: rsi,
-                avg_gain: gains / f_length,
-                avg_loss: losses / f_length,
+                avg_gain: gains / f_len,
+                avg_loss: losses / f_len,
             })
         } else {
             Self::calculate(i, candles)
@@ -104,16 +104,16 @@ impl RSI {
     }
 
     fn calculate_with_opts(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         mode: CalculationMode,
     ) -> Option<RSI> {
-        if i < length - 1 || length > candles.len() {
+        if i < len - 1 || len > candles.len() {
             None
         } else {
-            let f_length = length as f64;
-            let start = i + 1 - length;
+            let f_len = len as f64;
+            let start = i + 1 - len;
             let end = i + 1;
             let segment = &candles[start..end];
 
@@ -122,10 +122,10 @@ impl RSI {
             let rs = if losses != 0.0 { gains / losses } else { 0.0 };
 
             Some(RSI {
-                length,
+                len,
                 value: 100.0 - 100.0 / (1.0 + rs),
-                avg_gain: gains / f_length,
-                avg_loss: losses / f_length,
+                avg_gain: gains / f_len,
+                avg_loss: losses / f_len,
             })
         }
     }

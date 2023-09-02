@@ -11,23 +11,23 @@ use super::{
 #[derive(Debug, Copy, Clone)]
 pub struct ATR {
     #[allow(dead_code)] // TODO: Remove once used
-    pub length: usize,
+    pub len: usize,
     pub value: f64,
 }
 
 impl PopulatesCandles for ATR {
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let length = args.extract_length_arg_res()?;
+        let len = args.extract_len_res()?;
         let mut atr: Option<ATR> = None;
 
         let new_atrs: Vec<Option<ATR>> = (0..ts.candles.len())
             .map(|i| {
-                atr = Self::calculate_rolling(length, i, &ts.candles, &atr);
+                atr = Self::calculate_rolling(len, i, &ts.candles, &atr);
                 atr
             })
             .collect();
 
-        let indicator_type = IndicatorType::ATR(length);
+        let indicator_type = IndicatorType::ATR(len);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_atr = Indicator::ATR(new_atrs[i]);
@@ -49,59 +49,59 @@ impl PopulatesCandles for ATR {
 impl ATR {
     // Default implementation using closing values for calculations.
     pub fn calculate_rolling(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         prev: &Option<ATR>,
     ) -> Option<ATR> {
-        Self::calculate_rolling_with_opts(length, i, candles, CalculationMode::Close, prev)
+        Self::calculate_rolling_with_opts(len, i, candles, CalculationMode::Close, prev)
     }
 
     fn calculate_rolling_with_opts(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         mode: CalculationMode,
         prev: &Option<ATR>,
     ) -> Option<ATR> {
-        let arr_length = candles.len();
-        if i > arr_length || length > arr_length || i < length - 1 {
+        let arr_len = candles.len();
+        if i > arr_len || len > arr_len || i < len - 1 {
             None
         } else if let Some(prev) = prev {
-            let f_length = length as f64;
+            let f_len = len as f64;
             let tr = Self::true_range(&mode, &candles[i - 1], &candles[i]);
-            let atr = (prev.value * (f_length - 1.0) + tr) / f_length;
+            let atr = (prev.value * (f_len - 1.0) + tr) / f_len;
 
-            Some(ATR { length, value: atr })
+            Some(ATR { len, value: atr })
         } else {
-            Self::calculate(length, i, candles)
+            Self::calculate(len, i, candles)
         }
     }
 
     // Default implementation using closing values for calculations.
-    pub fn calculate(length: usize, i: usize, candles: &Vec<Candle>) -> Option<ATR> {
-        Self::calculate_with_opts(length, i, candles, CalculationMode::Close)
+    pub fn calculate(len: usize, i: usize, candles: &Vec<Candle>) -> Option<ATR> {
+        Self::calculate_with_opts(len, i, candles, CalculationMode::Close)
     }
 
     fn calculate_with_opts(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         mode: CalculationMode,
     ) -> Option<ATR> {
-        let arr_length = candles.len();
-        if i >= arr_length || length > arr_length || i <= length - 1 {
+        let arr_len = candles.len();
+        if i >= arr_len || len > arr_len || i <= len - 1 {
             None
         } else {
-            let start = i + 1 - length;
+            let start = i + 1 - len;
             let end = i + 1;
             let sum: f64 = (start..end)
                 .map(|i| Self::true_range(&mode, &candles[i - 1], &candles[i]))
                 .sum();
 
             Some(ATR {
-                length,
-                value: sum / (length as f64),
+                len,
+                value: sum / (len as f64),
             })
         }
     }
@@ -147,19 +147,19 @@ mod tests {
     #[test]
     fn rolling_atr() {
         let n = 20;
-        let length = 7;
+        let len = 7;
         let candles = Candle::dummy_data(20, "positive", 100.0);
         let mut atr = None;
 
         let atrs: Vec<Option<ATR>> = (0..n)
             .map(|i| {
-                atr = ATR::calculate_rolling(length, i, &candles, &atr);
+                atr = ATR::calculate_rolling(len, i, &candles, &atr);
                 atr
             })
             .collect();
 
         for (i, atr) in atrs.iter().enumerate() {
-            if i <= length - 1 {
+            if i <= len - 1 {
                 assert!(atr.is_none())
             } else {
                 assert!(atr.is_some())

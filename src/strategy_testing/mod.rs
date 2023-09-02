@@ -2,7 +2,7 @@ mod test_result;
 
 use crate::{
     models::{candle::Candle, setup::Setup, strategy_orientation::StrategyOrientation},
-    utils::{f_length_or_one, math::std},
+    utils::{f_len_or_one, math::std},
 };
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
@@ -112,12 +112,12 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
         0.0
     };
 
-    let wins_length = f_length_or_one(&wins);
-    let losses_length = f_length_or_one(&losses);
-    let avg_win = wins.iter().sum::<f64>() / wins_length;
-    let avg_loss = losses.iter().sum::<f64>() / losses_length;
-    let avg_win_bars = win_bars.iter().sum::<f64>() / wins_length;
-    let avg_loss_bars = loss_bars.iter().sum::<f64>() / losses_length;
+    let wins_len = f_len_or_one(&wins);
+    let losses_len = f_len_or_one(&losses);
+    let avg_win = wins.iter().sum::<f64>() / wins_len;
+    let avg_loss = losses.iter().sum::<f64>() / losses_len;
+    let avg_win_bars = win_bars.iter().sum::<f64>() / wins_len;
+    let avg_loss_bars = loss_bars.iter().sum::<f64>() / losses_len;
     let avg_profitability = accuracy * avg_win + (1.0 - accuracy) * avg_loss;
 
     let wins_std = std(&wins, avg_win);

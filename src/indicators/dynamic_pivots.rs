@@ -6,7 +6,7 @@ use crate::models::{candle::Candle, generic_result::GenericResult, timeseries::T
 
 #[derive(Debug, Copy, Clone)]
 pub struct DynamicPivot {
-    pub length: usize,
+    pub len: usize,
     pub high: f64,
     pub low: f64,
 }
@@ -18,24 +18,24 @@ impl PopulatesCandles for DynamicPivot {
     }
 
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let length = args.extract_length_arg_res()?;
-        let mut new_pivots: Vec<Option<DynamicPivot>> = (0..length).map(|_| None).collect();
+        let len = args.extract_len_res()?;
+        let mut new_pivots: Vec<Option<DynamicPivot>> = (0..len).map(|_| None).collect();
 
         let mut pivots: Option<DynamicPivot> = Some(DynamicPivot {
-            length,
-            high: ts.candles[length].high,
-            low: ts.candles[length].low,
+            len,
+            high: ts.candles[len].high,
+            low: ts.candles[len].low,
         });
 
         // Push initial pivots
         new_pivots.push(pivots);
 
-        for i in length + 1..ts.candles.len() {
-            pivots = Self::calculate_rolling(length, i, &ts.candles, &pivots);
+        for i in len + 1..ts.candles.len() {
+            pivots = Self::calculate_rolling(len, i, &ts.candles, &pivots);
             new_pivots.push(pivots);
         }
 
-        let indicator_type = IndicatorType::DynamicPivot(length);
+        let indicator_type = IndicatorType::DynamicPivot(len);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_pivots = Indicator::DynamicPivot(new_pivots[i]);
@@ -52,56 +52,56 @@ impl PopulatesCandles for DynamicPivot {
 impl DynamicPivot {
     // Default implementation using closing values for calculations.
     pub fn calculate_rolling(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         prev: &Option<DynamicPivot>,
     ) -> Option<DynamicPivot> {
-        Self::calculate_rolling_with_opts(length, i, candles, prev)
+        Self::calculate_rolling_with_opts(len, i, candles, prev)
     }
 
     fn calculate_rolling_with_opts(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         prev: &Option<DynamicPivot>,
     ) -> Option<DynamicPivot> {
-        let arr_length = candles.len();
-        if !Self::calculation_ok(i, length, arr_length) {
+        let arr_len = candles.len();
+        if !Self::calculation_ok(i, len, arr_len) {
             None
         } else if let Some(prev_pivot) = prev {
-            let is_high = Self::is_pivot(candles, i, length, true);
-            let is_low = Self::is_pivot(candles, i, length, false);
+            let is_high = Self::is_pivot(candles, i, len, true);
+            let is_low = Self::is_pivot(candles, i, len, false);
 
-            Self::build_pivot(length, &prev_pivot, &candles[i], is_high, is_low)
+            Self::build_pivot(len, &prev_pivot, &candles[i], is_high, is_low)
         } else {
-            Self::calculate(length, i, candles)
+            Self::calculate(len, i, candles)
         }
     }
 
     // Default implementation using closing values for calculations.
-    pub fn calculate(length: usize, i: usize, candles: &Vec<Candle>) -> Option<DynamicPivot> {
-        Self::calculate_with_opts(length, i, candles)
+    pub fn calculate(len: usize, i: usize, candles: &Vec<Candle>) -> Option<DynamicPivot> {
+        Self::calculate_with_opts(len, i, candles)
     }
 
-    fn calculate_with_opts(length: usize, i: usize, candles: &Vec<Candle>) -> Option<DynamicPivot> {
-        let arr_length = candles.len();
-        if !Self::calculation_ok(i, length, arr_length) {
+    fn calculate_with_opts(len: usize, i: usize, candles: &Vec<Candle>) -> Option<DynamicPivot> {
+        let arr_len = candles.len();
+        if !Self::calculation_ok(i, len, arr_len) {
             return None;
         }
 
-        let is_high = Self::is_pivot(candles, i, length, true);
-        let is_low = Self::is_pivot(candles, i, length, false);
+        let is_high = Self::is_pivot(candles, i, len, true);
+        let is_low = Self::is_pivot(candles, i, len, false);
 
-        if let Some(prev_pivots) = Self::get_prev_pivots(length, i, candles) {
-            Self::build_pivot(length, &prev_pivots, &candles[i], is_high, is_low)
+        if let Some(prev_pivots) = Self::get_prev_pivots(len, i, candles) {
+            Self::build_pivot(len, &prev_pivots, &candles[i], is_high, is_low)
         } else {
             None
         }
     }
 
-    fn is_pivot(candles: &[Candle], i: usize, length: usize, high_check: bool) -> bool {
-        let segment = &candles[i + 1 - length..i + length];
+    fn is_pivot(candles: &[Candle], i: usize, len: usize, high_check: bool) -> bool {
+        let segment = &candles[i + 1 - len..i + len];
 
         if high_check {
             !segment.iter().any(|c| c.high > candles[i].high)
@@ -111,7 +111,7 @@ impl DynamicPivot {
     }
 
     fn build_pivot(
-        length: usize,
+        len: usize,
         prev: &DynamicPivot,
         candle: &Candle,
         is_high: bool,
@@ -128,10 +128,10 @@ impl DynamicPivot {
             low = candle.low
         }
 
-        Some(DynamicPivot { length, high, low })
+        Some(DynamicPivot { len, high, low })
     }
 
-    pub fn get_prev_pivots(length: usize, i: usize, candles: &[Candle]) -> Option<DynamicPivot> {
+    pub fn get_prev_pivots(len: usize, i: usize, candles: &[Candle]) -> Option<DynamicPivot> {
         if i == 0 {
             return None;
         }
@@ -139,7 +139,7 @@ impl DynamicPivot {
         let mut j = i;
 
         loop {
-            let prev_pivots = candles[i - 1].get_indicator(&IndicatorType::DynamicPivot(length));
+            let prev_pivots = candles[i - 1].get_indicator(&IndicatorType::DynamicPivot(len));
             if let Ok(i) = prev_pivots {
                 return i.as_dynamic_pivots();
             }
@@ -153,7 +153,7 @@ impl DynamicPivot {
         None
     }
 
-    fn calculation_ok(i: usize, length: usize, arr_length: usize) -> bool {
-        i < arr_length && length <= arr_length && i >= length - 1 && i + length < arr_length
+    fn calculation_ok(i: usize, len: usize, arr_len: usize) -> bool {
+        i < arr_len && len <= arr_len && i >= len - 1 && i + len < arr_len
     }
 }

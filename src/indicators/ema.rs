@@ -3,7 +3,7 @@ use crate::{
         calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
         timeseries::TimeSeries,
     },
-    utils::math::{sma, sma_rolling},
+    utils::math::{ema, ema_rolling},
 };
 
 use super::{
@@ -14,33 +14,34 @@ use super::{
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
-pub struct SMA {
+pub struct EMA {
+    #[allow(dead_code)] // TODO: Remove once used
     pub value: f64,
     pub len: usize,
 }
 
-impl PopulatesCandles for SMA {
+impl PopulatesCandles for EMA {
     fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
         let args = IndicatorArgs::LengthArg(8);
         Self::populate_candles(ts, args)
     }
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
         let len = args.extract_len_res()?;
-        let mut sma: Option<SMA> = None;
-        let new_smas: Vec<Option<SMA>> = (0..ts.candles.len())
+        let mut ema: Option<EMA> = None;
+        let new_emas: Vec<Option<EMA>> = (0..ts.candles.len())
             .map(|i| {
-                sma = Self::calculate_rolling(len, i, &ts.candles, &sma);
-                sma
+                ema = Self::calculate_rolling(len, i, &ts.candles, &ema);
+                ema
             })
             .collect();
 
-        let indicator_type = IndicatorType::SMA(len);
+        let indicator_type = IndicatorType::EMA(len);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
-            let new_sma = MovingAverage::Simple(new_smas[i]);
-            let new_sma = Indicator::MA(new_sma);
+            let new_ema = MovingAverage::Exponential(new_emas[i]);
+            let new_ema = Indicator::MA(new_ema);
 
-            candle.indicators.insert(indicator_type, new_sma);
+            candle.indicators.insert(indicator_type, new_ema);
         }
 
         ts.indicators.insert(indicator_type);
@@ -49,15 +50,15 @@ impl PopulatesCandles for SMA {
     }
 }
 
-impl SMA {
+impl EMA {
     // Default implementation using closing values for calculations.
     pub fn calculate_rolling(
         len: usize,
         i: usize,
         candles: &Vec<Candle>,
-        previous_sma: &Option<SMA>,
-    ) -> Option<SMA> {
-        Self::calculate_rolling_with_opts(len, i, candles, CalculationMode::Close, previous_sma)
+        previous_ema: &Option<EMA>,
+    ) -> Option<EMA> {
+        Self::calculate_rolling_with_opts(len, i, candles, CalculationMode::Close, previous_ema)
     }
 
     fn calculate_rolling_with_opts(
@@ -65,27 +66,22 @@ impl SMA {
         i: usize,
         candles: &Vec<Candle>,
         mode: CalculationMode,
-        previous_sma: &Option<SMA>,
-    ) -> Option<SMA> {
+        previous_ema: &Option<EMA>,
+    ) -> Option<EMA> {
         let arr_len = candles.len();
         if i > arr_len || len > arr_len || i < len - 1 {
             None
-        } else if let Some(prev_sma) = previous_sma {
-            let sma = sma_rolling(
-                candles[i].price_by_mode(&mode),
-                candles[i - len].price_by_mode(&mode),
-                prev_sma.value,
-                len as f64,
-            );
+        } else if let Some(prev_ema) = previous_ema {
+            let ema = ema_rolling(prev_ema.value, candles[i].price_by_mode(&mode), len as f64);
 
-            Some(SMA { len, value: sma })
+            Some(EMA { len, value: ema })
         } else {
             Self::calculate(len, i, candles)
         }
     }
 
     // Default implementation using closing values for calculations.
-    pub fn calculate(len: usize, i: usize, candles: &Vec<Candle>) -> Option<SMA> {
+    pub fn calculate(len: usize, i: usize, candles: &Vec<Candle>) -> Option<EMA> {
         Self::calculate_with_opts(len, i, candles, CalculationMode::Close)
     }
 
@@ -94,7 +90,7 @@ impl SMA {
         i: usize,
         candles: &Vec<Candle>,
         mode: CalculationMode,
-    ) -> Option<SMA> {
+    ) -> Option<EMA> {
         let arr_len = candles.len();
         if i > arr_len || len > arr_len || i < len - 1 {
             None
@@ -105,9 +101,9 @@ impl SMA {
 
             let values: Vec<f64> = segment.iter().map(|c| c.price_by_mode(&mode)).collect();
 
-            Some(SMA {
+            Some(EMA {
                 len,
-                value: sma(&values),
+                value: ema(&values),
             })
         }
     }
@@ -117,53 +113,46 @@ impl SMA {
 mod tests {
     use crate::models::candle::Candle;
 
-    use super::SMA;
+    use super::EMA;
 
     #[test]
-    fn calculate_sma() {
-        let candles = Candle::dummy_data(4, "positive", 100.0);
-        let sma = SMA::calculate(4, 3, &candles);
-        assert!(sma.is_some());
-        let sma = sma.unwrap();
-        assert_eq!(sma.value, 125.0);
+    fn calculate_ema() {
+        let data: Vec<f64> = (0..7).map(|i| 100.0 + i as f64).collect();
+        let candles = Candle::dummy_from_arr(&data);
+
+        let ema = EMA::calculate(7, 6, &candles);
+        assert!(ema.is_some());
+        let ema = ema.unwrap();
+        assert_eq!(ema.value, 103.75);
     }
 
     #[test]
-    fn sma_not_enough_data() {
+    fn ema_not_enough_data() {
         let candles = Candle::dummy_data(2, "positive", 100.0);
-        let sma = SMA::calculate(4, 3, &candles);
-        assert!(sma.is_none());
+        let ema = EMA::calculate(4, 3, &candles);
+        assert!(ema.is_none());
     }
 
     #[test]
-    fn sma_no_candles() {
+    fn ema_no_candles() {
         let candles: Vec<Candle> = Vec::new();
-        let sma = SMA::calculate(4, 3, &candles);
-        assert!(sma.is_none());
+        let ema = EMA::calculate(4, 3, &candles);
+        assert!(ema.is_none());
     }
 
     #[test]
-    fn rolling_sma() {
-        let n = 20;
+    fn rolling_ema() {
         let len = 7;
-        let candles = Candle::dummy_data(20, "positive", 100.0);
-        let mut sma = None;
+        let data: Vec<f64> = (0..len).map(|i| 100.0 + i as f64).collect();
+        let mut candles = Candle::dummy_from_arr(&data);
+        let initial_ema = EMA::calculate(len, 6, &candles);
 
-        let smas: Vec<Option<SMA>> = (0..n)
-            .map(|i| {
-                sma = SMA::calculate_rolling(len, i, &candles, &sma);
-                sma
-            })
-            .collect();
+        candles.push(Candle::dummy_from_val(107.0));
 
-        for (i, sma) in smas.iter().enumerate() {
-            if i < len - 1 {
-                assert!(sma.is_none())
-            } else {
-                assert!(sma.is_some())
-            }
-        }
+        let ema = EMA::calculate_rolling(len, len, &candles, &initial_ema);
 
-        assert_eq!(smas[n - 1].unwrap().value, 270.0);
+        assert!(ema.is_some());
+        let ema = ema.unwrap();
+        assert_eq!(ema.value, 104.5625);
     }
 }

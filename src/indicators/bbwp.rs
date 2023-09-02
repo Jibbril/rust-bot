@@ -8,7 +8,7 @@ use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BBWP {
     pub value: f64,
-    pub length: usize,
+    pub len: usize,
     pub lookback: usize,
     pub bbw: BBW,
     pub sma: SMA,
@@ -16,20 +16,20 @@ pub struct BBWP {
 
 impl PopulatesCandles for BBWP {
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let (length, _, sma_length) = args.extract_bbwp_args_res()?;
-        let indicator_type = IndicatorType::BBW(length);
+        let (len, _, sma_len) = args.extract_bbwp_res()?;
+        let indicator_type = IndicatorType::BBW(len);
         let mut remove_bbws = false;
 
         // Populate candles with BBW if not already there
         if !ts.indicators.contains(&indicator_type) {
-            let args = IndicatorArgs::BollingerBandArgs(length, 1.0);
+            let args = IndicatorArgs::BollingerBandArgs(len, 1.0);
             BBW::populate_candles(ts, args)?;
             remove_bbws = true;
         }
 
         // Calculate BBWP values for TimeSeries
         let mut new_bbwps = Self::calculate_bbwps(ts, &args)?;
-        Self::populate_smas(&mut new_bbwps, sma_length)?;
+        Self::populate_smas(&mut new_bbwps, sma_len)?;
 
         // Remove bbws again if temporarily added
         if remove_bbws {
@@ -55,15 +55,15 @@ impl BBWP {
         ts: &mut TimeSeries,
         args: &IndicatorArgs,
     ) -> GenericResult<Vec<Option<BBWP>>> {
-        let (length, lookback, _) = args.extract_bbwp_args_res()?;
-        let indicator_type = IndicatorType::BBW(length);
+        let (len, lookback, _) = args.extract_bbwp_res()?;
+        let indicator_type = IndicatorType::BBW(len);
 
         let bbwps = ts
             .candles
             .iter()
             .enumerate()
             .map(|(i, candle)| {
-                if i < length {
+                if i < len {
                     return None;
                 }
 
@@ -84,14 +84,11 @@ impl BBWP {
                 let bbwp = (count as f64) / (segment.len() as f64);
 
                 Some(BBWP {
-                    length,
+                    len,
                     lookback,
                     bbw,
                     value: bbwp,
-                    sma: SMA {
-                        value: 0.0,
-                        length: 0,
-                    },
+                    sma: SMA { value: 0.0, len: 0 },
                 })
             })
             .collect();
@@ -99,10 +96,10 @@ impl BBWP {
         Ok(bbwps)
     }
 
-    pub fn populate_smas(bbwps: &mut [Option<BBWP>], length: usize) -> GenericResult<()> {
+    pub fn populate_smas(bbwps: &mut [Option<BBWP>], len: usize) -> GenericResult<()> {
         // Calculate SMA for BBWP values
-        for i in length..bbwps.len() {
-            let start = i - length + 1;
+        for i in len..bbwps.len() {
+            let start = i - len + 1;
             let end = i + 1;
             let sum: f64 = bbwps[start..end]
                 .iter()
@@ -112,8 +109,8 @@ impl BBWP {
 
             if let Some(bbwp) = bbwps[i].as_mut() {
                 bbwp.sma = SMA {
-                    value: sum / (length as f64),
-                    length,
+                    value: sum / (len as f64),
+                    len,
                 };
             }
         }
@@ -126,8 +123,8 @@ impl BBWP {
         bbwps: &[Option<BBWP>],
         args: &IndicatorArgs,
     ) -> GenericResult<()> {
-        let (length, lookback, _) = args.extract_bbwp_args_res()?;
-        let indicator_type = IndicatorType::BBWP(length, lookback);
+        let (len, lookback, _) = args.extract_bbwp_res()?;
+        let indicator_type = IndicatorType::BBWP(len, lookback);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
             let bbwp = Indicator::BBWP(bbwps[i]);
@@ -140,6 +137,7 @@ impl BBWP {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::BBWP;
     use crate::{
@@ -186,7 +184,7 @@ mod tests {
             -6.67113, -2.68339, 3.49222, 6.76455, 4.46842, -6.42984, 8.81598, -2.36711, -2.45753,
             -3.82352, -6.04056, 8.48688,
         ];
-        let candles = Candle::dummy_from_arr(&arr);
+        let candles = Candle::dummy_from_increments(&arr);
 
         let mut ts = TimeSeries {
             candles,

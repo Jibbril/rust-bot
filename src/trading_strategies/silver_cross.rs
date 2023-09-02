@@ -78,18 +78,18 @@ impl FindsSetups for SilverCross {
                     let resolution_strategy =
                         ResolutionStrategy::ATR(AtrResolution::new(14, 1.0, 1.5));
 
-                    let length = 14;
+                    let len = 14;
                     let take_profit = resolution_strategy.calculate_take_profit(
                         &ts.candles,
                         i,
                         &orientation,
-                        length,
+                        len,
                     )?;
                     let stop_loss = resolution_strategy.calculate_stop_loss(
                         &ts.candles,
                         i,
                         &orientation,
-                        length,
+                        len,
                     )?;
 
                     setups.push(Setup {

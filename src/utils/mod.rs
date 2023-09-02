@@ -26,7 +26,7 @@ pub fn secs_to_datetime(timestamp: u64) -> GenericResult<DateTime<Utc>> {
         .ok_or_else(|| format!("Invalid timestamp: {}", timestamp).into())
 }
 
-pub fn length_or_one<T>(arr: &[T]) -> usize {
+pub fn len_or_one<T>(arr: &[T]) -> usize {
     if !arr.is_empty() {
         arr.len()
     } else {
@@ -34,8 +34,8 @@ pub fn length_or_one<T>(arr: &[T]) -> usize {
     }
 }
 
-pub fn f_length_or_one<T>(arr: &[T]) -> f64 {
-    length_or_one(arr) as f64
+pub fn f_len_or_one<T>(arr: &[T]) -> f64 {
+    len_or_one(arr) as f64
 }
 
 pub fn save_setups(setups: &[Setup], name: &str) -> GenericResult<()> {

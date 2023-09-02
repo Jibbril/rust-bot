@@ -14,12 +14,12 @@ pub struct BollingerBands {
     pub lower: f64,
     pub sma: SMA,
     pub std: f64,
-    pub length: usize,
+    pub len: usize,
 }
 
 impl PopulatesCandles for BollingerBands {
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let (length, _) = args.extract_bb_args_res()?;
+        let (len, _) = args.extract_bb_res()?;
         let mut bb: Option<BollingerBands> = None;
         let new_bbs: Vec<Option<BollingerBands>> = (0..ts.candles.len())
             .map(|i| {
@@ -28,7 +28,7 @@ impl PopulatesCandles for BollingerBands {
             })
             .collect();
 
-        let indicator_type = IndicatorType::BollingerBands(length);
+        let indicator_type = IndicatorType::BollingerBands(len);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_bb = Indicator::BollingerBands(new_bbs[i]);
@@ -54,18 +54,18 @@ impl BollingerBands {
 
     #[allow(dead_code)]
     pub fn calculate(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BollingerBands> {
-        let (length, std_n) = args.extract_bb_args_opt()?;
-        if !Self::calculation_ok(i, length, candles.len()) {
+        let (len, std_n) = args.extract_bb_opt()?;
+        if !Self::calculation_ok(i, len, candles.len()) {
             None
         } else {
-            let start = i + 1 - length;
+            let start = i + 1 - len;
             let end = i + 1;
             let segment = &candles[start..end];
 
             // typical price sum
             let tps: Vec<f64> = segment.iter().map(|c| c.close).collect();
 
-            let ma = tps.iter().sum::<f64>() / (length as f64);
+            let ma = tps.iter().sum::<f64>() / (len as f64);
             let std = std(&tps, ma);
 
             let upper = ma + std_n * std;
@@ -75,8 +75,8 @@ impl BollingerBands {
                 upper,
                 lower,
                 std,
-                sma: SMA { length, value: ma },
-                length,
+                sma: SMA { len, value: ma },
+                len,
             })
         }
     }
@@ -87,23 +87,23 @@ impl BollingerBands {
         candles: &[Candle],
         previous_bb: &Option<BollingerBands>,
     ) -> Option<BollingerBands> {
-        let (length, _) = args.extract_bb_args_opt()?;
-        if !Self::calculation_ok(i, length, candles.len()) {
+        let (len, _) = args.extract_bb_opt()?;
+        if !Self::calculation_ok(i, len, candles.len()) {
             return None;
         } else if let Some(_prev_bb) = previous_bb {
             Self::calculate(args, i, candles)
             // BELOW PRODUCES INCORRECT RESULTS, FIND BETTER ALGORITHM
-            // let f_length = length as f64;
+            // let f_len = len as f64;
             // let price_in = Self::typical_price(&candles[i]);
-            // let price_out = Self::typical_price(&candles[i - length]);
+            // let price_out = Self::typical_price(&candles[i - len]);
             // let old_sma = prev_bb.sma.value;
 
-            // let new_sma = old_sma + (price_in - price_out) / f_length;
+            // let new_sma = old_sma + (price_in - price_out) / f_len;
 
             // let new_var = prev_bb.std.powi(2)
             //     + ((price_in - old_sma) * (price_in - new_sma)
             //         - (price_out - old_sma) * (price_out - new_sma))
-            //         / f_length;
+            //         / f_len;
 
             // let new_std = new_var.sqrt();
 
@@ -115,10 +115,10 @@ impl BollingerBands {
             //     lower,
             //     std: new_std,
             //     sma: SMA {
-            //         length,
+            //         len,
             //         value: new_sma,
             //     },
-            //     length,
+            //     len,
             // })
         } else {
             Self::calculate(args, i, candles)
@@ -165,8 +165,8 @@ mod tests {
     #[test]
     fn rolling_bb() {
         let n = 40;
-        let length = 20;
-        let args = IndicatorArgs::BollingerBandArgs(length, 2.0);
+        let len = 20;
+        let args = IndicatorArgs::BollingerBandArgs(len, 2.0);
         let candles = Candle::dummy_data(n, "positive", 100.0);
 
         let mut bb: Option<BollingerBands> = None;
@@ -178,7 +178,7 @@ mod tests {
             .collect();
 
         for (i, bb) in bbs.iter().enumerate() {
-            if i < length - 1 {
+            if i < len - 1 {
                 assert!(bb.is_none())
             } else {
                 assert!(bb.is_some())

@@ -3,6 +3,7 @@ pub mod bbw;
 pub mod bbwp;
 pub mod bollinger_bands;
 pub mod dynamic_pivots;
+pub mod ema;
 pub mod indicator;
 pub mod indicator_args;
 pub mod indicator_type;

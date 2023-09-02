@@ -34,6 +34,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     // BollingerBands::populate_candles_default(&mut ts.candles)?;
     // DynamicPivot::populate_candles_default(&mut ts.candles)?;
     // BBW::populate_candles_default(&mut ts)?;
+    // EMA::populate_candles_default(&mut ts)?;
     BBWP::populate_candles_default(&mut ts)?;
     RSI::populate_candles_default(&mut ts)?;
     ATR::populate_candles_default(&mut ts)?;

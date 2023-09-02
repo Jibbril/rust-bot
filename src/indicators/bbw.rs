@@ -19,12 +19,12 @@ impl PopulatesCandles for BBW {
     }
 
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let (length, _) = args.extract_bb_args_res()?;
+        let (len, _) = args.extract_bb_res()?;
         let new_bbws: Vec<Option<BBW>> = (0..ts.candles.len())
             .map(|i| Self::calculate_rolling(args, i, &ts.candles))
             .collect();
 
-        let indicator_type = IndicatorType::BBW(length);
+        let indicator_type = IndicatorType::BBW(len);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_bb = Indicator::BBW(new_bbws[i]);
@@ -40,9 +40,9 @@ impl PopulatesCandles for BBW {
 
 impl BBW {
     pub fn calculate(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BBW> {
-        let (length, _) = args.extract_bb_args_opt()?;
+        let (len, _) = args.extract_bb_opt()?;
 
-        if !BollingerBands::calculation_ok(i, length, candles.len()) {
+        if !BollingerBands::calculation_ok(i, len, candles.len()) {
             None
         } else {
             let bb = BollingerBands::calculate(args, i, candles)?;
@@ -54,9 +54,9 @@ impl BBW {
     }
 
     pub fn calculate_rolling(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BBW> {
-        let (length, _) = args.extract_bb_args_opt()?;
+        let (len, _) = args.extract_bb_opt()?;
 
-        if !BollingerBands::calculation_ok(i, length, candles.len()) {
+        if !BollingerBands::calculation_ok(i, len, candles.len()) {
             return None;
         } else {
             Self::calculate(args, i, candles)
@@ -109,8 +109,8 @@ mod tests {
     #[test]
     fn rolling_bbw() {
         let n = 40;
-        let length = 20;
-        let args = IndicatorArgs::BollingerBandArgs(length, 2.0);
+        let len = 20;
+        let args = IndicatorArgs::BollingerBandArgs(len, 2.0);
         let candles = Candle::dummy_data(n, "positive", 100.0);
 
         let bbws: Vec<Option<BBW>> = (0..candles.len())
@@ -118,7 +118,7 @@ mod tests {
             .collect();
 
         for (i, bbw) in bbws.iter().enumerate() {
-            if i < length - 1 {
+            if i < len - 1 {
                 assert!(bbw.is_none())
             } else {
                 assert!(bbw.is_some())

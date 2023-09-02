@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DynamicPivotResolution {
-    pub length: usize,
+    pub len: usize,
 }
 
 impl CalculatesStopLosses for DynamicPivotResolution {
@@ -18,7 +18,7 @@ impl CalculatesStopLosses for DynamicPivotResolution {
         candles: &Vec<Candle>,
         i: usize,
         orientation: &StrategyOrientation,
-        length: usize,
+        len: usize,
     ) -> GenericResult<f64> {
         let mut j = i;
 
@@ -27,7 +27,7 @@ impl CalculatesStopLosses for DynamicPivotResolution {
         }
 
         loop {
-            let indicator = candles[j].get_indicator(&IndicatorType::DynamicPivot(length))?;
+            let indicator = candles[j].get_indicator(&IndicatorType::DynamicPivot(len))?;
 
             if let Some(pivot) = indicator.as_dynamic_pivots() {
                 return match orientation {
@@ -49,7 +49,7 @@ impl CalculatesStopLosses for DynamicPivotResolution {
 
 impl DynamicPivotResolution {
     #[allow(dead_code)]
-    pub fn new(length: usize) -> Self {
-        Self { length }
+    pub fn new(len: usize) -> Self {
+        Self { len }
     }
 }
