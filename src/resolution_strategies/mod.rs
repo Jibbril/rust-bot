@@ -21,14 +21,14 @@ impl CalculatesStopLosses for ResolutionStrategy {
         candles: &Vec<Candle>,
         i: usize,
         orientation: &StrategyOrientation,
-        length: usize,
+        len: usize,
     ) -> GenericResult<f64> {
         match self {
             ResolutionStrategy::ATR(atr) => {
-                atr.calculate_stop_loss(candles, i, orientation, length)
+                atr.calculate_stop_loss(candles, i, orientation, len)
             }
             ResolutionStrategy::DynamicPivot(pivot) => {
-                pivot.calculate_stop_loss(candles, i, orientation, length)
+                pivot.calculate_stop_loss(candles, i, orientation, len)
             }
         }
     }
@@ -40,11 +40,11 @@ impl CalculatesTakeProfits for ResolutionStrategy {
         candles: &Vec<Candle>,
         i: usize,
         orientation: &StrategyOrientation,
-        length: usize,
+        len: usize,
     ) -> GenericResult<f64> {
         match self {
             ResolutionStrategy::ATR(atr) => {
-                atr.calculate_take_profit(candles, i, orientation, length)
+                atr.calculate_take_profit(candles, i, orientation, len)
             }
             ResolutionStrategy::DynamicPivot(_) => {
                 Err("DynamicPivotResolution cannot be used to calculate take-profits.".into())
@@ -59,9 +59,9 @@ impl Display for ResolutionStrategy {
             Self::ATR(atr) => write!(
                 f,
                 "ATR resolution({},{},{})",
-                atr.length, atr.take_profit_multiple, atr.stop_loss_multiple
+                atr.len, atr.take_profit_multiple, atr.stop_loss_multiple
             ),
-            Self::DynamicPivot(pivot) => write!(f, "DynamicPivot({})", pivot.length),
+            Self::DynamicPivot(pivot) => write!(f, "DynamicPivot({})", pivot.len),
         }
     }
 }
@@ -72,7 +72,7 @@ pub trait CalculatesStopLosses {
         candles: &Vec<Candle>,
         i: usize,
         orientation: &StrategyOrientation,
-        length: usize,
+        len: usize,
     ) -> GenericResult<f64>;
 }
 
@@ -82,6 +82,6 @@ pub trait CalculatesTakeProfits {
         candles: &Vec<Candle>,
         i: usize,
         orientation: &StrategyOrientation,
-        length: usize,
+        len: usize,
     ) -> GenericResult<f64>;
 }

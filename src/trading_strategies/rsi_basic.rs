@@ -24,7 +24,7 @@ use std::fmt::{Display, Formatter};
 /// setup will be triggered when the RSI goes below 70.
 #[derive(Debug, Clone)]
 pub struct RsiBasic {
-    pub length: usize,
+    pub len: usize,
     pub upper_band: f64,
     pub lower_band: f64,
     pub orientation: StrategyOrientation,
@@ -33,13 +33,13 @@ pub struct RsiBasic {
 impl RsiBasic {
     #[allow(dead_code)] // TODO: Remove once used
     pub fn new(
-        length: usize,
+        len: usize,
         upper_band: f64,
         lower_band: f64,
         orientation: StrategyOrientation,
     ) -> Self {
         RsiBasic {
-            length,
+            len,
             upper_band,
             lower_band,
             orientation,
@@ -48,7 +48,7 @@ impl RsiBasic {
 
     pub fn new_default() -> Self {
         RsiBasic {
-            length: 14,
+            len: 14,
             upper_band: 70.0,
             lower_band: 30.0,
             orientation: StrategyOrientation::Long,
@@ -84,8 +84,8 @@ impl RsiBasic {
         ts: &TimeSeries,
         reversed: bool,
     ) -> GenericResult<Vec<Setup>> {
-        let length = 14;
-        let key = IndicatorType::RSI(length);
+        let len = 14;
+        let key = IndicatorType::RSI(len);
         let mut setups: Vec<Setup> = Vec::new();
 
         for (i, candle) in ts.candles.iter().enumerate().skip(1) {
@@ -108,13 +108,13 @@ impl RsiBasic {
                         &ts.candles,
                         i,
                         &orientation,
-                        length,
+                        len,
                     )?;
                     let stop_loss = resolution_strategy.calculate_stop_loss(
                         &ts.candles,
                         i,
                         &orientation,
-                        length,
+                        len,
                     )?;
 
                     setups.push(Setup {

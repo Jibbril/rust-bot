@@ -16,7 +16,7 @@ use super::{
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct SMA {
     pub value: f64,
-    pub length: usize,
+    pub len: usize,
 }
 
 impl PopulatesCandles for SMA {
@@ -25,16 +25,16 @@ impl PopulatesCandles for SMA {
         Self::populate_candles(ts, args)
     }
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let length = args.extract_length_arg_res()?;
+        let len = args.extract_length_arg_res()?;
         let mut sma: Option<SMA> = None;
         let new_smas: Vec<Option<SMA>> = (0..ts.candles.len())
             .map(|i| {
-                sma = Self::calculate_rolling(length, i, &ts.candles, &sma);
+                sma = Self::calculate_rolling(len, i, &ts.candles, &sma);
                 sma
             })
             .collect();
 
-        let indicator_type = IndicatorType::SMA(length);
+        let indicator_type = IndicatorType::SMA(len);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_sma = MovingAverage::Simple(new_smas[i]);
@@ -52,12 +52,12 @@ impl PopulatesCandles for SMA {
 impl SMA {
     // Default implementation using closing values for calculations.
     pub fn calculate_rolling(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         previous_sma: &Option<SMA>,
     ) -> Option<SMA> {
-        Self::calculate_rolling_with_opts(length, i, candles, CalculationMode::Close, previous_sma)
+        Self::calculate_rolling_with_opts(len, i, candles, CalculationMode::Close, previous_sma)
     }
 
     fn calculate_rolling_with_opts(
@@ -67,8 +67,8 @@ impl SMA {
         mode: CalculationMode,
         previous_sma: &Option<SMA>,
     ) -> Option<SMA> {
-        let arr_length = candles.len();
-        if i > arr_length || len > arr_length || i < len - 1 {
+        let arr_len = candles.len();
+        if i > arr_len || len > arr_len || i < len - 1 {
             None
         } else if let Some(prev_sma) = previous_sma {
             let sma = sma_rolling(
@@ -79,7 +79,7 @@ impl SMA {
             );
 
             Some(SMA {
-                length: len,
+                len,
                 value: sma,
             })
         } else {
@@ -88,28 +88,28 @@ impl SMA {
     }
 
     // Default implementation using closing values for calculations.
-    pub fn calculate(length: usize, i: usize, candles: &Vec<Candle>) -> Option<SMA> {
-        Self::calculate_with_opts(length, i, candles, CalculationMode::Close)
+    pub fn calculate(len: usize, i: usize, candles: &Vec<Candle>) -> Option<SMA> {
+        Self::calculate_with_opts(len, i, candles, CalculationMode::Close)
     }
 
     fn calculate_with_opts(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         mode: CalculationMode,
     ) -> Option<SMA> {
-        let arr_length = candles.len();
-        if i > arr_length || length > arr_length || i < length - 1 {
+        let arr_len = candles.len();
+        if i > arr_len || len > arr_len || i < len - 1 {
             None
         } else {
-            let start = i + 1 - length;
+            let start = i + 1 - len;
             let end = i + 1;
             let segment = &candles[start..end];
 
             let values: Vec<f64> = segment.iter().map(|c| c.price_by_mode(&mode)).collect();
 
             Some(SMA {
-                length,
+                len,
                 value: sma(&values),
             })
         }
@@ -148,19 +148,19 @@ mod tests {
     #[test]
     fn rolling_sma() {
         let n = 20;
-        let length = 7;
+        let len = 7;
         let candles = Candle::dummy_data(20, "positive", 100.0);
         let mut sma = None;
 
         let smas: Vec<Option<SMA>> = (0..n)
             .map(|i| {
-                sma = SMA::calculate_rolling(length, i, &candles, &sma);
+                sma = SMA::calculate_rolling(len, i, &candles, &sma);
                 sma
             })
             .collect();
 
         for (i, sma) in smas.iter().enumerate() {
-            if i < length - 1 {
+            if i < len - 1 {
                 assert!(sma.is_none())
             } else {
                 assert!(sma.is_some())

@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AtrResolution {
-    pub length: usize,
+    pub len: usize,
     pub stop_loss_multiple: f64,
     pub take_profit_multiple: f64,
 }
@@ -21,10 +21,10 @@ impl CalculatesStopLosses for AtrResolution {
         candles: &Vec<Candle>,
         i: usize,
         orientation: &StrategyOrientation,
-        length: usize,
+        len: usize,
     ) -> GenericResult<f64> {
         let price = candles[i].price_by_mode(&CalculationMode::Close);
-        let atr = self.get_atr(candles, i, length);
+        let atr = self.get_atr(candles, i, len);
 
         if let Some(atr) = atr {
             Ok(AtrResolution::get_stop_loss(
@@ -45,10 +45,10 @@ impl CalculatesTakeProfits for AtrResolution {
         candles: &Vec<Candle>,
         i: usize,
         orientation: &StrategyOrientation,
-        length: usize,
+        len: usize,
     ) -> GenericResult<f64> {
         let price = candles[i].price_by_mode(&CalculationMode::Close);
-        let atr = self.get_atr(candles, i, length);
+        let atr = self.get_atr(candles, i, len);
 
         if let Some(atr) = atr {
             Ok(AtrResolution::get_take_profit(
@@ -64,9 +64,9 @@ impl CalculatesTakeProfits for AtrResolution {
 }
 
 impl AtrResolution {
-    fn get_atr(&self, candles: &Vec<Candle>, i: usize, length: usize) -> Option<ATR> {
+    fn get_atr(&self, candles: &Vec<Candle>, i: usize, len: usize) -> Option<ATR> {
         // Check if atr indicator is available on candle, if so, use it
-        let indicator_type = IndicatorType::ATR(length);
+        let indicator_type = IndicatorType::ATR(len);
         let indicator = candles[i].indicators.get(&indicator_type);
 
         if let Some(atr) = indicator.and_then(|i| i.as_atr()) {
@@ -74,12 +74,12 @@ impl AtrResolution {
         }
 
         // If atr indicator not available on candle, calculate it from previous candles
-        ATR::calculate(length, i, candles)
+        ATR::calculate(len, i, candles)
     }
 
-    pub fn new(length: usize, stop_loss_multiple: f64, take_profit_multiple: f64) -> Self {
+    pub fn new(len: usize, stop_loss_multiple: f64, take_profit_multiple: f64) -> Self {
         AtrResolution {
-            length,
+            len,
             stop_loss_multiple,
             take_profit_multiple,
         }

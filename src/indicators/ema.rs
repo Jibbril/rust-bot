@@ -17,7 +17,7 @@ use super::{
 pub struct EMA {
     #[allow(dead_code)] // TODO: Remove once used
     pub value: f64,
-    pub length: usize,
+    pub len: usize,
 }
 
 impl PopulatesCandles for EMA {
@@ -26,16 +26,16 @@ impl PopulatesCandles for EMA {
         Self::populate_candles(ts, args)
     }
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let length = args.extract_length_arg_res()?;
+        let len = args.extract_length_arg_res()?;
         let mut ema: Option<EMA> = None;
         let new_emas: Vec<Option<EMA>> = (0..ts.candles.len())
             .map(|i| {
-                ema = Self::calculate_rolling(length, i, &ts.candles, &ema);
+                ema = Self::calculate_rolling(len, i, &ts.candles, &ema);
                 ema
             })
             .collect();
 
-        let indicator_type = IndicatorType::EMA(length);
+        let indicator_type = IndicatorType::EMA(len);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_ema = MovingAverage::Exponential(new_emas[i]);
@@ -53,60 +53,60 @@ impl PopulatesCandles for EMA {
 impl EMA {
     // Default implementation using closing values for calculations.
     pub fn calculate_rolling(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         previous_ema: &Option<EMA>,
     ) -> Option<EMA> {
-        Self::calculate_rolling_with_opts(length, i, candles, CalculationMode::Close, previous_ema)
+        Self::calculate_rolling_with_opts(len, i, candles, CalculationMode::Close, previous_ema)
     }
 
     fn calculate_rolling_with_opts(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         mode: CalculationMode,
         previous_ema: &Option<EMA>,
     ) -> Option<EMA> {
-        let arr_length = candles.len();
-        if i > arr_length || length > arr_length || i < length - 1 {
+        let arr_len = candles.len();
+        if i > arr_len || len > arr_len || i < len - 1 {
             None
         } else if let Some(prev_ema) = previous_ema {
             let ema = ema_rolling(
                 prev_ema.value,
                 candles[i].price_by_mode(&mode),
-                length as f64,
+                len as f64,
             );
 
-            Some(EMA { length, value: ema })
+            Some(EMA { len, value: ema })
         } else {
-            Self::calculate(length, i, candles)
+            Self::calculate(len, i, candles)
         }
     }
 
     // Default implementation using closing values for calculations.
-    pub fn calculate(length: usize, i: usize, candles: &Vec<Candle>) -> Option<EMA> {
-        Self::calculate_with_opts(length, i, candles, CalculationMode::Close)
+    pub fn calculate(len: usize, i: usize, candles: &Vec<Candle>) -> Option<EMA> {
+        Self::calculate_with_opts(len, i, candles, CalculationMode::Close)
     }
 
     fn calculate_with_opts(
-        length: usize,
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         mode: CalculationMode,
     ) -> Option<EMA> {
-        let arr_length = candles.len();
-        if i > arr_length || length > arr_length || i < length - 1 {
+        let arr_len = candles.len();
+        if i > arr_len || len > arr_len || i < len - 1 {
             None
         } else {
-            let start = i + 1 - length;
+            let start = i + 1 - len;
             let end = i + 1;
             let segment = &candles[start..end];
 
             let values: Vec<f64> = segment.iter().map(|c| c.price_by_mode(&mode)).collect();
 
             Some(EMA {
-                length,
+                len,
                 value: ema(&values),
             })
         }
@@ -146,14 +146,14 @@ mod tests {
 
     #[test]
     fn rolling_ema() {
-        let length = 7;
-        let data: Vec<f64> = (0..length).map(|i| 100.0 + i as f64).collect();
+        let len = 7;
+        let data: Vec<f64> = (0..len).map(|i| 100.0 + i as f64).collect();
         let mut candles = Candle::dummy_from_arr(&data);
-        let initial_ema = EMA::calculate(length, 6, &candles);
+        let initial_ema = EMA::calculate(len, 6, &candles);
 
         candles.push(Candle::dummy_from_val(107.0));
 
-        let ema = EMA::calculate_rolling(length, length, &candles, &initial_ema);
+        let ema = EMA::calculate_rolling(len, len, &candles, &initial_ema);
 
         assert!(ema.is_some());
         let ema = ema.unwrap();
