@@ -1,6 +1,6 @@
 use super::{
     atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivot,
-    rsi::RSI, sma::SMA, ema::EMA,
+    ema::EMA, rsi::RSI, sma::SMA,
 };
 
 #[allow(dead_code)]
@@ -25,7 +25,7 @@ impl Indicator {
     pub fn as_sma(&self) -> Option<SMA> {
         let ma = match self {
             Indicator::MA(ma) => ma,
-            _ => return None
+            _ => return None,
         };
 
         match ma {
@@ -38,7 +38,7 @@ impl Indicator {
     pub fn as_ema(&self) -> Option<EMA> {
         let ma = match self {
             Indicator::MA(ma) => ma,
-            _ => return None
+            _ => return None,
         };
 
         match ma {

@@ -1,10 +1,15 @@
-use crate::{models::{
-    calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
-    timeseries::TimeSeries,
-}, utils::math::{ema, ema_rolling}};
+use crate::{
+    models::{
+        calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
+        timeseries::TimeSeries,
+    },
+    utils::math::{ema, ema_rolling},
+};
 
 use super::{
-    indicator::{Indicator, MovingAverage}, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    indicator::{Indicator, MovingAverage},
+    indicator_args::IndicatorArgs,
+    indicator_type::IndicatorType,
     populates_candles::PopulatesCandles,
 };
 
@@ -70,7 +75,7 @@ impl EMA {
             let ema = ema_rolling(
                 prev_ema.value,
                 candles[i].price_by_mode(&mode),
-                length as f64
+                length as f64,
             );
 
             Some(EMA { length, value: ema })
@@ -98,11 +103,12 @@ impl EMA {
             let end = i + 1;
             let segment = &candles[start..end];
 
-            let values: Vec<f64> = segment.iter()
-                .map(|c| c.price_by_mode(&mode))
-                .collect();
+            let values: Vec<f64> = segment.iter().map(|c| c.price_by_mode(&mode)).collect();
 
-            Some(EMA { length, value: ema(&values) })
+            Some(EMA {
+                length,
+                value: ema(&values),
+            })
         }
     }
 }
@@ -146,7 +152,7 @@ mod tests {
         let initial_ema = EMA::calculate(length, 6, &candles);
 
         candles.push(Candle::dummy_from_val(107.0));
-        
+
         let ema = EMA::calculate_rolling(length, length, &candles, &initial_ema);
 
         assert!(ema.is_some());

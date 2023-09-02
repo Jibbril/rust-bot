@@ -1,10 +1,15 @@
-use crate::{models::{
-    calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
-    timeseries::TimeSeries,
-}, utils::math::{sma, sma_rolling}};
+use crate::{
+    models::{
+        calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
+        timeseries::TimeSeries,
+    },
+    utils::math::{sma, sma_rolling},
+};
 
 use super::{
-    indicator::{Indicator, MovingAverage}, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    indicator::{Indicator, MovingAverage},
+    indicator_args::IndicatorArgs,
+    indicator_type::IndicatorType,
     populates_candles::PopulatesCandles,
 };
 
@@ -67,16 +72,15 @@ impl SMA {
             None
         } else if let Some(prev_sma) = previous_sma {
             let sma = sma_rolling(
-                candles[i].price_by_mode(&mode), 
-                candles[i - len].price_by_mode(&mode), 
-                prev_sma.value, 
-                len as f64
+                candles[i].price_by_mode(&mode),
+                candles[i - len].price_by_mode(&mode),
+                prev_sma.value,
+                len as f64,
             );
 
-
-            Some(SMA { 
-                length: len, 
-                value: sma
+            Some(SMA {
+                length: len,
+                value: sma,
             })
         } else {
             Self::calculate(len, i, candles)
@@ -102,11 +106,12 @@ impl SMA {
             let end = i + 1;
             let segment = &candles[start..end];
 
-            let values: Vec<f64> = segment.iter()
-                .map(|c| c.price_by_mode(&mode))
-                .collect();
+            let values: Vec<f64> = segment.iter().map(|c| c.price_by_mode(&mode)).collect();
 
-            Some(SMA { length, value: sma(&values) })
+            Some(SMA {
+                length,
+                value: sma(&values),
+            })
         }
     }
 }
