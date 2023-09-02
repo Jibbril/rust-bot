@@ -17,7 +17,7 @@ pub struct ATR {
 
 impl PopulatesCandles for ATR {
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let len = args.extract_length_arg_res()?;
+        let len = args.extract_len_res()?;
         let mut atr: Option<ATR> = None;
 
         let new_atrs: Vec<Option<ATR>> = (0..ts.candles.len())

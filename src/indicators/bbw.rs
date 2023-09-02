@@ -19,7 +19,7 @@ impl PopulatesCandles for BBW {
     }
 
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let (len, _) = args.extract_bb_args_res()?;
+        let (len, _) = args.extract_bb_res()?;
         let new_bbws: Vec<Option<BBW>> = (0..ts.candles.len())
             .map(|i| Self::calculate_rolling(args, i, &ts.candles))
             .collect();
@@ -40,7 +40,7 @@ impl PopulatesCandles for BBW {
 
 impl BBW {
     pub fn calculate(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BBW> {
-        let (len, _) = args.extract_bb_args_opt()?;
+        let (len, _) = args.extract_bb_opt()?;
 
         if !BollingerBands::calculation_ok(i, len, candles.len()) {
             None
@@ -54,7 +54,7 @@ impl BBW {
     }
 
     pub fn calculate_rolling(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BBW> {
-        let (len, _) = args.extract_bb_args_opt()?;
+        let (len, _) = args.extract_bb_opt()?;
 
         if !BollingerBands::calculation_ok(i, len, candles.len()) {
             return None;

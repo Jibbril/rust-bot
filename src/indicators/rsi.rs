@@ -26,7 +26,7 @@ impl PopulatesCandles for RSI {
     }
 
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let len = args.extract_length_arg_res()?;
+        let len = args.extract_len_res()?;
         let mut rsi: Option<RSI> = None;
         let new_rsis: Vec<Option<RSI>> = (0..ts.candles.len())
             .map(|i| {

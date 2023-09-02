@@ -19,7 +19,7 @@ pub struct BollingerBands {
 
 impl PopulatesCandles for BollingerBands {
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let (len, _) = args.extract_bb_args_res()?;
+        let (len, _) = args.extract_bb_res()?;
         let mut bb: Option<BollingerBands> = None;
         let new_bbs: Vec<Option<BollingerBands>> = (0..ts.candles.len())
             .map(|i| {
@@ -54,7 +54,7 @@ impl BollingerBands {
 
     #[allow(dead_code)]
     pub fn calculate(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BollingerBands> {
-        let (len, std_n) = args.extract_bb_args_opt()?;
+        let (len, std_n) = args.extract_bb_opt()?;
         if !Self::calculation_ok(i, len, candles.len()) {
             None
         } else {
@@ -87,7 +87,7 @@ impl BollingerBands {
         candles: &[Candle],
         previous_bb: &Option<BollingerBands>,
     ) -> Option<BollingerBands> {
-        let (len, _) = args.extract_bb_args_opt()?;
+        let (len, _) = args.extract_bb_opt()?;
         if !Self::calculation_ok(i, len, candles.len()) {
             return None;
         } else if let Some(_prev_bb) = previous_bb {

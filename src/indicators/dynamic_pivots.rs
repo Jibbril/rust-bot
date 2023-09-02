@@ -18,7 +18,7 @@ impl PopulatesCandles for DynamicPivot {
     }
 
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let len = args.extract_length_arg_res()?;
+        let len = args.extract_len_res()?;
         let mut new_pivots: Vec<Option<DynamicPivot>> = (0..len).map(|_| None).collect();
 
         let mut pivots: Option<DynamicPivot> = Some(DynamicPivot {

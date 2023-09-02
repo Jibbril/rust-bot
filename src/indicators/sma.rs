@@ -25,7 +25,7 @@ impl PopulatesCandles for SMA {
         Self::populate_candles(ts, args)
     }
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let len = args.extract_length_arg_res()?;
+        let len = args.extract_len_res()?;
         let mut sma: Option<SMA> = None;
         let new_smas: Vec<Option<SMA>> = (0..ts.candles.len())
             .map(|i| {

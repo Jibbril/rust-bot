@@ -16,7 +16,7 @@ pub struct BBWP {
 
 impl PopulatesCandles for BBWP {
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
-        let (len, _, sma_len) = args.extract_bbwp_args_res()?;
+        let (len, _, sma_len) = args.extract_bbwp_res()?;
         let indicator_type = IndicatorType::BBW(len);
         let mut remove_bbws = false;
 
@@ -55,7 +55,7 @@ impl BBWP {
         ts: &mut TimeSeries,
         args: &IndicatorArgs,
     ) -> GenericResult<Vec<Option<BBWP>>> {
-        let (len, lookback, _) = args.extract_bbwp_args_res()?;
+        let (len, lookback, _) = args.extract_bbwp_res()?;
         let indicator_type = IndicatorType::BBW(len);
 
         let bbwps = ts
@@ -126,7 +126,7 @@ impl BBWP {
         bbwps: &[Option<BBWP>],
         args: &IndicatorArgs,
     ) -> GenericResult<()> {
-        let (len, lookback, _) = args.extract_bbwp_args_res()?;
+        let (len, lookback, _) = args.extract_bbwp_res()?;
         let indicator_type = IndicatorType::BBWP(len, lookback);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
