@@ -88,10 +88,7 @@ impl BBWP {
                     lookback,
                     bbw,
                     value: bbwp,
-                    sma: SMA {
-                        value: 0.0,
-                        len: 0,
-                    },
+                    sma: SMA { value: 0.0, len: 0 },
                 })
             })
             .collect();

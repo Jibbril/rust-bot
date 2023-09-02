@@ -72,11 +72,7 @@ impl EMA {
         if i > arr_len || len > arr_len || i < len - 1 {
             None
         } else if let Some(prev_ema) = previous_ema {
-            let ema = ema_rolling(
-                prev_ema.value,
-                candles[i].price_by_mode(&mode),
-                len as f64,
-            );
+            let ema = ema_rolling(prev_ema.value, candles[i].price_by_mode(&mode), len as f64);
 
             Some(EMA { len, value: ema })
         } else {

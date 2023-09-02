@@ -24,9 +24,7 @@ impl CalculatesStopLosses for ResolutionStrategy {
         len: usize,
     ) -> GenericResult<f64> {
         match self {
-            ResolutionStrategy::ATR(atr) => {
-                atr.calculate_stop_loss(candles, i, orientation, len)
-            }
+            ResolutionStrategy::ATR(atr) => atr.calculate_stop_loss(candles, i, orientation, len),
             ResolutionStrategy::DynamicPivot(pivot) => {
                 pivot.calculate_stop_loss(candles, i, orientation, len)
             }
@@ -43,9 +41,7 @@ impl CalculatesTakeProfits for ResolutionStrategy {
         len: usize,
     ) -> GenericResult<f64> {
         match self {
-            ResolutionStrategy::ATR(atr) => {
-                atr.calculate_take_profit(candles, i, orientation, len)
-            }
+            ResolutionStrategy::ATR(atr) => atr.calculate_take_profit(candles, i, orientation, len),
             ResolutionStrategy::DynamicPivot(_) => {
                 Err("DynamicPivotResolution cannot be used to calculate take-profits.".into())
             }

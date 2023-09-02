@@ -78,10 +78,7 @@ impl SMA {
                 len as f64,
             );
 
-            Some(SMA {
-                len,
-                value: sma,
-            })
+            Some(SMA { len, value: sma })
         } else {
             Self::calculate(len, i, candles)
         }
