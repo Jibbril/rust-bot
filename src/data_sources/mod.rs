@@ -1,6 +1,6 @@
 mod alphavantage;
 mod coinmarketcap;
-mod cryptocompare;
+pub mod cryptocompare;
 mod local;
 
 use crate::models::{generic_result::GenericResult, interval::Interval, timeseries::TimeSeries};

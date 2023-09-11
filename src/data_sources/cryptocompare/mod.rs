@@ -1,4 +1,6 @@
 mod cryptocompare_structs;
+pub mod cryptocompare_websockets;
+
 use self::cryptocompare_structs::CryptoCompareApiResponse;
 use super::ApiResponse;
 use crate::models::{generic_result::GenericResult, interval::Interval, timeseries::TimeSeries};
