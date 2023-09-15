@@ -20,10 +20,14 @@ pub fn str_date_to_datetime(s: &str) -> GenericResult<DateTime<Utc>> {
     }
 }
 
-pub fn secs_to_datetime(timestamp: u64) -> GenericResult<DateTime<Utc>> {
-    Utc.timestamp_opt(timestamp as i64, 0)
+pub fn millis_to_datetime(timestamp: u64) -> GenericResult<DateTime<Utc>> {
+    Utc.timestamp_opt((timestamp / 1000) as i64, 0)
         .single()
         .ok_or_else(|| format!("Invalid timestamp: {}", timestamp).into())
+}
+
+pub fn secs_to_datetime(timestamp: u64) -> GenericResult<DateTime<Utc>> {
+    millis_to_datetime(timestamp * 1000)
 }
 
 pub fn len_or_one<T>(arr: &[T]) -> usize {

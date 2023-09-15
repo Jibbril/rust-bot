@@ -1,4 +1,5 @@
 mod alphavantage;
+mod bitfinex;
 mod coinmarketcap;
 pub mod cryptocompare;
 mod local;
@@ -11,6 +12,7 @@ use crate::models::{generic_result::GenericResult, interval::Interval, timeserie
 pub enum DataSource {
     AlphaVantage,
     CoinMarketCap,
+    Bitfinex,
     CryptoCompare(Option<String>),
     Local(Box<DataSource>),
 }
@@ -41,6 +43,7 @@ pub async fn request_data(
 
     ts = match &source {
         DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
+        DataSource::Bitfinex => bitfinex::rest::get(symbol, &interval).await?,
         DataSource::CoinMarketCap => coinmarketcap::get().await?,
         DataSource::CryptoCompare(exchange) => {
             cryptocompare::get(symbol, &interval, exchange.clone()).await?

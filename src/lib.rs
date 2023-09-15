@@ -23,10 +23,11 @@ pub async fn run() -> GenericResult<()> {
     dotenv().ok();
 
     // Get TimeSeries data
-    let source = DataSource::CryptoCompare(Some("Coinbase".to_string()));
+    // let source = DataSource::CryptoCompare(Some("Coinbase".to_string()));
+    let source = DataSource::Bitfinex;
     let source = DataSource::Local(Box::new(source));
     let interval = Interval::Day1;
-    let mut ts = request_data(&source, "BTC", interval, true).await?;
+    let mut ts = request_data(&source, "BTCUSD", interval, true).await?;
 
     // Calculate indicators for TimeSeries
     // SMA::populate_candles_default(&mut ts.candles)?;

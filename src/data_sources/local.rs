@@ -60,6 +60,7 @@ pub async fn write(ts: &TimeSeries, source: &DataSource) -> GenericResult<()> {
 fn construct_path(interval: &Interval, ticker: &str, source: &DataSource) -> String {
     let source = match source {
         DataSource::AlphaVantage => "alphavantage",
+        DataSource::Bitfinex => "bitfinex",
         DataSource::CoinMarketCap => "coinmarketcap",
         DataSource::CryptoCompare(_) => "cryptocompare",
         DataSource::Local(_) => "local",
