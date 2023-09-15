@@ -1,5 +1,5 @@
 mod cryptocompare_structs;
-pub mod cryptocompare_websockets;
+pub mod websockets;
 
 use self::cryptocompare_structs::CryptoCompareApiResponse;
 use super::ApiResponse;
