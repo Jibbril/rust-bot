@@ -18,6 +18,25 @@ pub struct Candle {
 }
 
 impl Candle {
+    pub fn new(
+        timestamp: DateTime<Utc>,
+        open: f64,
+        close: f64,
+        high: f64,
+        low: f64,
+        volume: f64,
+    ) -> Candle {
+        Candle {
+            timestamp,
+            open,
+            close,
+            high,
+            low,
+            volume,
+            indicators: HashMap::new(),
+        }
+    }
+    
     #[allow(dead_code)]
     pub fn dummy_from_val(val: f64) -> Candle {
         let now = Utc::now();

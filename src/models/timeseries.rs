@@ -11,6 +11,15 @@ pub struct TimeSeries {
 }
 
 impl TimeSeries {
+    pub fn new(ticker: String, interval: Interval, candles: Vec<Candle>) -> Self {
+        TimeSeries {
+            ticker,
+            interval,
+            candles,
+            indicators: HashSet::new(),
+        }
+    }
+
     pub fn dummy() -> Self {
         TimeSeries {
             ticker: "DUMMY".to_string(),

@@ -14,20 +14,26 @@ use crate::{
     trading_strategies::rsi_basic::RsiBasic,
     utils::save_setups, 
 };
-use data_sources::{request_data, DataSource};
+use data_sources::{request_data, DataSource, bitfinex::ws::connect_ws};
 use dotenv::dotenv;
 use models::generic_result::GenericResult;
 use notifications::notify;
+
+pub async fn _run() -> GenericResult<()> {
+    connect_ws().await?;
+    
+    Ok(())
+}
 
 pub async fn run() -> GenericResult<()> {
     dotenv().ok();
 
     // Get TimeSeries data
     // let source = DataSource::CryptoCompare(Some("Coinbase".to_string()));
-    let source = DataSource::Bitfinex;
+    let source = DataSource::Bybit;
     let source = DataSource::Local(Box::new(source));
     let interval = Interval::Day1;
-    let mut ts = request_data(&source, "BTCUSD", interval, true).await?;
+    let mut ts = request_data(&source, "BTCUSDT", interval, true).await?;
 
     // Calculate indicators for TimeSeries
     // SMA::populate_candles_default(&mut ts.candles)?;
