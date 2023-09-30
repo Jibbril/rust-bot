@@ -1,5 +1,5 @@
 mod alphavantage;
-mod bitfinex;
+pub mod bitfinex;
 mod coinmarketcap;
 pub mod cryptocompare;
 mod local;
