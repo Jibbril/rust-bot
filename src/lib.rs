@@ -9,23 +9,26 @@ mod utils;
 
 use crate::{
     indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI},
-    models::{interval::Interval, setup::FindsReverseSetups, strategy::Strategy},
+    models::{interval::Interval, setup::FindsReverseSetups, strategy::Strategy, websockets::wsclient::WebsocketClient},
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
     utils::save_setups, 
 };
-use data_sources::{request_data, DataSource, bitfinex::ws::connect_ws};
+use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
-use models::generic_result::GenericResult;
+use models::{generic_result::GenericResult, timeseries::TimeSeries, websockets::subject::Subject};
 use notifications::notify;
 
-pub async fn _run() -> GenericResult<()> {
-    connect_ws().await?;
-    
+pub async fn run() -> GenericResult<()> {
+    let mut client = WebsocketClient::new(DataSource::Bitfinex);
+    let ts = TimeSeries::dummy();
+    client.add_observer(Box::new(ts));
+    client.listen().await?;
+
     Ok(())
 }
 
-pub async fn run() -> GenericResult<()> {
+pub async fn _run() -> GenericResult<()> {
     dotenv().ok();
 
     // Get TimeSeries data

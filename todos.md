@@ -1,2 +1,2 @@
 ## Todos
-- [ ] Checkout Bitfinex api as an alternative datasource. Seems there is no api costs, especially relevant for the websocket api.
+- [ ] Check the add_candle method inside the TimeSeries class

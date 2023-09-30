@@ -15,10 +15,10 @@ use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
 
-use crate::models::generic_result::GenericResult;
+use crate::models::{generic_result::GenericResult, websockets::{wsclient::WebsocketClient, subject::Subject, websocketpayload::WebsocketPayload}};
 use outgoing_message::OutgoingMessage;
 
-pub async fn connect_ws() -> GenericResult<()> {
+pub async fn connect_ws(client: &WebsocketClient) -> GenericResult<()> {
     let url = "wss://api-pub.bitfinex.com/ws/2";
     let (mut ws_stream, _) = connect_async(url).await?;
 
@@ -34,9 +34,18 @@ pub async fn connect_ws() -> GenericResult<()> {
 
         if let Message::Text(txt) = msg {
             let v: serde_json::Value = serde_json::from_str(txt.as_str())?;
-            println!("({}) Value:{:#?}", i, v);
+            // println!("({}) Value:{:#?}", i, v);
         }
 
+        let payload = WebsocketPayload {
+            ok: true,
+            message: Some(i.to_string()),
+            candle: None,
+            error: None
+        };
+
+        client.notify_observers(payload);
+        
         i += 1;
         if i > 30 {
             break;
