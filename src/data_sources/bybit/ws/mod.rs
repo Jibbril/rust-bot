@@ -26,7 +26,6 @@ pub async fn connect_ws(client: &WebsocketClient) -> GenericResult<()> {
             ok: true,
             message: Some(i.to_string()),
             candle: None,
-            error: None
         };
 
         client.notify_observers(payload);

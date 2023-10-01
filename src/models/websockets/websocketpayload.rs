@@ -5,6 +5,5 @@ pub struct WebsocketPayload {
     pub ok: bool,
     pub message: Option<String>,
     pub candle: Option<Candle>, 
-    pub error: Option<String>,
 }
 

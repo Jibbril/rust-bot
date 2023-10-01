@@ -16,9 +16,7 @@ impl Observer<WebsocketPayload> for TimeSeries {
         
         if let Some(candle) = payload.candle {
             self.add_candle(candle);
-        } else if let Some(error) = payload.error {
-            println!("Error: {}", error);
-        }
+        } 
     }
 }
 

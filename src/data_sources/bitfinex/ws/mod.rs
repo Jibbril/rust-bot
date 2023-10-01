@@ -33,7 +33,7 @@ pub async fn connect_ws(client: &WebsocketClient) -> GenericResult<()> {
         let msg = msg?;
 
         if let Message::Text(txt) = msg {
-            let v: serde_json::Value = serde_json::from_str(txt.as_str())?;
+            let _v: serde_json::Value = serde_json::from_str(txt.as_str())?;
             // println!("({}) Value:{:#?}", i, v);
         }
 
@@ -41,7 +41,6 @@ pub async fn connect_ws(client: &WebsocketClient) -> GenericResult<()> {
             ok: true,
             message: Some(i.to_string()),
             candle: None,
-            error: None
         };
 
         client.notify_observers(payload);
