@@ -1,5 +1,6 @@
+use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
-use crate::{data_sources::ApiResponse, utils::millis_to_datetime, models::{generic_result::GenericResult, candle::Candle, timeseries::TimeSeries, interval::Interval}};
+use crate::{data_sources::ApiResponse, utils::millis_to_datetime, models::{candle::Candle, timeseries::TimeSeries, interval::Interval}};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BybitApiResponse {
@@ -14,15 +15,15 @@ pub struct BybitApiResponse {
 }
 
 impl ApiResponse for BybitApiResponse {
-    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> GenericResult<TimeSeries> {
+    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> Result<TimeSeries> {
         let klines = match &self.result.list {
             Some(result) => result,
-            None => return Err(self.ret_msg.clone().into()),
+            None => return Err(anyhow!(self.ret_msg.clone())),
         };
         
             // .ok_or_else(|| self.ret_msg.clone())?;
     
-        let candles: GenericResult<Vec<Candle>> = klines.iter()
+        let candles: Result<Vec<Candle>> = klines.iter()
             .map(|entry| {
                 let timestamp = millis_to_datetime(entry.timestamp.parse::<u64>()?)?;
                 Ok(Candle::new(

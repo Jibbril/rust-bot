@@ -1,9 +1,10 @@
+use anyhow::Result;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     models::{
-        candle::Candle, generic_result::GenericResult, interval::Interval,
+        candle::Candle, interval::Interval,
         strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
     },
     resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
@@ -57,11 +58,11 @@ impl Setup {
 }
 
 pub trait FindsSetups {
-    fn find_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>>;
+    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>>;
 }
 
 pub trait FindsReverseSetups {
-    fn find_reverse_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>>;
+    fn find_reverse_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>>;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -3,11 +3,12 @@ pub mod dynamic_pivot;
 
 use self::dynamic_pivot::DynamicPivotResolution;
 use crate::models::{
-    candle::Candle, generic_result::GenericResult, strategy_orientation::StrategyOrientation,
+    candle::Candle, strategy_orientation::StrategyOrientation,
 };
+use anyhow::{Result, anyhow};
 use atr_resolution::AtrResolution;
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter, Result};
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ResolutionStrategy {
@@ -22,7 +23,7 @@ impl CalculatesStopLosses for ResolutionStrategy {
         i: usize,
         orientation: &StrategyOrientation,
         len: usize,
-    ) -> GenericResult<f64> {
+    ) -> Result<f64> {
         match self {
             ResolutionStrategy::ATR(atr) => atr.calculate_stop_loss(candles, i, orientation, len),
             ResolutionStrategy::DynamicPivot(pivot) => {
@@ -39,18 +40,18 @@ impl CalculatesTakeProfits for ResolutionStrategy {
         i: usize,
         orientation: &StrategyOrientation,
         len: usize,
-    ) -> GenericResult<f64> {
+    ) -> Result<f64> {
         match self {
             ResolutionStrategy::ATR(atr) => atr.calculate_take_profit(candles, i, orientation, len),
             ResolutionStrategy::DynamicPivot(_) => {
-                Err("DynamicPivotResolution cannot be used to calculate take-profits.".into())
+                Err(anyhow!("DynamicPivotResolution cannot be used to calculate take-profits."))
             }
         }
     }
 }
 
 impl Display for ResolutionStrategy {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::ATR(atr) => write!(
                 f,
@@ -69,7 +70,7 @@ pub trait CalculatesStopLosses {
         i: usize,
         orientation: &StrategyOrientation,
         len: usize,
-    ) -> GenericResult<f64>;
+    ) -> Result<f64>;
 }
 
 pub trait CalculatesTakeProfits {
@@ -79,5 +80,5 @@ pub trait CalculatesTakeProfits {
         i: usize,
         orientation: &StrategyOrientation,
         len: usize,
-    ) -> GenericResult<f64>;
+    ) -> Result<f64>;
 }

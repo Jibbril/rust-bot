@@ -11,14 +11,15 @@ General approach:
   c. Save the new candle/candles to disk.
 */
 
+use anyhow::Result;
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
 
-use crate::models::{generic_result::GenericResult, websockets::{wsclient::WebsocketClient, subject::Subject, websocketpayload::WebsocketPayload}};
+use crate::models::websockets::{wsclient::WebsocketClient, subject::Subject, websocketpayload::WebsocketPayload};
 use outgoing_message::OutgoingMessage;
 
-pub async fn connect_ws(client: &WebsocketClient) -> GenericResult<()> {
+pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
     let url = "wss://api-pub.bitfinex.com/ws/2";
     let (mut ws_stream, _) = connect_async(url).await?;
 

@@ -1,7 +1,8 @@
+use anyhow::Result;
+
 use crate::{
     indicators::{indicator_type::IndicatorType, rsi::RSI},
     models::{
-        generic_result::GenericResult,
         setup::{FindsReverseSetups, FindsSetups, Setup},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
@@ -83,7 +84,7 @@ impl RsiBasic {
         &self,
         ts: &TimeSeries,
         reversed: bool,
-    ) -> GenericResult<Vec<Setup>> {
+    ) -> Result<Vec<Setup>> {
         let len = 14;
         let key = IndicatorType::RSI(len);
         let mut setups: Vec<Setup> = Vec::new();
@@ -136,13 +137,13 @@ impl RsiBasic {
 }
 
 impl FindsSetups for RsiBasic {
-    fn find_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>> {
+    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         self.find_setups_by_direction(ts, false)
     }
 }
 
 impl FindsReverseSetups for RsiBasic {
-    fn find_reverse_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>> {
+    fn find_reverse_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         self.find_setups_by_direction(ts, true)
     }
 }

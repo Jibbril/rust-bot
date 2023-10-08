@@ -14,12 +14,13 @@ use crate::{
     trading_strategies::rsi_basic::RsiBasic,
     utils::save_setups, 
 };
+use anyhow::Result;
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
-use models::{generic_result::GenericResult, timeseries::TimeSeries, websockets::subject::Subject};
+use models::{timeseries::TimeSeries, websockets::subject::Subject};
 use notifications::notify;
 
-pub async fn run() -> GenericResult<()> {
+pub async fn _run() -> Result<()> {
     let mut client = WebsocketClient::new(DataSource::Bitfinex);
     let ts = TimeSeries::dummy();
     client.add_observer(Box::new(ts));
@@ -28,7 +29,7 @@ pub async fn run() -> GenericResult<()> {
     Ok(())
 }
 
-pub async fn _run() -> GenericResult<()> {
+pub async fn run() -> Result<()> {
     dotenv().ok();
 
     // Get TimeSeries data

@@ -1,10 +1,11 @@
+use anyhow::Result;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 
 use crate::{
     data_sources::ApiResponse,
     models::{
-        candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
+        candle::Candle, interval::Interval, timeseries::TimeSeries,
     },
     utils::str_date_to_datetime,
 };
@@ -78,8 +79,8 @@ pub struct AlphaVantageApiResponse {
 }
 
 impl ApiResponse for AlphaVantageApiResponse {
-    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> GenericResult<TimeSeries> {
-        let candles: GenericResult<Vec<Candle>> = self
+    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> Result<TimeSeries> {
+        let candles: Result<Vec<Candle>> = self
             .timeseries
             .iter()
             .map(|(date, ts)| {

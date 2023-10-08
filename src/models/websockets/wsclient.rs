@@ -1,5 +1,7 @@
 use std::sync::{Arc, Mutex};
-use crate::{data_sources::{DataSource,bitfinex,bybit}, models::generic_result::GenericResult};
+use anyhow::Result;
+
+use crate::data_sources::{DataSource,bitfinex,bybit};
 use super::{observer::Observer, websocketpayload::WebsocketPayload, subject::Subject};
 
 pub struct WebsocketClient {
@@ -27,7 +29,7 @@ impl WebsocketClient {
         }
     }
 
-    pub async fn listen(&self) -> GenericResult<()> {
+    pub async fn listen(&self) -> Result<()> {
         match self.source {
             DataSource::Bitfinex => {
                 bitfinex::ws::connect_ws(&self).await?;

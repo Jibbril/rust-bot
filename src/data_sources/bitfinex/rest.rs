@@ -1,8 +1,9 @@
 use std::collections::{HashMap, HashSet};
+use anyhow::{Result, anyhow};
 use reqwest::Client;
-use crate::{models::{interval::Interval, generic_result::GenericResult, timeseries::TimeSeries, candle::Candle}, utils:: millis_to_datetime};
+use crate::{models::{interval::Interval, timeseries::TimeSeries, candle::Candle}, utils:: millis_to_datetime};
 
-pub async fn get(symbol: &str, interval: &Interval) -> GenericResult<TimeSeries> {
+pub async fn get(symbol: &str, interval: &Interval) -> Result<TimeSeries> {
     let url = generate_url(symbol, interval)?;
     
     let client = Client::new(); 
@@ -18,11 +19,11 @@ pub async fn get(symbol: &str, interval: &Interval) -> GenericResult<TimeSeries>
 
             generate_timeseries(symbol, interval, response)
         }
-        _ => Err("Bitfinex request failed.".into()),
+        _ => Err(anyhow!("Bitfinex request failed.")),
     }
 }
 
-fn generate_url(symbol: &str, interval: &Interval) -> GenericResult<String> {
+fn generate_url(symbol: &str, interval: &Interval) -> Result<String> {
     let interval = match interval {
         // Interval::Minute1 => "1m",
         Interval::Minute5 => "5m",
@@ -32,7 +33,7 @@ fn generate_url(symbol: &str, interval: &Interval) -> GenericResult<String> {
         Interval::Hour4 => "4h",
         Interval::Day1 => "1D",
         Interval::Week1 => "7D",
-        _ => return Err("Bitfinex does not support this interval.".into()),
+        _ => return Err(anyhow!("Bitfinex does not support this interval.")),
         // Interval::Month1 => "1M",
     };
 
@@ -43,7 +44,7 @@ fn generate_url(symbol: &str, interval: &Interval) -> GenericResult<String> {
     ))
 }
 
-fn generate_timeseries(symbol: &str, interval: &Interval,response: Vec<Vec<f64>>) -> GenericResult<TimeSeries> {
+fn generate_timeseries(symbol: &str, interval: &Interval,response: Vec<Vec<f64>>) -> Result<TimeSeries> {
     let candles = response.iter()
         .map(|entry| {
             let timestamp = millis_to_datetime(entry[0] as u64)?;
@@ -58,10 +59,10 @@ fn generate_timeseries(symbol: &str, interval: &Interval,response: Vec<Vec<f64>>
                 indicators: HashMap::new(),
             })
         })
-        .collect::<GenericResult<Vec<Candle>>>()?;
+        .collect::<Result<Vec<Candle>>>()?;
 
     if candles.is_empty() {
-        return Err("Bitfinex request failed.".into());
+        return Err(anyhow!("Bitfinex request failed."));
     }
 
     Ok(TimeSeries {

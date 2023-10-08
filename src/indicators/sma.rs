@@ -1,7 +1,8 @@
+use anyhow::Result;
+
 use crate::{
     models::{
-        calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
-        timeseries::TimeSeries,
+        calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries,
     },
     utils::math::{sma, sma_rolling},
 };
@@ -20,11 +21,11 @@ pub struct SMA {
 }
 
 impl PopulatesCandles for SMA {
-    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
+    fn populate_candles_default(ts: &mut TimeSeries) -> Result<()> {
         let args = IndicatorArgs::LengthArg(8);
         Self::populate_candles(ts, args)
     }
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let mut sma: Option<SMA> = None;
         let new_smas: Vec<Option<SMA>> = (0..ts.candles.len())

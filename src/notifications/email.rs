@@ -1,11 +1,12 @@
-use crate::models::{generic_result::GenericResult, setup::Setup, strategy::Strategy};
+use crate::models::{setup::Setup, strategy::Strategy};
+use anyhow::{Result, anyhow};
 use lettre::{
     message::header::ContentType, transport::smtp::authentication::Credentials, Message,
     SmtpTransport, Transport,
 };
 use std::env;
 
-pub async fn notify_email(setup: &Setup, strategy: &Strategy) -> GenericResult<()> {
+pub async fn notify_email(setup: &Setup, strategy: &Strategy) -> Result<()> {
     let sender = env::var("EMAIL_SENDER")?;
     let sender = format!("{}", sender);
     let receiver = env::var("EMAIL_RECEIVER")?;
@@ -31,10 +32,10 @@ pub async fn notify_email(setup: &Setup, strategy: &Strategy) -> GenericResult<(
                 println!("Email sent successfully!");
                 Ok(())
             }
-            Err(e) => Err(Box::new(e)),
+            Err(e) => Err(anyhow!(e)),
         }
     } else {
-        Err("Unable to create notification email.".into())
+        Err(anyhow!("Unable to create notification email."))
     }
 }
 

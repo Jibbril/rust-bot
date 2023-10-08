@@ -1,14 +1,14 @@
 mod alphavantage_structs;
 
 use super::ApiResponse;
-use crate::models::generic_result::GenericResult;
 use crate::models::interval::Interval;
 use crate::models::timeseries::TimeSeries;
 use alphavantage_structs::AlphaVantageApiResponse;
+use anyhow::{Result, anyhow};
 use reqwest;
 use std::env;
 
-pub async fn get(symbol: &str, interval: &Interval) -> GenericResult<TimeSeries> {
+pub async fn get(symbol: &str, interval: &Interval) -> Result<TimeSeries> {
     let function = "DIGITAL_CURRENCY_DAILY";
     let url = construct_url(function, symbol, interval);
 
@@ -16,7 +16,7 @@ pub async fn get(symbol: &str, interval: &Interval) -> GenericResult<TimeSeries>
 
     match response.status() {
         reqwest::StatusCode::OK => convert_data(symbol, response, interval).await,
-        _ => Err("Request failed.".into()),
+        _ => Err(anyhow!("Request failed.")),
     }
 }
 
@@ -24,7 +24,7 @@ async fn convert_data(
     symbol: &str,
     res: reqwest::Response,
     interval: &Interval,
-) -> GenericResult<TimeSeries> {
+) -> Result<TimeSeries> {
     let mut alpha_vantage_data: AlphaVantageApiResponse = res.json().await?;
 
     let timeseries = alpha_vantage_data.to_timeseries(symbol, interval);

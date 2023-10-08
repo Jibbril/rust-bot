@@ -1,5 +1,6 @@
-use super::{calculation_mode::CalculationMode, generic_result::GenericResult};
+use super::calculation_mode::CalculationMode;
 use crate::indicators::{indicator::Indicator, indicator_type::IndicatorType};
+use anyhow::{Result, Context};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -137,10 +138,12 @@ impl Candle {
         }
     }
 
-    pub fn get_indicator(&self, key: &IndicatorType) -> GenericResult<Indicator> {
+    pub fn get_indicator(&self, key: &IndicatorType) -> Result<Indicator> {
         self.indicators
             .get(key)
-            .ok_or_else(|| format!("Unable to find indicator with type: {:#?}", key).into())
-            .and_then(|indicator| Ok(indicator.clone()))
+            .context(
+                format!("Unable to find indicator with type: {:#?}", key)
+            )
+            .cloned()
     }
 }

@@ -1,8 +1,9 @@
+use anyhow::Result;
 use tokio_tungstenite::connect_async;
 
-use crate::models::{websockets::{wsclient::WebsocketClient, subject::Subject, websocketpayload::WebsocketPayload}, generic_result::GenericResult};
+use crate::models::websockets::{wsclient::WebsocketClient, subject::Subject, websocketpayload::WebsocketPayload};
 
-pub async fn connect_ws(client: &WebsocketClient) -> GenericResult<()> {
+pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
     let url = "wss://stream.bybit.com/realtime";
     let (mut ws_stream, _) = connect_async(url).await?;
 

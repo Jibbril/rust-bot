@@ -1,5 +1,7 @@
+use anyhow::Result;
+
 use crate::{
-    models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries},
+    models::{candle::Candle, timeseries::TimeSeries},
     utils::math::std,
 };
 
@@ -18,7 +20,7 @@ pub struct BollingerBands {
 }
 
 impl PopulatesCandles for BollingerBands {
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (len, _) = args.extract_bb_res()?;
         let mut bb: Option<BollingerBands> = None;
         let new_bbs: Vec<Option<BollingerBands>> = (0..ts.candles.len())
@@ -41,7 +43,7 @@ impl PopulatesCandles for BollingerBands {
         Ok(())
     }
 
-    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
+    fn populate_candles_default(ts: &mut TimeSeries) -> Result<()> {
         let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
         Self::populate_candles(ts, args)
     }

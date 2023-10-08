@@ -1,8 +1,10 @@
+use anyhow::Result;
+
 use super::{
     bbw::BBW, indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
     populates_candles::PopulatesCandles, sma::SMA,
 };
-use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
+use crate::models::timeseries::TimeSeries;
 
 /// Bollinger Band Width Percentile
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
@@ -15,7 +17,7 @@ pub struct BBWP {
 }
 
 impl PopulatesCandles for BBWP {
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (len, _, sma_len) = args.extract_bbwp_res()?;
         let indicator_type = IndicatorType::BBW(len);
         let mut remove_bbws = false;
@@ -44,7 +46,7 @@ impl PopulatesCandles for BBWP {
         Ok(())
     }
 
-    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
+    fn populate_candles_default(ts: &mut TimeSeries) -> Result<()> {
         let args = IndicatorArgs::BBWPArgs(13, 252, 5);
         Self::populate_candles(ts, args)
     }
@@ -54,7 +56,7 @@ impl BBWP {
     pub fn calculate_bbwps(
         ts: &mut TimeSeries,
         args: &IndicatorArgs,
-    ) -> GenericResult<Vec<Option<BBWP>>> {
+    ) -> Result<Vec<Option<BBWP>>> {
         let (len, lookback, _) = args.extract_bbwp_res()?;
         let indicator_type = IndicatorType::BBW(len);
 
@@ -96,7 +98,7 @@ impl BBWP {
         Ok(bbwps)
     }
 
-    pub fn populate_smas(bbwps: &mut [Option<BBWP>], len: usize) -> GenericResult<()> {
+    pub fn populate_smas(bbwps: &mut [Option<BBWP>], len: usize) -> Result<()> {
         // Calculate SMA for BBWP values
         for i in len..bbwps.len() {
             let start = i - len + 1;
@@ -122,7 +124,7 @@ impl BBWP {
         ts: &mut TimeSeries,
         bbwps: &[Option<BBWP>],
         args: &IndicatorArgs,
-    ) -> GenericResult<()> {
+    ) -> Result<()> {
         let (len, lookback, _) = args.extract_bbwp_res()?;
         let indicator_type = IndicatorType::BBWP(len, lookback);
 

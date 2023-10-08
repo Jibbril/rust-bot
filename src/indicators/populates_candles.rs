@@ -1,7 +1,9 @@
+use anyhow::Result;
+
 use super::indicator_args::IndicatorArgs;
-use crate::models::{generic_result::GenericResult, timeseries::TimeSeries};
+use crate::models::timeseries::TimeSeries;
 
 pub trait PopulatesCandles {
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()>;
-    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()>;
+    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()>;
+    fn populate_candles_default(ts: &mut TimeSeries) -> Result<()>;
 }

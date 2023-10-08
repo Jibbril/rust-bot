@@ -3,7 +3,8 @@ pub mod websockets;
 
 use self::cryptocompare_structs::CryptoCompareApiResponse;
 use super::ApiResponse;
-use crate::models::{generic_result::GenericResult, interval::Interval, timeseries::TimeSeries};
+use crate::models::{interval::Interval, timeseries::TimeSeries};
+use anyhow::{Result, anyhow};
 use reqwest::Client;
 use std::env;
 
@@ -11,7 +12,7 @@ pub async fn get(
     symbol: &str,
     interval: &Interval,
     exchange: Option<String>,
-) -> GenericResult<TimeSeries> {
+) -> Result<TimeSeries> {
     let api_key = env::var("CRYPTOCOMPARE_KEY")?;
     let url = construct_url(symbol, interval, 2000, exchange);
 
@@ -28,7 +29,7 @@ pub async fn get(
             let ts = response.to_timeseries(symbol, interval);
             ts.map(|ts| ts)
         }
-        _ => Err("CryptoCompare request failed.".into()),
+        _ => Err(anyhow!("CryptoCompare request failed.")),
     }
 }
 

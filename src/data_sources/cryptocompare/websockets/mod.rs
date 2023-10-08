@@ -4,7 +4,7 @@ pub mod action;
 pub mod subscription; 
 
 use std::env;
-use crate::models::generic_result::GenericResult;
+use anyhow::Result;
 use dotenv::dotenv;
 use futures_util::{SinkExt, StreamExt};
 use serde_json::Value;
@@ -16,7 +16,7 @@ use incoming_message::IncomingMessage;
 use action::Action;
 
 #[allow(dead_code)]
-pub async fn dummy_example() -> GenericResult<()> {
+pub async fn dummy_example() -> Result<()> {
     dotenv().ok();
     let api_key = env::var("CRYPTOCOMPARE_KEY")?;
     let url = format!("wss://streamer.cryptocompare.com/v2?api_key={}", api_key);

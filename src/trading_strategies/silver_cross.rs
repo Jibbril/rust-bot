@@ -1,7 +1,8 @@
+use anyhow::Result;
+
 use crate::{
     indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
-        generic_result::GenericResult,
         setup::{FindsSetups, Setup},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
@@ -56,7 +57,7 @@ impl SilverCross {
 }
 
 impl FindsSetups for SilverCross {
-    fn find_setups(&self, ts: &TimeSeries) -> GenericResult<Vec<Setup>> {
+    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         let mut setups: Vec<Setup> = Vec::new();
         let key_21 = IndicatorType::SMA(21);
         let key_55 = IndicatorType::SMA(55);

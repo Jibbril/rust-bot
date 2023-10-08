@@ -1,10 +1,11 @@
 use crate::{
     data_sources::ApiResponse,
     models::{
-        candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
+        candle::Candle, interval::Interval, timeseries::TimeSeries,
     },
     utils::secs_to_datetime,
 };
+use anyhow::Result;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 
@@ -26,8 +27,8 @@ pub struct CryptoCompareApiResponse {
 }
 
 impl ApiResponse for CryptoCompareApiResponse {
-    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> GenericResult<TimeSeries> {
-        let candles: GenericResult<Vec<Candle>> = self
+    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> Result<TimeSeries> {
+        let candles: Result<Vec<Candle>> = self
             .data
             .data
             .iter()

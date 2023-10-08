@@ -1,7 +1,8 @@
+use anyhow::Result;
 use csv::Reader;
 
 use crate::models::{
-    candle::Candle, generic_result::GenericResult, interval::Interval, timeseries::TimeSeries,
+    candle::Candle, interval::Interval, timeseries::TimeSeries,
 };
 
 use super::DataSource;
@@ -17,7 +18,7 @@ pub async fn read(
     source: &DataSource,
     symbol: &str,
     interval: &Interval,
-) -> GenericResult<TimeSeries> {
+) -> Result<TimeSeries> {
     let path = construct_path(interval, symbol, source);
     let path = Path::new(&path).join(FILE_NAME);
     let file = File::open(&path)?;
@@ -38,7 +39,7 @@ pub async fn read(
     })
 }
 
-pub async fn write(ts: &TimeSeries, source: &DataSource) -> GenericResult<()> {
+pub async fn write(ts: &TimeSeries, source: &DataSource) -> Result<()> {
     let path = construct_path(&ts.interval, &ts.ticker, source);
     let path = Path::new(&path);
 

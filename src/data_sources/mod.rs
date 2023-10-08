@@ -5,7 +5,9 @@ pub mod bitfinex;
 pub mod bybit;
 pub mod cryptocompare;
 
-use crate::models::{generic_result::GenericResult, interval::Interval, timeseries::TimeSeries};
+use anyhow::Result;
+
+use crate::models::{interval::Interval, timeseries::TimeSeries};
 
 // Available data sources
 #[allow(dead_code)]
@@ -20,7 +22,7 @@ pub enum DataSource {
 }
 
 pub trait ApiResponse {
-    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> GenericResult<TimeSeries>;
+    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> Result<TimeSeries>;
 }
 
 pub async fn request_data(
@@ -28,7 +30,7 @@ pub async fn request_data(
     symbol: &str,
     interval: Interval,
     save_local: bool,
-) -> GenericResult<TimeSeries> {
+) -> Result<TimeSeries> {
     let ts: TimeSeries;
 
     let mut source = source.clone();
