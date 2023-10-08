@@ -1,8 +1,6 @@
 use anyhow::Result;
 
-use crate::models::{
-    calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries,
-};
+use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries};
 
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,

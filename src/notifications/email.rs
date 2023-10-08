@@ -1,5 +1,5 @@
 use crate::models::{setup::Setup, strategy::Strategy};
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use lettre::{
     message::header::ContentType, transport::smtp::authentication::Credentials, Message,
     SmtpTransport, Transport,

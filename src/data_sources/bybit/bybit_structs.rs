@@ -1,6 +1,10 @@
-use anyhow::{Result, anyhow};
+use crate::{
+    data_sources::ApiResponse,
+    models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+    utils::millis_to_datetime,
+};
+use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-use crate::{data_sources::ApiResponse, utils::millis_to_datetime, models::{candle::Candle, timeseries::TimeSeries, interval::Interval}};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BybitApiResponse {
@@ -20,10 +24,11 @@ impl ApiResponse for BybitApiResponse {
             Some(result) => result,
             None => return Err(anyhow!(self.ret_msg.clone())),
         };
-        
-            // .ok_or_else(|| self.ret_msg.clone())?;
-    
-        let candles: Result<Vec<Candle>> = klines.iter()
+
+        // .ok_or_else(|| self.ret_msg.clone())?;
+
+        let candles: Result<Vec<Candle>> = klines
+            .iter()
             .map(|entry| {
                 let timestamp = millis_to_datetime(entry.timestamp.parse::<u64>()?)?;
                 Ok(Candle::new(
@@ -37,19 +42,14 @@ impl ApiResponse for BybitApiResponse {
             })
             .collect();
 
-    
         candles.map(|mut candles| {
             candles.sort_by_key(|candle| candle.timestamp);
-            
+
             // Bybit returns the current interval as well, we only want
             // historical data here.
             candles.pop();
-            
-            TimeSeries::new(
-                symbol.to_string(),
-                interval.clone(),
-                candles,
-            )
+
+            TimeSeries::new(symbol.to_string(), interval.clone(), candles)
         })
     }
 }

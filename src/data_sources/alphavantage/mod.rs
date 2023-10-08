@@ -4,7 +4,7 @@ use super::ApiResponse;
 use crate::models::interval::Interval;
 use crate::models::timeseries::TimeSeries;
 use alphavantage_structs::AlphaVantageApiResponse;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use reqwest;
 use std::env;
 

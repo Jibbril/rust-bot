@@ -1,7 +1,7 @@
 pub mod math;
 
 use crate::models::setup::Setup;
-use anyhow::{Result, anyhow, Context};
+use anyhow::{anyhow, Context, Result};
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
 use std::{
     fs::{create_dir_all, File},

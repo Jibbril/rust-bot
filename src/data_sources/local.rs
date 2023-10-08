@@ -1,9 +1,7 @@
 use anyhow::Result;
 use csv::Reader;
 
-use crate::models::{
-    candle::Candle, interval::Interval, timeseries::TimeSeries,
-};
+use crate::models::{candle::Candle, interval::Interval, timeseries::TimeSeries};
 
 use super::DataSource;
 use std::{
@@ -14,11 +12,7 @@ use std::{
 
 const FILE_NAME: &str = "data.csv";
 
-pub async fn read(
-    source: &DataSource,
-    symbol: &str,
-    interval: &Interval,
-) -> Result<TimeSeries> {
+pub async fn read(source: &DataSource, symbol: &str, interval: &Interval) -> Result<TimeSeries> {
     let path = construct_path(interval, symbol, source);
     let path = Path::new(&path).join(FILE_NAME);
     let file = File::open(&path)?;

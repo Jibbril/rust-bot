@@ -16,7 +16,9 @@ use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
 
-use crate::models::websockets::{wsclient::WebsocketClient, subject::Subject, websocketpayload::WebsocketPayload};
+use crate::models::websockets::{
+    subject::Subject, websocketpayload::WebsocketPayload, wsclient::WebsocketClient,
+};
 use outgoing_message::OutgoingMessage;
 
 pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
@@ -45,7 +47,7 @@ pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
         };
 
         client.notify_observers(payload);
-        
+
         i += 1;
         if i > 30 {
             break;

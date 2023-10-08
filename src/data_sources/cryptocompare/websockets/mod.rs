@@ -1,26 +1,26 @@
+pub mod action;
 pub mod incoming_message;
 pub mod outgoing_message;
-pub mod action;
-pub mod subscription; 
+pub mod subscription;
 
-use std::env;
+use action::Action;
 use anyhow::Result;
 use dotenv::dotenv;
 use futures_util::{SinkExt, StreamExt};
+use incoming_message::IncomingMessage;
+use outgoing_message::OutgoingMessage;
 use serde_json::Value;
+use std::env;
+use subscription::Subscription;
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
-use subscription::Subscription;
-use outgoing_message::OutgoingMessage; 
-use incoming_message::IncomingMessage;
-use action::Action;
 
 #[allow(dead_code)]
 pub async fn dummy_example() -> Result<()> {
     dotenv().ok();
     let api_key = env::var("CRYPTOCOMPARE_KEY")?;
     let url = format!("wss://streamer.cryptocompare.com/v2?api_key={}", api_key);
-    let (mut ws_stream,_) = connect_async(url).await.expect("Failed to connect");
+    let (mut ws_stream, _) = connect_async(url).await.expect("Failed to connect");
 
     let sub = Subscription::new("5", "CCCAGG", "BTC", "USD");
     let outgoing = OutgoingMessage::new(Action::SubAdd, vec![sub.clone()]);
@@ -35,16 +35,17 @@ pub async fn dummy_example() -> Result<()> {
 
         if let Message::Text(txt) = msg {
             let v: Value = serde_json::from_str(txt.as_str()).expect("Failed to parse");
-            let parsed: Result<IncomingMessage, serde_json::Error> = serde_json::from_str(txt.as_str());
-            
+            let parsed: Result<IncomingMessage, serde_json::Error> =
+                serde_json::from_str(txt.as_str());
+
             if parsed.is_err() {
                 println!("Value:{:#?}", v);
-                println!("Parsed: {:#?}",parsed);
+                println!("Parsed: {:#?}", parsed);
                 let unsub = OutgoingMessage::new(Action::SubRemove, vec![sub.clone()]);
                 let message = Message::Text(unsub.to_string());
-                ws_stream.send(message).await?;            
+                ws_stream.send(message).await?;
             } else {
-                println!("Handled correctly for iteration: {}",i);
+                println!("Handled correctly for iteration: {}", i);
             }
         }
 

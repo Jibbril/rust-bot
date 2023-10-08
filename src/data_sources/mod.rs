@@ -1,9 +1,9 @@
 mod alphavantage;
-mod coinmarketcap;
-mod local;
 pub mod bitfinex;
 pub mod bybit;
+mod coinmarketcap;
 pub mod cryptocompare;
+mod local;
 
 use anyhow::Result;
 

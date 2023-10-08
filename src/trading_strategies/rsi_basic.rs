@@ -80,11 +80,7 @@ impl RsiBasic {
         }
     }
 
-    fn find_setups_by_direction(
-        &self,
-        ts: &TimeSeries,
-        reversed: bool,
-    ) -> Result<Vec<Setup>> {
+    fn find_setups_by_direction(&self, ts: &TimeSeries, reversed: bool) -> Result<Vec<Setup>> {
         let len = 14;
         let key = IndicatorType::RSI(len);
         let mut setups: Vec<Setup> = Vec::new();

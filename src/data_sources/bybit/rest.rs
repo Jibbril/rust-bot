@@ -1,18 +1,18 @@
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use reqwest::Client;
 
-use crate::{models::{interval::Interval, timeseries::TimeSeries}, data_sources::ApiResponse};
+use crate::{
+    data_sources::ApiResponse,
+    models::{interval::Interval, timeseries::TimeSeries},
+};
 
 use super::bybit_structs::BybitApiResponse;
 
 pub async fn get(symbol: &str, interval: &Interval) -> Result<TimeSeries> {
     let url = generate_url(symbol, interval)?;
-    
-    let client = Client::new(); 
-    let response = client
-        .get(url)
-        .send()
-        .await?;
+
+    let client = Client::new();
+    let response = client.get(url).send().await?;
 
     match response.status() {
         reqwest::StatusCode::OK => {
@@ -20,7 +20,7 @@ pub async fn get(symbol: &str, interval: &Interval) -> Result<TimeSeries> {
 
             let ts = response.to_timeseries(symbol, interval);
             ts.map(|ts| ts)
-        },
+        }
         _ => Err(anyhow!("Bybit request failed.")),
     }
 }
@@ -39,8 +39,8 @@ fn generate_url(symbol: &str, interval: &Interval) -> Result<String> {
         _ => return Err(anyhow!("Bybit does not support this interval.")),
     };
 
-    Ok(format!( "https://api.bybit.com/v5/market/kline?category=spot&symbol={}&interval={}&limit=2000",
-        symbol,
-        interval
+    Ok(format!(
+        "https://api.bybit.com/v5/market/kline?category=spot&symbol={}&interval={}&limit=2000",
+        symbol, interval
     ))
 }

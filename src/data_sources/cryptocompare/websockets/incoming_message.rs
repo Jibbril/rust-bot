@@ -1,5 +1,5 @@
-use serde::{self, Deserialize, Deserializer, de::Error};
-use serde_json::{Value, from_value};
+use serde::{self, de::Error, Deserialize, Deserializer};
+use serde_json::{from_value, Value};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -8,7 +8,7 @@ pub enum IncomingMessage {
     Heartbeat(Heartbeat),
     AggregateIndex(AggregateIndex),
     SubscribeComplete(SubscribeComplete),
-    LoadComplete(LoadComplete), 
+    LoadComplete(LoadComplete),
     UnsubscribeComplete(UnsubscribeComplete),
     UnsubscribeAllComplete(UnsubscribeAllComplete),
 }
@@ -23,46 +23,46 @@ impl<'de> Deserialize<'de> for IncomingMessage {
             Some("3") => {
                 let message = from_value(json).map_err(Error::custom)?;
                 Ok(IncomingMessage::LoadComplete(message))
-            },
+            }
             Some("5") => {
                 let message = from_value(json).map_err(Error::custom)?;
                 Ok(IncomingMessage::AggregateIndex(message))
-            }, 
+            }
             Some("16") => {
                 let message = from_value(json).map_err(Error::custom)?;
                 Ok(IncomingMessage::SubscribeComplete(message))
-            },
+            }
             Some("17") => {
                 let message = from_value(json).map_err(Error::custom)?;
                 Ok(IncomingMessage::UnsubscribeComplete(message))
-            },
+            }
             Some("18") => {
                 let message = from_value(json).map_err(Error::custom)?;
                 Ok(IncomingMessage::UnsubscribeAllComplete(message))
-            },            
+            }
             Some("20") => {
                 let message = from_value(json).map_err(Error::custom)?;
                 Ok(IncomingMessage::StreamerWelcome(message))
-            },
+            }
             Some("999") => {
                 let message = from_value(json).map_err(Error::custom)?;
                 Ok(IncomingMessage::Heartbeat(message))
-            },
-            Some("500") => {
-                match json["MESSAGE"].as_str() {
-                    Some("INVALID_JSON") => Err(Error::custom("Invalid JSON")),
-                    Some("SUBSCRIPTION_UNRECOGNIZED") => Err(Error::custom("Subscription unrecognized")),
-                    _ => Err(Error::custom("Unknown ERROR")),
-                }
             }
+            Some("500") => match json["MESSAGE"].as_str() {
+                Some("INVALID_JSON") => Err(Error::custom("Invalid JSON")),
+                Some("SUBSCRIPTION_UNRECOGNIZED") => {
+                    Err(Error::custom("Subscription unrecognized"))
+                }
+                _ => Err(Error::custom("Unknown ERROR")),
+            },
             _ => Err(Error::custom("Unknown TYPE")),
         }
     }
 }
 
-// ======================================================================== 
-// ======================== Incoming message types ======================== 
-// ======================================================================== 
+// ========================================================================
+// ======================== Incoming message types ========================
+// ========================================================================
 #[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 pub struct StreamerWelcome {
@@ -202,7 +202,7 @@ pub struct LoadComplete {
     #[serde(rename = "TYPE")]
     type_: String,
 }
-    
+
 #[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 pub struct UnsubscribeComplete {

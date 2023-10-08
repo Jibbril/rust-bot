@@ -1,10 +1,7 @@
 use anyhow::Result;
 
 use crate::{
-    models::{
-        calculation_mode::CalculationMode, candle::Candle, 
-        timeseries::TimeSeries,
-    },
+    models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
     utils::math::{ema, ema_rolling},
 };
 

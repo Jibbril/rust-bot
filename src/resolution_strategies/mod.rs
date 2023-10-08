@@ -2,10 +2,8 @@ pub mod atr_resolution;
 pub mod dynamic_pivot;
 
 use self::dynamic_pivot::DynamicPivotResolution;
-use crate::models::{
-    candle::Candle, strategy_orientation::StrategyOrientation,
-};
-use anyhow::{Result, anyhow};
+use crate::models::{candle::Candle, strategy_orientation::StrategyOrientation};
+use anyhow::{anyhow, Result};
 use atr_resolution::AtrResolution;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
@@ -43,9 +41,9 @@ impl CalculatesTakeProfits for ResolutionStrategy {
     ) -> Result<f64> {
         match self {
             ResolutionStrategy::ATR(atr) => atr.calculate_take_profit(candles, i, orientation, len),
-            ResolutionStrategy::DynamicPivot(_) => {
-                Err(anyhow!("DynamicPivotResolution cannot be used to calculate take-profits."))
-            }
+            ResolutionStrategy::DynamicPivot(_) => Err(anyhow!(
+                "DynamicPivotResolution cannot be used to calculate take-profits."
+            )),
         }
     }
 }

@@ -53,10 +53,7 @@ impl PopulatesCandles for BBWP {
 }
 
 impl BBWP {
-    pub fn calculate_bbwps(
-        ts: &mut TimeSeries,
-        args: &IndicatorArgs,
-    ) -> Result<Vec<Option<BBWP>>> {
+    pub fn calculate_bbwps(ts: &mut TimeSeries, args: &IndicatorArgs) -> Result<Vec<Option<BBWP>>> {
         let (len, lookback, _) = args.extract_bbwp_res()?;
         let indicator_type = IndicatorType::BBW(len);
 

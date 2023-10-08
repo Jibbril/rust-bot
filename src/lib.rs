@@ -9,10 +9,13 @@ mod utils;
 
 use crate::{
     indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI},
-    models::{interval::Interval, setup::FindsReverseSetups, strategy::Strategy, websockets::wsclient::WebsocketClient},
+    models::{
+        interval::Interval, setup::FindsReverseSetups, strategy::Strategy,
+        websockets::wsclient::WebsocketClient,
+    },
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
-    utils::save_setups, 
+    utils::save_setups,
 };
 use anyhow::Result;
 use data_sources::{request_data, DataSource};

@@ -4,6 +4,5 @@ use crate::models::candle::Candle;
 pub struct WebsocketPayload {
     pub ok: bool,
     pub message: Option<String>,
-    pub candle: Option<Candle>, 
+    pub candle: Option<Candle>,
 }
-

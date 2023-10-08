@@ -1,5 +1,4 @@
-
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct Subscription {
     pub channel: String,
     pub exchange: String,

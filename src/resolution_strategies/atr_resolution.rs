@@ -2,10 +2,11 @@ use super::{CalculatesStopLosses, CalculatesTakeProfits};
 use crate::{
     indicators::{atr::ATR, indicator_type::IndicatorType},
     models::{
-        calculation_mode::CalculationMode, candle::Candle, strategy_orientation::StrategyOrientation,
+        calculation_mode::CalculationMode, candle::Candle,
+        strategy_orientation::StrategyOrientation,
     },
 };
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

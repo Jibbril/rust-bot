@@ -1,4 +1,8 @@
-use super::{candle::Candle, interval::Interval, websockets::{observer::Observer, websocketpayload::WebsocketPayload}};
+use super::{
+    candle::Candle,
+    interval::Interval,
+    websockets::{observer::Observer, websocketpayload::WebsocketPayload},
+};
 use crate::indicators::indicator_type::IndicatorType;
 use std::collections::HashSet;
 
@@ -12,11 +16,11 @@ pub struct TimeSeries {
 
 impl Observer<WebsocketPayload> for TimeSeries {
     fn update(&mut self, payload: WebsocketPayload) {
-        println!("Payload: {:#?}",payload);
-        
+        println!("Payload: {:#?}", payload);
+
         if let Some(candle) = payload.candle {
             self.add_candle(candle);
-        } 
+        }
     }
 }
 

@@ -17,6 +17,9 @@ impl OutgoingMessage {
 
 impl ToString for OutgoingMessage {
     fn to_string(&self) -> String {
-        format!("{{\"event\":\"{}\",\"channel\":\"{}\",\"key\":\"{}\"}}", self.event, self.channel, self.key)
+        format!(
+            "{{\"event\":\"{}\",\"channel\":\"{}\",\"key\":\"{}\"}}",
+            self.event, self.channel, self.key
+        )
     }
 }

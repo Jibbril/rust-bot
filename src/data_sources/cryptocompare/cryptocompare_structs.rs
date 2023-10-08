@@ -1,8 +1,6 @@
 use crate::{
     data_sources::ApiResponse,
-    models::{
-        candle::Candle, interval::Interval, timeseries::TimeSeries,
-    },
+    models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
     utils::secs_to_datetime,
 };
 use anyhow::Result;

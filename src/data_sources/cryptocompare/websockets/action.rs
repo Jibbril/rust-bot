@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub enum Action {
     SubAdd,
-    SubRemove
+    SubRemove,
 }
 
 impl ToString for Action {

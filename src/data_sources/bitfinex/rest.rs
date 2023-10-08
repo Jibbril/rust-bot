@@ -1,16 +1,16 @@
-use std::collections::{HashMap, HashSet};
-use anyhow::{Result, anyhow};
+use crate::{
+    models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+    utils::millis_to_datetime,
+};
+use anyhow::{anyhow, Result};
 use reqwest::Client;
-use crate::{models::{interval::Interval, timeseries::TimeSeries, candle::Candle}, utils:: millis_to_datetime};
+use std::collections::{HashMap, HashSet};
 
 pub async fn get(symbol: &str, interval: &Interval) -> Result<TimeSeries> {
     let url = generate_url(symbol, interval)?;
-    
-    let client = Client::new(); 
-    let response = client
-        .get(url)
-        .send()
-        .await?;
+
+    let client = Client::new();
+    let response = client.get(url).send().await?;
 
     match response.status() {
         reqwest::StatusCode::OK => {
@@ -39,16 +39,20 @@ fn generate_url(symbol: &str, interval: &Interval) -> Result<String> {
 
     Ok(format!(
         "https://api-pub.bitfinex.com/v2/candles/trade:{}:t{}/hist?limit=2000",
-        interval,
-        symbol
+        interval, symbol
     ))
 }
 
-fn generate_timeseries(symbol: &str, interval: &Interval,response: Vec<Vec<f64>>) -> Result<TimeSeries> {
-    let candles = response.iter()
+fn generate_timeseries(
+    symbol: &str,
+    interval: &Interval,
+    response: Vec<Vec<f64>>,
+) -> Result<TimeSeries> {
+    let candles = response
+        .iter()
         .map(|entry| {
             let timestamp = millis_to_datetime(entry[0] as u64)?;
-            
+
             Ok(Candle {
                 timestamp,
                 open: entry[1],

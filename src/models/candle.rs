@@ -1,6 +1,6 @@
 use super::calculation_mode::CalculationMode;
 use crate::indicators::{indicator::Indicator, indicator_type::IndicatorType};
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -37,7 +37,7 @@ impl Candle {
             indicators: HashMap::new(),
         }
     }
-    
+
     #[allow(dead_code)]
     pub fn dummy_from_val(val: f64) -> Candle {
         let now = Utc::now();
@@ -141,9 +141,7 @@ impl Candle {
     pub fn get_indicator(&self, key: &IndicatorType) -> Result<Indicator> {
         self.indicators
             .get(key)
-            .context(
-                format!("Unable to find indicator with type: {:#?}", key)
-            )
+            .context(format!("Unable to find indicator with type: {:#?}", key))
             .cloned()
     }
 }

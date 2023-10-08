@@ -1,8 +1,8 @@
-use std::sync::{Arc, Mutex};
 use anyhow::Result;
+use std::sync::{Arc, Mutex};
 
-use crate::data_sources::{DataSource,bitfinex,bybit};
-use super::{observer::Observer, websocketpayload::WebsocketPayload, subject::Subject};
+use super::{observer::Observer, subject::Subject, websocketpayload::WebsocketPayload};
+use crate::data_sources::{bitfinex, bybit, DataSource};
 
 pub struct WebsocketClient {
     source: DataSource,
@@ -33,9 +33,9 @@ impl WebsocketClient {
         match self.source {
             DataSource::Bitfinex => {
                 bitfinex::ws::connect_ws(&self).await?;
-            } 
+            }
             DataSource::Bybit => {
-                bybit::ws::connect_ws(&self).await?;               
+                bybit::ws::connect_ws(&self).await?;
             }
             _ => panic!("Error"),
         }

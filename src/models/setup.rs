@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     models::{
-        candle::Candle, interval::Interval,
-        strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
+        candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation,
+        timeseries::TimeSeries,
     },
     resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
 };
