@@ -1,4 +1,5 @@
 mod outgoing_message;
+mod incoming_message;
 
 use anyhow::Result;
 use futures_util::{StreamExt, SinkExt};
@@ -7,7 +8,7 @@ use tungstenite::Message;
 
 use crate::{models::websockets::{
     subject::Subject, websocketpayload::WebsocketPayload, wsclient::WebsocketClient,
-}, data_sources::bybit::ws::outgoing_message::OutgoingMessage};
+}, data_sources::bybit::ws::{outgoing_message::OutgoingMessage, incoming_message::IncomingMessage}};
 
 pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
     let url = "wss://stream-testnet.bybit.com/v5/public/spot";
@@ -27,7 +28,10 @@ pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
 
         if let Message::Text(txt) = msg {
             let v: serde_json::Value = serde_json::from_str(txt.as_str())?;
-            println!("({}) Value:{:#?}", i, v);
+            let parsed: Result<IncomingMessage, serde_json::Error> = serde_json::from_str(txt.as_str());
+
+            println!("({}) Value: {:#?}", i, v);
+            println!("({}) Parsed: {:#?}", i, parsed);
         }
 
         let payload = WebsocketPayload {
