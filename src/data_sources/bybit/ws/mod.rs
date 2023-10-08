@@ -36,7 +36,7 @@ pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
         let msg = msg?;
 
         if let Message::Text(txt) = msg {
-            let v: serde_json::Value = serde_json::from_str(txt.as_str())?;
+            // let v: serde_json::Value = serde_json::from_str(txt.as_str())?;
             let parsed: Result<IncomingMessage, serde_json::Error> = serde_json::from_str(txt.as_str());
 
             println!("({}) Parsed: {:#?}", i, parsed);

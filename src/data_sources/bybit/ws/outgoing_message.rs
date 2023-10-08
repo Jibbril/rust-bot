@@ -1,7 +1,9 @@
 use serde::{Serialize, Deserialize};
+use serde_json::{to_string, json};
 
 #[derive(Debug,Clone,Serialize,Deserialize)]
 pub struct OutgoingMessage {
+    #[serde(skip_serializing_if = "Option::is_none")]
     req_id: Option<String>,
     op: String,
     args: Vec<OutgoingMessageArg>,
@@ -16,35 +18,22 @@ pub struct OutgoingMessageArg {
 
 impl OutgoingMessage {
     pub fn to_json(&self) -> String {
-        let mut str = "{".to_string();
+        let args: Vec<String> = self.args.iter()
+            .map(|arg| format!("{}.{}.{}", arg.stream, arg.interval, arg.symbol))
+            .collect();
 
+        let message = json!({
+            "op": &self.op,
+            "args": args
+        });
+
+        // If req_id is Some, add it to the message
+        let mut message_map = message.as_object().unwrap().clone();
         if let Some(req_id) = &self.req_id {
-            str +="\"req_id\": \"";
-            str += req_id;
-            str += "\",";
+            message_map.insert("req_id".to_string(), json!(req_id));
         }
 
-        str +="\"op\": \"";
-        str += &self.op;
-        str += "\"";
-
-        if self.args.len() > 0 {
-
-            let args = self.args.iter()
-                .map(|arg| {
-                    format!("\"{}.{}.{}\"", arg.stream, arg.interval, arg.symbol)
-                })
-                .collect::<Vec<String>>();
-
-            let args = args.join(",");
-
-            str += ", \"args\": [";
-            str += &args;
-            str += "]";
-        }
-
-        str += "}";
-        str
+        serde_json::to_string(&message_map).unwrap()
     }
 
     pub fn ping() -> Self {
