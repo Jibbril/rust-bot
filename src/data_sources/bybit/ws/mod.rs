@@ -6,23 +6,32 @@ use futures_util::{StreamExt, SinkExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
 
-use crate::{models::websockets::{
-    subject::Subject, websocketpayload::WebsocketPayload, wsclient::WebsocketClient,
-}, data_sources::bybit::ws::{outgoing_message::OutgoingMessage, incoming_message::IncomingMessage}};
+use crate::{models::websockets::{websocketpayload::WebsocketPayload, wsclient::WebsocketClient,
+}, data_sources::bybit::ws::{outgoing_message::{OutgoingMessage, OutgoingMessageArg}, incoming_message::IncomingMessage}};
 
 pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
     let url = "wss://stream-testnet.bybit.com/v5/public/spot";
     let (mut ws_stream, _) = connect_async(url).await?;
 
-    // let outgoing = OutgoingMessage::new("subscribe", "candles", "trade:1m:tBTCUSD");
-
+    // Send ping
     let ping = OutgoingMessage::ping();
-
-    let message: Message = Message::Text(ping.to_json());
+    let message = Message::Text(ping.to_json());
     ws_stream.send(message).await?;
 
-    let mut i = 0;
+    // Subscribe to kline
+    let args = vec![
+        OutgoingMessageArg {
+            stream: "kline".to_string(),
+            interval: "1".to_string(),
+            symbol: "BTCUSDT".to_string()
+        }
+    ];
+    let sub = OutgoingMessage::new("subscribe", args);
+    let json = sub.to_json();
 
+    ws_stream.send(Message::Text(json)).await?;
+
+    let mut i = 0;
     while let Some(msg) = ws_stream.next().await {
         let msg = msg?;
 
@@ -30,8 +39,10 @@ pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
             let v: serde_json::Value = serde_json::from_str(txt.as_str())?;
             let parsed: Result<IncomingMessage, serde_json::Error> = serde_json::from_str(txt.as_str());
 
-            println!("({}) Value: {:#?}", i, v);
             println!("({}) Parsed: {:#?}", i, parsed);
+            if parsed.is_err() {
+                break;
+            }
         }
 
         let payload = WebsocketPayload {
@@ -40,10 +51,10 @@ pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
             candle: None,
         };
 
-        client.notify_observers(payload);
+        // client.notify_observers(payload);
 
         i += 1;
-        if i > 30 {
+        if i > 100 {
             break;
         };
     }
