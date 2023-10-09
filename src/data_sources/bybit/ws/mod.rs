@@ -1,12 +1,11 @@
 mod outgoing_message;
 mod incoming_message;
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use futures_util::{StreamExt, SinkExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
-
-use crate::{models::websockets::{websocketpayload::WebsocketPayload, wsclient::WebsocketClient,
+use crate::{models::websockets::{websocketpayload::WebsocketPayload, wsclient::WebsocketClient, subject::Subject,
 }, data_sources::bybit::ws::{outgoing_message::{OutgoingMessage, OutgoingMessageArg}, incoming_message::IncomingMessage}};
 
 pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
@@ -37,26 +36,34 @@ pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
 
         if let Message::Text(txt) = msg {
             // let v: serde_json::Value = serde_json::from_str(txt.as_str())?;
-            let parsed: Result<IncomingMessage, serde_json::Error> = serde_json::from_str(txt.as_str());
+            let parsed: IncomingMessage = serde_json::from_str(txt.as_str())?;
 
-            println!("({}) Parsed: {:#?}", i, parsed);
-            if parsed.is_err() {
-                break;
+            match parsed {
+                IncomingMessage::Pong(pong) => {
+                    println!("Pong: {:#?}", pong);
+                }
+                IncomingMessage::Subscribe(sub) => {
+                    println!("Subscribe: {:#?}", sub);
+                }
+                IncomingMessage::Kline(kline_response) => {
+                    let kline = kline_response.get_kline()?;
+
+                    if !kline.confirm { 
+                        // TODO: Change to taking the next candle instead of the confirmed one. Solves issue with timestamps being wrong. 
+                        continue; 
+                    }
+
+                    let candle = kline.to_candle()?;
+                    let payload = WebsocketPayload {
+                        ok: true,
+                        message: Some(i.to_string()),
+                        candle: Some(candle),
+                    };
+
+                    client.notify_observers(payload);
+                }
             }
         }
-
-        let payload = WebsocketPayload {
-            ok: true,
-            message: Some(i.to_string()),
-            candle: None,
-        };
-
-        // client.notify_observers(payload);
-
-        i += 1;
-        if i > 100 {
-            break;
-        };
     }
 
     println!("Done");

@@ -16,10 +16,12 @@ pub struct TimeSeries {
 
 impl Observer<WebsocketPayload> for TimeSeries {
     fn update(&mut self, payload: WebsocketPayload) {
-        println!("Payload: {:#?}", payload);
-
         if let Some(candle) = payload.candle {
             self.add_candle(candle);
+
+            // TODO: Check if any indicators should be calculated, if so, do it.
+            
+            println!("TS: {:#?}", self);
         }
     }
 }

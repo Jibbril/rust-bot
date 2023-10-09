@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+use anyhow::Result;
 use serde::{Deserialize, Deserializer, de::Error};
 use serde_json::{Value, from_value};
+use crate::{models::candle::Candle, utils::millis_to_datetime};
 
 #[derive(Debug,Clone)]
 pub enum IncomingMessage {
@@ -74,15 +77,36 @@ pub struct KlineResponse {
 #[allow(dead_code)]
 #[derive(Deserialize, Debug, Clone)]
 pub struct Kline {
-    start: u64,
-    end: u64,
-    interval: String,
-    open: String,
-    close: String,
-    high: String,
-    low: String,
-    volume: String,
-    turnover: String,
-    confirm: bool,
-    timestamp: u64
+    pub start: u64,
+    pub end: u64,
+    pub interval: String,
+    pub open: String,
+    pub close: String,
+    pub high: String,
+    pub low: String,
+    pub volume: String,
+    pub turnover: String,
+    pub confirm: bool,
+    pub timestamp: u64
+}
+
+impl KlineResponse {
+    pub fn get_kline(&self) -> Result<Kline> {
+        let kline = &self.data[0];
+        Ok(kline.clone())
+    }
+}
+
+impl Kline {
+    pub fn to_candle(&self) -> Result<Candle> {
+        Ok(Candle {
+            timestamp: millis_to_datetime(self.end)?,
+            open: self.open.parse::<f64>()?,
+            close: self.close.parse::<f64>()?,
+            high: self.high.parse::<f64>()?,
+            low: self.low.parse::<f64>()?,
+            volume: self.volume.parse::<f64>()?,
+            indicators: HashMap::new(),
+        })
+    }
 }
