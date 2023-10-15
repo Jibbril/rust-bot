@@ -1,7 +1,6 @@
 use super::{
     candle::Candle,
     interval::Interval,
-    websockets::{observer::Observer, websocketpayload::WebsocketPayload},
 };
 use crate::indicators::indicator_type::IndicatorType;
 use std::collections::HashSet;
@@ -12,18 +11,6 @@ pub struct TimeSeries {
     pub interval: Interval,
     pub candles: Vec<Candle>,
     pub indicators: HashSet<IndicatorType>,
-}
-
-impl Observer<WebsocketPayload> for TimeSeries {
-    fn update(&mut self, payload: WebsocketPayload) {
-        if let Some(candle) = payload.candle {
-            self.add_candle(candle);
-
-            // TODO: Check if any indicators should be calculated, if so, do it.
-            
-            println!("TS: {:#?}", self);
-        }
-    }
 }
 
 impl TimeSeries {

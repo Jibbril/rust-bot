@@ -16,12 +16,12 @@ use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
 
-use crate::models::websockets::{
-    subject::Subject, websocketpayload::WebsocketPayload, wsclient::WebsocketClient,
+use crate::models::websockets::{ websocketpayload::WebsocketPayload, wsclient::WebsocketClient,
 };
 use outgoing_message::OutgoingMessage;
 
-pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
+#[allow(dead_code)]
+pub async fn connect_ws(_client: &WebsocketClient) -> Result<()> {
     let url = "wss://api-pub.bitfinex.com/ws/2";
     let (mut ws_stream, _) = connect_async(url).await?;
 
@@ -40,13 +40,13 @@ pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
             // println!("({}) Value:{:#?}", i, v);
         }
 
-        let payload = WebsocketPayload {
+        let _payload = WebsocketPayload {
             ok: true,
             message: Some(i.to_string()),
             candle: None,
         };
 
-        client.notify_observers(payload);
+        // TODO: Implement actor model to notify observers
 
         i += 1;
         if i > 30 {

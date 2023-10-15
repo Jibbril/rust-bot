@@ -20,14 +20,14 @@ use crate::{
 use anyhow::Result;
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
-use models::{timeseries::TimeSeries, websockets::subject::Subject};
+use models::timeseries::TimeSeries;
 use notifications::notify;
 
 pub async fn run() -> Result<()> {
-    let mut client = WebsocketClient::new(DataSource::Bybit);
-    let ts = TimeSeries::dummy();
-    client.add_observer(Box::new(ts));
-    client.listen().await?;
+    let mut _client = WebsocketClient::new(DataSource::Bybit);
+    let _ts = TimeSeries::dummy();
+    // client.add_observer(Box::new(ts));
+    // _client.listen().await?;
 
     // TODO: Setup scenario where timeseries is updated with new candles
 
