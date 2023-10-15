@@ -23,16 +23,18 @@ use dotenv::dotenv;
 use models::{timeseries::TimeSeries, websockets::subject::Subject};
 use notifications::notify;
 
-pub async fn _run() -> Result<()> {
-    let mut client = WebsocketClient::new(DataSource::Bitfinex);
+pub async fn run() -> Result<()> {
+    let mut client = WebsocketClient::new(DataSource::Bybit);
     let ts = TimeSeries::dummy();
     client.add_observer(Box::new(ts));
     client.listen().await?;
 
+    // TODO: Setup scenario where timeseries is updated with new candles
+
     Ok(())
 }
 
-pub async fn run() -> Result<()> {
+pub async fn _run() -> Result<()> {
     dotenv().ok();
 
     // Get TimeSeries data
