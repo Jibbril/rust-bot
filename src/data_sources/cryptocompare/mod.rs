@@ -2,7 +2,7 @@ mod cryptocompare_structs;
 pub mod websockets;
 
 use self::cryptocompare_structs::CryptoCompareApiResponse;
-use super::ApiResponse;
+use super::api_response::ApiResponse;
 use crate::models::{interval::Interval, timeseries::TimeSeries};
 use anyhow::{anyhow, Result};
 use reqwest::Client;

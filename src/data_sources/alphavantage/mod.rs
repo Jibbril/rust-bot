@@ -1,6 +1,6 @@
 mod alphavantage_structs;
 
-use super::ApiResponse;
+use super::api_response::ApiResponse;
 use crate::models::interval::Interval;
 use crate::models::timeseries::TimeSeries;
 use alphavantage_structs::AlphaVantageApiResponse;

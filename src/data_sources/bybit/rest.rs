@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use reqwest::Client;
 
 use crate::{
-    data_sources::ApiResponse,
+    data_sources::api_response::ApiResponse,
     models::{interval::Interval, timeseries::TimeSeries},
 };
 

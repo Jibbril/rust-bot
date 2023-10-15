@@ -1,5 +1,5 @@
 use crate::{
-    data_sources::ApiResponse,
+    data_sources::api_response::ApiResponse,
     models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
     utils::millis_to_datetime,
 };

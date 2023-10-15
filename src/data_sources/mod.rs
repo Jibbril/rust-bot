@@ -1,4 +1,5 @@
 mod alphavantage;
+mod api_response;
 pub mod bitfinex;
 pub mod bybit;
 mod coinmarketcap;
@@ -19,10 +20,6 @@ pub enum DataSource {
     Bybit,
     CryptoCompare(Option<String>),
     Local(Box<DataSource>),
-}
-
-pub trait ApiResponse {
-    fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> Result<TimeSeries>;
 }
 
 pub async fn request_data(
