@@ -19,7 +19,7 @@ use crate::{
 };
 use actix::Actor;
 use anyhow::Result;
-use data_sources::{request_data, DataSource};
+use data_sources::DataSource;
 use dotenv::dotenv;
 use models::timeseries::TimeSeries;
 use notifications::notify;
@@ -41,11 +41,10 @@ pub async fn _run() -> Result<()> {
     dotenv().ok();
 
     // Get TimeSeries data
-    // let source = DataSource::CryptoCompare(Some("Coinbase".to_string()));
     let source = DataSource::Bybit;
     let source = DataSource::Local(Box::new(source));
     let interval = Interval::Day1;
-    let mut ts = request_data(&source, "BTCUSDT", interval, true).await?;
+    let mut ts = source.request_data("BTCUSDT", interval, true).await?;
 
     // Calculate indicators for TimeSeries
     // SMA::populate_candles_default(&mut ts.candles)?;

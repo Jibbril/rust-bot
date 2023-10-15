@@ -7,7 +7,6 @@ pub mod cryptocompare;
 mod local;
 
 use anyhow::Result;
-
 use crate::models::{interval::Interval, timeseries::TimeSeries};
 
 // Available data sources
@@ -22,43 +21,43 @@ pub enum DataSource {
     Local(Box<DataSource>),
 }
 
-pub async fn request_data(
-    source: &DataSource,
-    symbol: &str,
-    interval: Interval,
-    save_local: bool,
-) -> Result<TimeSeries> {
-    let ts: TimeSeries;
+impl DataSource {
+    pub async fn request_data(
+        &self,
+        symbol: &str,
+        interval: Interval,
+        save_local: bool,
+    ) -> Result<TimeSeries> {
+        let ts: TimeSeries;
 
-    let mut source = source.clone();
+        // Attempt local retrieval if possible
+        if let DataSource::Local(s) = self {
+            let result = local::read(&s, &symbol, &interval).await;
 
-    // Attempt local retrieval if possible
-    if let DataSource::Local(s) = source {
-        let result = local::read(&s, &symbol, &interval).await;
-
-        match result {
-            Ok(ts) => return Ok(ts),
-            _ => source = *s,
+            match result {
+                Ok(ts) => return Ok(ts),
+                _ => {}
+            }
         }
+
+        ts = match self {
+            DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
+            DataSource::Bitfinex => bitfinex::rest::get(symbol, &interval).await?,
+            DataSource::Bybit => bybit::rest::get(symbol, &interval).await?,
+            DataSource::CoinMarketCap => coinmarketcap::get().await?,
+            DataSource::CryptoCompare(exchange) => {
+                cryptocompare::get(symbol, &interval, exchange.clone()).await?
+            }
+            _ => panic!("Error"),
+        };
+
+        if save_local {
+            match self {
+                DataSource::Local(_) => (),
+                _ => local::write(&ts, &self).await?,
+            }
+        }
+
+        Ok(ts)
     }
-
-    ts = match &source {
-        DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
-        DataSource::Bitfinex => bitfinex::rest::get(symbol, &interval).await?,
-        DataSource::Bybit => bybit::rest::get(symbol, &interval).await?,
-        DataSource::CoinMarketCap => coinmarketcap::get().await?,
-        DataSource::CryptoCompare(exchange) => {
-            cryptocompare::get(symbol, &interval, exchange.clone()).await?
-        }
-        _ => panic!("Error"),
-    };
-
-    if save_local {
-        match source {
-            DataSource::Local(_) => (),
-            _ => local::write(&ts, &source).await?,
-        }
-    }
-
-    Ok(ts)
 }
