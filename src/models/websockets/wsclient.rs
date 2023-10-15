@@ -1,10 +1,12 @@
+use actix::Addr;
 use anyhow::Result;
-use super::websocketpayload::WebsocketPayload;
-use crate::data_sources::{bitfinex, bybit, DataSource};
+use crate::{data_sources::{bitfinex, bybit, DataSource}, models::timeseries::TimeSeries};
+
+use super::websocket_payload::WebsocketPayload;
 
 pub struct WebsocketClient {
     source: DataSource,
-    observers: Vec<u64>,
+    observers: Vec<Addr<TimeSeries>>,
 }
 
 impl WebsocketClient {
@@ -15,7 +17,17 @@ impl WebsocketClient {
         }
     }
 
-    pub async fn listen(&self) -> Result<()> {
+    pub fn add_observer(&mut self, observer: Addr<TimeSeries>) {
+        self.observers.push(observer);
+    }
+
+    pub fn notify_observers(&self, payload: WebsocketPayload) {
+        for observer in &self.observers {
+            observer.do_send(payload.clone());
+        }
+    }
+
+    pub async fn connect(&self) -> Result<()> {
         match self.source {
             DataSource::Bitfinex => {
                 bitfinex::ws::connect_ws(&self).await?;

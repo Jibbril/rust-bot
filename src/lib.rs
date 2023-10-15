@@ -17,6 +17,7 @@ use crate::{
     trading_strategies::rsi_basic::RsiBasic,
     utils::save_setups,
 };
+use actix::Actor;
 use anyhow::Result;
 use data_sources::{request_data, DataSource};
 use dotenv::dotenv;
@@ -24,10 +25,12 @@ use models::timeseries::TimeSeries;
 use notifications::notify;
 
 pub async fn run() -> Result<()> {
-    let mut _client = WebsocketClient::new(DataSource::Bybit);
-    let _ts = TimeSeries::dummy();
-    // client.add_observer(Box::new(ts));
-    // _client.listen().await?;
+    let mut client = WebsocketClient::new(DataSource::Bybit);
+    let ts = TimeSeries::dummy();
+    let addr = ts.start(); 
+
+    client.add_observer(addr);
+    client.connect().await?;
 
     // TODO: Setup scenario where timeseries is updated with new candles
 

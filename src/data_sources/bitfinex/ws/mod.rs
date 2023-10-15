@@ -16,7 +16,7 @@ use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
 
-use crate::models::websockets::{ websocketpayload::WebsocketPayload, wsclient::WebsocketClient,
+use crate::models::websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient,
 };
 use outgoing_message::OutgoingMessage;
 

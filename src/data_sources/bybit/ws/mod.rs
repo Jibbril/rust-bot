@@ -5,10 +5,10 @@ use anyhow::Result;
 use futures_util::{StreamExt, SinkExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
-use crate::{models::websockets::{websocketpayload::WebsocketPayload, wsclient::WebsocketClient,
+use crate::{models::websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient,
 }, data_sources::bybit::ws::{outgoing_message::{OutgoingMessage, OutgoingMessageArg}, incoming_message::IncomingMessage}};
 
-pub async fn connect_ws(_client: &WebsocketClient) -> Result<()> {
+pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
     let url = "wss://stream-testnet.bybit.com/v5/public/spot";
     let (mut ws_stream, _) = connect_async(url).await?;
 
@@ -54,13 +54,13 @@ pub async fn connect_ws(_client: &WebsocketClient) -> Result<()> {
                     }
 
                     let candle = kline.to_candle()?;
-                    let _payload = WebsocketPayload {
+                    let payload = WebsocketPayload {
                         ok: true,
                         message: Some(i.to_string()),
                         candle: Some(candle),
                     };
 
-                    // TODO: Implement actor model to notify observers
+                    client.notify_observers(payload);
                 }
             }
         }
