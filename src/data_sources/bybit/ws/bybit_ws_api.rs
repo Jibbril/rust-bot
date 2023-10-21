@@ -12,19 +12,19 @@ use super::{
 };
 
 pub struct BybitWebsocketApi {
-    _connection_id: String,
+    connection_id: Option<String>,
     client: Addr<WebsocketClient>,
 }
 
 impl BybitWebsocketApi {
     pub fn new(client: &Addr<WebsocketClient>) -> Self {
         Self {
-            _connection_id: "".to_string(),
+            connection_id: None,
             client: client.clone(),
         }
     }
 
-    pub async fn connect(&self) -> Result<()> {
+    pub async fn connect(&mut self) -> Result<()> {
         let url = "wss://stream-testnet.bybit.com/v5/public/spot";
         let (mut ws_stream, _) = connect_async(url).await?;
 
@@ -32,7 +32,7 @@ impl BybitWebsocketApi {
         self.subscribe_to_kline(&mut ws_stream).await?;
 
         while let Some(msg) = ws_stream.next().await {
-            BybitWebsocketApi::handle_message(msg, &self.client).await?;
+            self.handle_message(msg).await?;
         }
 
         ws_stream.close(None).await?;
@@ -43,8 +43,10 @@ impl BybitWebsocketApi {
         &self,
         ws_stream: &mut WebSocketStream<MaybeTlsStream<TcpStream>>,
     ) -> Result<()> {
-        let ping = OutgoingMessage::ping();
+        let req_id = self.connection_id.clone();
+        let ping = OutgoingMessage::ping(req_id);
         let message = Message::Text(ping.to_json());
+        
         ws_stream.send(message).await?;
 
         Ok(())
@@ -67,10 +69,7 @@ impl BybitWebsocketApi {
         Ok(())
     }
 
-    async fn handle_message(
-        msg: Result<Message, Error>,
-        client: &Addr<WebsocketClient>,
-    ) -> Result<()> {
+    async fn handle_message(&mut self, msg: Result<Message, Error>) -> Result<()> {
         let msg = msg?;
 
         if let Message::Text(txt) = msg {
@@ -79,11 +78,15 @@ impl BybitWebsocketApi {
 
             match parsed {
                 IncomingMessage::Pong(pong) => {
+                    if self.connection_id.is_none() {
+                        self.connection_id = Some(pong.conn_id.clone());
+                    }
+
                     println!("Pong: {:#?}", pong)
                 }
                 IncomingMessage::Subscribe(sub) => println!("Subscribe: {:#?}", sub),
                 IncomingMessage::Kline(kline_response) => {
-                    Self::handle_kline(kline_response, client).await?
+                    Self::handle_kline(kline_response, &self.client).await?
                 }
             }
         }

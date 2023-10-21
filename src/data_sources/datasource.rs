@@ -65,7 +65,7 @@ impl DataSource {
         match self {
             DataSource::Bitfinex => bitfinex::ws::connect_ws(&client).await?,
             DataSource::Bybit => {
-                let api = BybitWebsocketApi::new(&client);
+                let mut api = BybitWebsocketApi::new(&client);
                 api.connect().await?
             }
             _ => {

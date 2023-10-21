@@ -38,9 +38,9 @@ impl OutgoingMessage {
         serde_json::to_string(&message_map).unwrap()
     }
 
-    pub fn ping() -> Self {
+    pub fn ping(req_id: Option<String>) -> Self {
         Self {
-            req_id: None,
+            req_id,
             op: "ping".to_string(),
             args: vec![],
         }

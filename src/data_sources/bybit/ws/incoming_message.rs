@@ -50,10 +50,10 @@ impl<'de> Deserialize<'de> for IncomingMessage {
 #[allow(dead_code)]
 #[derive(Deserialize, Debug, Clone)]
 pub struct Pong {
-    success: bool,
-    ret_msg: String,
-    conn_id: String,
-    op: String,
+    pub success: bool,
+    pub ret_msg: String,
+    pub conn_id: String,
+    pub op: String,
 }
 
 #[allow(dead_code)]
