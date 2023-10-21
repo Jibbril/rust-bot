@@ -1,16 +1,6 @@
 mod outgoing_message;
-/*
 
-General approach:
-
-1. Connect to websocket and enable calling a notify function whenever a new candle is received.
-2. Create functionality to add a new candle and notify all listening TimeSeries.
-3. Implement notify function for TimeSeries.
-  a. Check if the latest existing candle is the one before the new one. If not, fetch historical data up to the new candle.
-  b. Add the new candle to the TimeSeries.
-  c. Save the new candle/candles to disk.
-*/
-
+use actix::Addr;
 use anyhow::Result;
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
@@ -20,7 +10,7 @@ use crate::models::websockets::{websocket_payload::WebsocketPayload, wsclient::W
 use outgoing_message::OutgoingMessage;
 
 #[allow(dead_code)]
-pub async fn connect_ws(_client: &WebsocketClient) -> Result<()> {
+pub async fn connect_ws(client: &Addr<WebsocketClient>) -> Result<()> {
     let url = "wss://api-pub.bitfinex.com/ws/2";
     let (mut ws_stream, _) = connect_async(url).await?;
 
@@ -37,15 +27,16 @@ pub async fn connect_ws(_client: &WebsocketClient) -> Result<()> {
         if let Message::Text(txt) = msg {
             let _v: serde_json::Value = serde_json::from_str(txt.as_str())?;
             // println!("({}) Value:{:#?}", i, v);
+            // TODO: Implement conversion from JSON to Candle
         }
 
-        let _payload = WebsocketPayload {
+        let payload = WebsocketPayload {
             ok: true,
             message: Some(i.to_string()),
             candle: None,
         };
 
-        // TODO: Implement actor model to notify observers
+        client.do_send(payload);
 
         i += 1;
         if i > 30 {

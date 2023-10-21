@@ -1,12 +1,46 @@
 use crate::{data_sources::datasource::DataSource, models::timeseries::TimeSeries};
-use actix::Addr;
-use anyhow::Result;
-
+use actix::{Addr, Actor, Context, Handler, AsyncContext, WrapFuture};
 use super::websocket_payload::WebsocketPayload;
 
 pub struct WebsocketClient {
     source: DataSource,
     observers: Vec<Addr<TimeSeries>>,
+}
+
+impl Actor for WebsocketClient {
+    type Context = Context<Self>;
+
+    fn started(&mut self, ctx: &mut Self::Context) {
+        let addr = ctx.address();
+        let source = self.source.clone();
+
+        let fut = async move {
+            if let Err(e) = source.connect_ws(addr).await {
+                // TODO: Add logic for error handling, restarting client etc.
+                println!("Error: {}", e);
+            }
+        };
+
+        ctx.spawn(fut.into_actor(self));
+    }
+}
+
+impl Handler<WebsocketPayload> for WebsocketClient {
+    type Result = ();
+
+    fn handle(&mut self, payload: WebsocketPayload, _ctx: &mut Context<Self>) -> Self::Result {
+        if payload.ok {
+            for observer in &self.observers {
+                observer.do_send(payload.clone());
+            }
+        } else {
+            let err = match payload.message {
+                Some(message) => message,
+                None => "Unknown error".to_string(),
+            };
+            println!("Error: {}",err);
+        }
+    }
 }
 
 impl WebsocketClient {
@@ -19,15 +53,5 @@ impl WebsocketClient {
 
     pub fn add_observer(&mut self, observer: Addr<TimeSeries>) {
         self.observers.push(observer);
-    }
-
-    pub fn notify_observers(&self, payload: WebsocketPayload) {
-        for observer in &self.observers {
-            observer.do_send(payload.clone());
-        }
-    }
-
-    pub async fn connect(&self) -> Result<()> {
-        self.source.connect_ws(self).await
     }
 }

@@ -1,9 +1,9 @@
 use crate::models::{
     interval::Interval, timeseries::TimeSeries, websockets::wsclient::WebsocketClient,
 };
+use actix::Addr;
 use anyhow::{anyhow, Result};
 use std::fmt::{Display, Formatter};
-
 use super::{alphavantage, bitfinex, bybit, coinmarketcap, cryptocompare, local};
 
 #[allow(dead_code)]
@@ -44,7 +44,7 @@ impl DataSource {
             DataSource::CryptoCompare(exchange) => {
                 cryptocompare::get(symbol, &interval, exchange.clone()).await?
             }
-            _ => panic!("Error"),
+            _ => unreachable!(),
         };
 
         if save_local {
@@ -57,7 +57,7 @@ impl DataSource {
         Ok(ts)
     }
 
-    pub async fn connect_ws(&self, client: &WebsocketClient) -> Result<()> {
+    pub async fn connect_ws(&self, client: Addr<WebsocketClient>) -> Result<()> {
         match self {
             DataSource::Bitfinex => bitfinex::ws::connect_ws(&client).await?,
             DataSource::Bybit => bybit::ws::connect_ws(&client).await?,

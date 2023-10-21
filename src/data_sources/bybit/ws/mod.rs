@@ -8,12 +8,13 @@ use crate::{
     },
     models::websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient},
 };
+use actix::Addr;
 use anyhow::Result;
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
 
-pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
+pub async fn connect_ws(client: &Addr<WebsocketClient>) -> Result<()> {
     let url = "wss://stream-testnet.bybit.com/v5/public/spot";
     let (mut ws_stream, _) = connect_async(url).await?;
 
@@ -63,7 +64,7 @@ pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
                         candle: Some(candle),
                     };
 
-                    client.notify_observers(payload);
+                    client.do_send(payload);
                 }
             }
         }

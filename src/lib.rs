@@ -23,6 +23,7 @@ use data_sources::datasource::DataSource;
 use dotenv::dotenv;
 use models::timeseries::TimeSeries;
 use notifications::notify;
+use tokio::time::{sleep,Duration};
 
 pub async fn run() -> Result<()> {
     let mut client = WebsocketClient::new(DataSource::Bybit);
@@ -30,11 +31,13 @@ pub async fn run() -> Result<()> {
     let addr = ts.start();
 
     client.add_observer(addr);
-    client.connect().await?;
+    client.start();
 
     // TODO: Setup scenario where timeseries is updated with new candles
 
-    Ok(())
+    loop {
+        sleep(Duration::from_secs(1)).await;
+    } 
 }
 
 pub async fn _run() -> Result<()> {
