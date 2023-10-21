@@ -19,7 +19,7 @@ use crate::{
 };
 use actix::Actor;
 use anyhow::Result;
-use data_sources::DataSource;
+use data_sources::datasource::DataSource;
 use dotenv::dotenv;
 use models::timeseries::TimeSeries;
 use notifications::notify;

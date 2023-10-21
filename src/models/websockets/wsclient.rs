@@ -1,6 +1,6 @@
 use actix::Addr;
 use anyhow::Result;
-use crate::{data_sources::{bitfinex, bybit, DataSource}, models::timeseries::TimeSeries};
+use crate::{data_sources::{bitfinex, bybit, datasource::DataSource}, models::timeseries::TimeSeries};
 
 use super::websocket_payload::WebsocketPayload;
 
