@@ -1,6 +1,6 @@
-use anyhow::Result;
-
-use crate::models::{interval::Interval, timeseries::TimeSeries};
+use std::fmt::{Display, Formatter};
+use anyhow::{Result, anyhow};
+use crate::models::{interval::Interval, timeseries::TimeSeries, websockets::wsclient::WebsocketClient};
 
 use super::{local, alphavantage, bitfinex, bybit, coinmarketcap, cryptocompare};
 
@@ -54,5 +54,31 @@ impl DataSource {
         }
 
         Ok(ts)
+    }
+
+    pub async fn connect_ws(&self, client: &WebsocketClient) -> Result<()> {
+        match self {
+            DataSource::Bitfinex => bitfinex::ws::connect_ws(&client).await?,
+            DataSource::Bybit => bybit::ws::connect_ws(&client).await?,
+            _ => {
+                let err = format!("{} does not support websockets", self);
+                return Err(anyhow!(err))
+            } 
+        }
+        
+        Ok(())
+    }
+}
+
+impl Display for DataSource {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            DataSource::AlphaVantage => write!(f, "AlphaVantage"),
+            DataSource::Bitfinex => write!(f, "Bitfinex"),
+            DataSource::Bybit => write!(f, "Bybit"),
+            DataSource::CoinMarketCap => write!(f, "CoinMarketCap"),
+            DataSource::CryptoCompare(_) => write!(f, "CryptoCompare"),
+            DataSource::Local(_) => write!(f, "Local")
+        }
     }
 }

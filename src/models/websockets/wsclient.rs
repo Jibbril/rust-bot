@@ -1,6 +1,6 @@
 use actix::Addr;
 use anyhow::Result;
-use crate::{data_sources::{bitfinex, bybit, datasource::DataSource}, models::timeseries::TimeSeries};
+use crate::{data_sources::datasource::DataSource, models::timeseries::TimeSeries};
 
 use super::websocket_payload::WebsocketPayload;
 
@@ -28,16 +28,6 @@ impl WebsocketClient {
     }
 
     pub async fn connect(&self) -> Result<()> {
-        match self.source {
-            DataSource::Bitfinex => {
-                bitfinex::ws::connect_ws(&self).await?;
-            }
-            DataSource::Bybit => {
-                bybit::ws::connect_ws(&self).await?;
-            }
-            _ => panic!("Error"),
-        }
-
-        Ok(())
+        self.source.connect_ws(self).await
     }
 }
