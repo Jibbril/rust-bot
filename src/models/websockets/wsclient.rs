@@ -1,6 +1,6 @@
-use crate::{data_sources::datasource::DataSource, models::timeseries::TimeSeries};
-use actix::{Addr, Actor, Context, Handler, AsyncContext, WrapFuture};
 use super::websocket_payload::WebsocketPayload;
+use crate::{data_sources::datasource::DataSource, models::timeseries::TimeSeries};
+use actix::{Actor, Addr, AsyncContext, Context, Handler, WrapFuture};
 
 pub struct WebsocketClient {
     source: DataSource,
@@ -38,7 +38,7 @@ impl Handler<WebsocketPayload> for WebsocketClient {
                 Some(message) => message,
                 None => "Unknown error".to_string(),
             };
-            println!("Error: {}",err);
+            println!("Error: {}", err);
         }
     }
 }

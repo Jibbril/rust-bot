@@ -1,10 +1,14 @@
+use super::{
+    alphavantage, bitfinex,
+    bybit::{self, ws::bybit_ws_api::BybitWebsocketApi},
+    coinmarketcap, cryptocompare, local,
+};
 use crate::models::{
     interval::Interval, timeseries::TimeSeries, websockets::wsclient::WebsocketClient,
 };
 use actix::Addr;
 use anyhow::{anyhow, Result};
 use std::fmt::{Display, Formatter};
-use super::{alphavantage, bitfinex, bybit, coinmarketcap, cryptocompare, local};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -60,7 +64,10 @@ impl DataSource {
     pub async fn connect_ws(&self, client: Addr<WebsocketClient>) -> Result<()> {
         match self {
             DataSource::Bitfinex => bitfinex::ws::connect_ws(&client).await?,
-            DataSource::Bybit => bybit::ws::connect_ws(&client).await?,
+            DataSource::Bybit => {
+                let api = BybitWebsocketApi::new(&client);
+                api.connect().await?
+            }
             _ => {
                 let err = format!("{} does not support websockets", self);
                 return Err(anyhow!(err));
