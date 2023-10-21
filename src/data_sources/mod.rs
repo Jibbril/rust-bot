@@ -4,5 +4,5 @@ pub mod bitfinex;
 pub mod bybit;
 mod coinmarketcap;
 pub mod cryptocompare;
-mod local;
 pub mod datasource;
+mod local;

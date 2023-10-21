@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-use anyhow::Result;
-use serde::{Deserialize, Deserializer, de::Error};
-use serde_json::{Value, from_value};
 use crate::{models::candle::Candle, utils::millis_to_datetime};
+use anyhow::Result;
+use serde::{de::Error, Deserialize, Deserializer};
+use serde_json::{from_value, Value};
+use std::collections::HashMap;
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum IncomingMessage {
     Pong(Pong),
     Subscribe(Subscribe),
@@ -19,7 +19,9 @@ impl<'de> Deserialize<'de> for IncomingMessage {
         let json: Value = Deserialize::deserialize(deserializer)?;
 
         if let Some("400") = json["ret_code"].as_str() {
-            return Err(Error::custom(json["ret_msg"].as_str().unwrap_or("Unknown error.")));
+            return Err(Error::custom(
+                json["ret_msg"].as_str().unwrap_or("Unknown error."),
+            ));
         }
 
         if let Some("snapshot") = json["type"].as_str() {
@@ -61,7 +63,7 @@ pub struct Subscribe {
     ret_msg: String,
     conn_id: String,
     req_id: Option<String>,
-    op: String
+    op: String,
 }
 
 #[allow(dead_code)]
@@ -71,7 +73,7 @@ pub struct KlineResponse {
     type_: String,
     topic: String,
     ts: u64,
-    data: Vec<Kline>
+    data: Vec<Kline>,
 }
 
 #[allow(dead_code)]
@@ -87,7 +89,7 @@ pub struct Kline {
     pub volume: String,
     pub turnover: String,
     pub confirm: bool,
-    pub timestamp: u64
+    pub timestamp: u64,
 }
 
 impl KlineResponse {

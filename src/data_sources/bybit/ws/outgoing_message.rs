@@ -1,7 +1,7 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-#[derive(Debug,Clone,Serialize,Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OutgoingMessage {
     #[serde(skip_serializing_if = "Option::is_none")]
     req_id: Option<String>,
@@ -9,16 +9,18 @@ pub struct OutgoingMessage {
     args: Vec<OutgoingMessageArg>,
 }
 
-#[derive(Debug,Clone,Serialize,Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OutgoingMessageArg {
-    pub stream: String, 
+    pub stream: String,
     pub interval: String,
     pub symbol: String,
 }
 
 impl OutgoingMessage {
     pub fn to_json(&self) -> String {
-        let args: Vec<String> = self.args.iter()
+        let args: Vec<String> = self
+            .args
+            .iter()
             .map(|arg| format!("{}.{}.{}", arg.stream, arg.interval, arg.symbol))
             .collect();
 

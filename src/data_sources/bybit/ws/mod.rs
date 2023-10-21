@@ -1,12 +1,17 @@
-mod outgoing_message;
 mod incoming_message;
+mod outgoing_message;
 
+use crate::{
+    data_sources::bybit::ws::{
+        incoming_message::IncomingMessage,
+        outgoing_message::{OutgoingMessage, OutgoingMessageArg},
+    },
+    models::websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient},
+};
 use anyhow::Result;
-use futures_util::{StreamExt, SinkExt};
+use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
-use crate::{models::websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient,
-}, data_sources::bybit::ws::{outgoing_message::{OutgoingMessage, OutgoingMessageArg}, incoming_message::IncomingMessage}};
 
 pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
     let url = "wss://stream-testnet.bybit.com/v5/public/spot";
@@ -18,13 +23,11 @@ pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
     ws_stream.send(message).await?;
 
     // Subscribe to kline
-    let args = vec![
-        OutgoingMessageArg {
-            stream: "kline".to_string(),
-            interval: "1".to_string(),
-            symbol: "BTCUSDT".to_string()
-        }
-    ];
+    let args = vec![OutgoingMessageArg {
+        stream: "kline".to_string(),
+        interval: "1".to_string(),
+        symbol: "BTCUSDT".to_string(),
+    }];
     let sub = OutgoingMessage::new("subscribe", args);
     let json = sub.to_json();
 
@@ -48,9 +51,9 @@ pub async fn connect_ws(client: &WebsocketClient) -> Result<()> {
                 IncomingMessage::Kline(kline_response) => {
                     let kline = kline_response.get_kline()?;
 
-                    if !kline.confirm { 
-                        // TODO: Change to taking the next candle instead of the confirmed one. Solves issue with timestamps being wrong. 
-                        continue; 
+                    if !kline.confirm {
+                        // TODO: Change to taking the next candle instead of the confirmed one. Solves issue with timestamps being wrong.
+                        continue;
                     }
 
                     let candle = kline.to_candle()?;

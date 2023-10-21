@@ -1,9 +1,10 @@
+use crate::models::{
+    interval::Interval, timeseries::TimeSeries, websockets::wsclient::WebsocketClient,
+};
+use anyhow::{anyhow, Result};
 use std::fmt::{Display, Formatter};
-use anyhow::{Result, anyhow};
-use crate::models::{interval::Interval, timeseries::TimeSeries, websockets::wsclient::WebsocketClient};
 
-use super::{local, alphavantage, bitfinex, bybit, coinmarketcap, cryptocompare};
-
+use super::{alphavantage, bitfinex, bybit, coinmarketcap, cryptocompare, local};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -17,7 +18,7 @@ pub enum DataSource {
 }
 
 impl DataSource {
-    pub async fn request_data(
+    pub async fn get_historical_data(
         &self,
         symbol: &str,
         interval: Interval,
@@ -62,10 +63,10 @@ impl DataSource {
             DataSource::Bybit => bybit::ws::connect_ws(&client).await?,
             _ => {
                 let err = format!("{} does not support websockets", self);
-                return Err(anyhow!(err))
-            } 
+                return Err(anyhow!(err));
+            }
         }
-        
+
         Ok(())
     }
 }
@@ -78,7 +79,7 @@ impl Display for DataSource {
             DataSource::Bybit => write!(f, "Bybit"),
             DataSource::CoinMarketCap => write!(f, "CoinMarketCap"),
             DataSource::CryptoCompare(_) => write!(f, "CryptoCompare"),
-            DataSource::Local(_) => write!(f, "Local")
+            DataSource::Local(_) => write!(f, "Local"),
         }
     }
 }

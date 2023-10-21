@@ -1,6 +1,6 @@
+use crate::{data_sources::datasource::DataSource, models::timeseries::TimeSeries};
 use actix::Addr;
 use anyhow::Result;
-use crate::{data_sources::datasource::DataSource, models::timeseries::TimeSeries};
 
 use super::websocket_payload::WebsocketPayload;
 
@@ -13,7 +13,7 @@ impl WebsocketClient {
     pub fn new(source: DataSource) -> Self {
         Self {
             source,
-            observers: vec![]
+            observers: vec![],
         }
     }
 

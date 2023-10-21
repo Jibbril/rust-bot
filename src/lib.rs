@@ -27,7 +27,7 @@ use notifications::notify;
 pub async fn run() -> Result<()> {
     let mut client = WebsocketClient::new(DataSource::Bybit);
     let ts = TimeSeries::dummy();
-    let addr = ts.start(); 
+    let addr = ts.start();
 
     client.add_observer(addr);
     client.connect().await?;
@@ -44,7 +44,9 @@ pub async fn _run() -> Result<()> {
     let source = DataSource::Bybit;
     let source = DataSource::Local(Box::new(source));
     let interval = Interval::Day1;
-    let mut ts = source.request_data("BTCUSDT", interval, true).await?;
+    let mut ts = source
+        .get_historical_data("BTCUSDT", interval, true)
+        .await?;
 
     // Calculate indicators for TimeSeries
     // SMA::populate_candles_default(&mut ts.candles)?;

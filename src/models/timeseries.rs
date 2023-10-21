@@ -1,9 +1,6 @@
 use actix::{Actor, Context, Handler};
 
-use super::{
-    candle::Candle,
-    interval::Interval, websockets::websocket_payload::WebsocketPayload,
-};
+use super::{candle::Candle, interval::Interval, websockets::websocket_payload::WebsocketPayload};
 use crate::indicators::indicator_type::IndicatorType;
 use std::collections::HashSet;
 
@@ -29,10 +26,13 @@ impl Handler<WebsocketPayload> for TimeSeries {
                 self.add_candle(candle);
             }
         } else {
-            println!("Error: {}", match msg.message {
-                Some(message) => message,
-                None => "Unknown error".to_string(),
-            });
+            println!(
+                "Error: {}",
+                match msg.message {
+                    Some(message) => message,
+                    None => "Unknown error".to_string(),
+                }
+            );
         }
     }
 }
