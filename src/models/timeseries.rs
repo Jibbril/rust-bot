@@ -1,7 +1,8 @@
 use actix::{Actor, Context, Handler};
+use anyhow::Result;
 
 use super::{candle::Candle, interval::Interval, websockets::websocket_payload::WebsocketPayload};
-use crate::indicators::indicator_type::IndicatorType;
+use crate::{indicators::indicator_type::IndicatorType, data_sources::{local, datasource::DataSource}};
 use std::collections::HashSet;
 
 #[derive(Debug, Clone)]
@@ -61,5 +62,10 @@ impl TimeSeries {
             candles: Vec::new(),
             indicators: HashSet::new(),
         }
+    }
+
+    #[allow(dead_code)]
+    pub async fn save_to_local(&self, source: &DataSource) -> Result<()> {
+        local::write(self, source).await
     }
 }

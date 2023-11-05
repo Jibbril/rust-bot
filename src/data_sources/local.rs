@@ -34,6 +34,7 @@ pub async fn read(source: &DataSource, symbol: &str, interval: &Interval) -> Res
     })
 }
 
+#[allow(dead_code)]
 pub async fn write(ts: &TimeSeries, source: &DataSource) -> Result<()> {
     let path = construct_path(&ts.interval, &ts.ticker, source);
     let path = Path::new(&path);
@@ -60,7 +61,6 @@ fn construct_path(interval: &Interval, ticker: &str, source: &DataSource) -> Str
         DataSource::Bybit => "bybit",
         DataSource::CoinMarketCap => "coinmarketcap",
         DataSource::CryptoCompare(_) => "cryptocompare",
-        DataSource::Local(_) => "local",
     };
 
     let interval = match interval {

@@ -27,7 +27,7 @@ pub async fn get(symbol: &str, interval: &Interval) -> Result<TimeSeries> {
 
 fn generate_url(symbol: &str, interval: &Interval) -> Result<String> {
     let interval = match interval {
-        // Interval::Minute1 => "1",
+        Interval::Minute1 => "1",
         Interval::Minute5 => "5",
         Interval::Minute15 => "15",
         Interval::Minute30 => "30",

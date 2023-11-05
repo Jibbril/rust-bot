@@ -21,15 +21,21 @@ use actix::Actor;
 use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
-use models::{interval::Interval, timeseries::TimeSeries};
+use models::interval::Interval;
 use notifications::notify;
 use tokio::time::{sleep, Duration};
 
 pub async fn run() -> Result<()> {
+    let symbol = "BTCUSDT"; 
+    let strategy = Strategy::RsiBasic(RsiBasic::new_default());
     let source = DataSource::Bybit;
     let interval = Interval::Minute1;
+    
+    // let ts = source.get_historical_data(symbol, &interval).await?;
+    // ts.save_to_local(&source).await?;
+    let ts = source.load_local_data(symbol, &interval).await?;
+
     let mut client = WebsocketClient::new(source, interval);
-    let ts = TimeSeries::dummy();
     let addr = ts.start();
 
     client.add_observer(addr);
@@ -45,10 +51,9 @@ pub async fn _run() -> Result<()> {
 
     // Get TimeSeries data
     let source = DataSource::Bybit;
-    let source = DataSource::Local(Box::new(source));
     let interval = Interval::Day1;
     let mut ts = source
-        .get_historical_data("BTCUSDT", interval, true)
+        .get_historical_data("BTCUSDT", &interval)
         .await?;
 
     // Calculate indicators for TimeSeries

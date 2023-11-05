@@ -18,29 +18,19 @@ pub enum DataSource {
     Bitfinex,
     Bybit,
     CryptoCompare(Option<String>),
-    Local(Box<DataSource>),
 }
 
 impl DataSource {
+    pub async fn load_local_data(&self, symbol: &str, interval: &Interval) -> Result<TimeSeries> {
+        local::read(self, symbol, interval).await
+    }
+
     pub async fn get_historical_data(
         &self,
         symbol: &str,
-        interval: Interval,
-        save_local: bool,
+        interval: &Interval
     ) -> Result<TimeSeries> {
-        let ts: TimeSeries;
-
-        // Attempt local retrieval if possible
-        if let DataSource::Local(s) = self {
-            let result = local::read(&s, &symbol, &interval).await;
-
-            match result {
-                Ok(ts) => return Ok(ts),
-                _ => {}
-            }
-        }
-
-        ts = match self {
+        let ts = match self {
             DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
             DataSource::Bitfinex => bitfinex::rest::get(symbol, &interval).await?,
             DataSource::Bybit => bybit::rest::get(symbol, &interval).await?,
@@ -48,15 +38,7 @@ impl DataSource {
             DataSource::CryptoCompare(exchange) => {
                 cryptocompare::get(symbol, &interval, exchange.clone()).await?
             }
-            _ => unreachable!(),
         };
-
-        if save_local {
-            match self {
-                DataSource::Local(_) => (),
-                _ => local::write(&ts, &self).await?,
-            }
-        }
 
         Ok(ts)
     }
@@ -90,7 +72,6 @@ impl Display for DataSource {
             DataSource::Bybit => write!(f, "Bybit"),
             DataSource::CoinMarketCap => write!(f, "CoinMarketCap"),
             DataSource::CryptoCompare(_) => write!(f, "CryptoCompare"),
-            DataSource::Local(_) => write!(f, "Local"),
         }
     }
 }
