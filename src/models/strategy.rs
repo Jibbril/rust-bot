@@ -1,13 +1,11 @@
 use anyhow::Result;
 
 use crate::{
-    models::{
-        timeseries::TimeSeries,
-    },
+    models::timeseries::TimeSeries,
     trading_strategies::{rsi_basic::RsiBasic, silver_cross::SilverCross},
 };
 use std::fmt::{Display, Formatter};
-use super::setups::{finds_setups::{FindsSetups, FindsReverseSetups}, setup::Setup};
+use super::{setups::{finds_setups::{FindsSetups, FindsReverseSetups}, setup::Setup}, traits::has_max_length::HasMaxLength};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
@@ -39,6 +37,15 @@ impl FindsReverseSetups for Strategy {
         match self {
             Self::RsiBasic(rsi) => rsi.find_reverse_setups(ts),
             _ => Ok(Vec::new()),
+        }
+    }
+}
+
+impl HasMaxLength for Strategy {
+    fn max_length(&self) -> usize {
+        match self {
+            Self::RsiBasic(rsi) => rsi.max_length(),
+            Self::SilverCross(sc) => sc.max_length(),
         }
     }
 }

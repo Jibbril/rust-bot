@@ -3,7 +3,7 @@ use crate::{
     indicators::{indicator_type::IndicatorType, rsi::RSI},
     models::{
         strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries, setups::{finds_setups::{FindsSetups, FindsReverseSetups}, setup::Setup},
+        timeseries::TimeSeries, setups::{finds_setups::{FindsSetups, FindsReverseSetups}, setup::Setup}, traits::has_max_length::HasMaxLength,
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
@@ -139,6 +139,12 @@ impl FindsSetups for RsiBasic {
 impl FindsReverseSetups for RsiBasic {
     fn find_reverse_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         self.find_setups_by_direction(ts, true)
+    }
+}
+
+impl HasMaxLength for RsiBasic {
+    fn max_length(&self) -> usize {
+        self.len
     }
 }
 

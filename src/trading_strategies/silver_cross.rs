@@ -4,7 +4,7 @@ use crate::{
     indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
         strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries, setups::{finds_setups::FindsSetups, setup::Setup},
+        timeseries::TimeSeries, setups::{finds_setups::FindsSetups, setup::Setup}, traits::has_max_length::HasMaxLength,
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
@@ -19,31 +19,39 @@ use std::fmt::{Display, Formatter};
 /// SMA in either orientation.
 #[derive(Debug, Clone)]
 pub struct SilverCross {
+    pub short_len: usize,
+    pub long_len: usize,
     pub orientation: StrategyOrientation,
 }
 
 impl SilverCross {
     #[allow(dead_code)] // TODO: Remove once used
-    pub fn new(orientation: StrategyOrientation) -> Self {
-        SilverCross { orientation }
+    pub fn new(orientation: StrategyOrientation, short_len: usize, long_len: usize) -> Self {
+        SilverCross { 
+            orientation,
+            short_len,
+            long_len 
+        }
     }
 
     #[allow(dead_code)] // TODO: Remove once used
     pub fn new_default() -> Self {
         SilverCross {
             orientation: StrategyOrientation::Long,
+            short_len: 21,
+            long_len: 55,
         }
     }
 
     fn get_orientation(
         &self,
-        prev_21: &SMA,
-        prev_55: &SMA,
-        current_21: &SMA,
-        current_55: &SMA,
+        prev_short: &SMA,
+        prev_long: &SMA,
+        current_short: &SMA,
+        current_long: &SMA,
     ) -> Option<StrategyOrientation> {
-        let long_condition = prev_21 < prev_55 && current_21 >= current_55;
-        let short_condition = prev_21 > prev_55 && current_21 <= current_55;
+        let long_condition = prev_short < prev_long && current_short >= current_long;
+        let short_condition = prev_short > prev_long && current_short <= current_long;
 
         if long_condition {
             Some(StrategyOrientation::Long)
@@ -58,21 +66,21 @@ impl SilverCross {
 impl FindsSetups for SilverCross {
     fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         let mut setups: Vec<Setup> = Vec::new();
-        let key_21 = IndicatorType::SMA(21);
-        let key_55 = IndicatorType::SMA(55);
+        let key_short = IndicatorType::SMA(self.short_len);
+        let key_long = IndicatorType::SMA(self.long_len);
 
         for (i, candle) in ts.candles.iter().enumerate().skip(1) {
             let prev_candle = &ts.candles[i - 1];
-            let prev_21 = prev_candle.get_indicator(&key_21)?.as_sma();
-            let prev_55 = prev_candle.get_indicator(&key_55)?.as_sma();
-            let current_21 = candle.get_indicator(&key_21)?.as_sma();
-            let current_55 = candle.get_indicator(&key_55)?.as_sma();
+            let prev_short = prev_candle.get_indicator(&key_short)?.as_sma();
+            let prev_long = prev_candle.get_indicator(&key_long)?.as_sma();
+            let current_short = candle.get_indicator(&key_short)?.as_sma();
+            let current_long = candle.get_indicator(&key_long)?.as_sma();
 
-            if let (Some(prev_21), Some(prev_55), Some(current_21), Some(current_55)) =
-                (prev_21, prev_55, current_21, current_55)
+            if let (Some(prev_short), Some(prev_long), Some(current_short), Some(current_long)) =
+                (prev_short, prev_long, current_short, current_long)
             {
                 let orientation =
-                    self.get_orientation(&prev_21, &prev_55, &current_21, &current_55);
+                    self.get_orientation(&prev_short, &prev_long, &current_short, &current_long);
 
                 if let Some(orientation) = orientation {
                     let resolution_strategy =
@@ -107,6 +115,12 @@ impl FindsSetups for SilverCross {
         }
 
         Ok(setups)
+    }
+}
+
+impl HasMaxLength for SilverCross {
+    fn max_length(&self) -> usize {
+        self.long_len
     }
 }
 
