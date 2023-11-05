@@ -1,8 +1,15 @@
 use crate::models::websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient};
-use actix::{Addr, spawn};
+use actix::{spawn, Addr};
 use anyhow::Result;
 use futures_util::{SinkExt, StreamExt};
-use tokio::{net::TcpStream, time::{sleep,Duration}, try_join, sync::mpsc::channel, select};
+use tokio::{
+    net::TcpStream,
+    select,
+    sync::mpsc::{channel, Receiver, Sender},
+    task::JoinHandle,
+    time::{sleep, Duration},
+    try_join,
+};
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use tungstenite::Message;
 
@@ -17,7 +24,9 @@ pub struct BybitWebsocketApi {
 
 impl BybitWebsocketApi {
     pub fn new(client: &Addr<WebsocketClient>) -> Self {
-        Self { client: client.clone() }
+        Self {
+            client: client.clone(),
+        }
     }
 
     pub async fn connect(&mut self) -> Result<()> {
@@ -26,39 +35,11 @@ impl BybitWebsocketApi {
         self.subscribe_to_kline(&mut ws_stream).await?;
         Self::send_ping(None, &mut ws_stream).await?;
 
-        let (tx, mut rx) = channel(32);
+        let (tx, rx) = channel(32);
 
-        let ping_handle = spawn(async move {
-            loop {
-                sleep(Duration::from_secs(20)).await;
-                tx.send("ping").await.expect("Failed to send ping");
-            }
-        });
-
+        let ping_handle = Self::spawn_ping_task(tx).await;
         let client = self.client.clone();
-        let message_handle = spawn(async move {
-            loop {
-                select! {
-                    _ = rx.recv() => {
-                        if let Err(e) = Self::send_ping(None, &mut ws_stream).await {
-                            println!("Error in Websockets: {:#?}",e);
-                            break;
-                        }
-                    }
-                    msg = ws_stream.next() => {
-                        if let Some(msg) = msg {
-                            match Self::handle_message(&client, msg).await {
-                                Ok(_) => (),
-                                Err(e) => {
-                                    println!("Error in Websockets: {:#?}",e);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
+        let message_handle = Self::spawn_message_task(client, ws_stream, rx).await;
 
         try_join!(ping_handle, message_handle)?;
 
@@ -71,7 +52,7 @@ impl BybitWebsocketApi {
     ) -> Result<()> {
         let ping = OutgoingMessage::ping(req_id);
         let message = Message::Text(ping.to_json());
-        
+
         ws_stream.send(message).await?;
 
         Ok(())
@@ -94,7 +75,10 @@ impl BybitWebsocketApi {
         Ok(())
     }
 
-    async fn handle_message(client: &Addr<WebsocketClient>, msg: Result<Message, tungstenite::Error>) -> Result<()> {
+    async fn handle_message(
+        client: &Addr<WebsocketClient>,
+        msg: Result<Message, tungstenite::Error>,
+    ) -> Result<()> {
         let msg = msg?;
 
         if let Message::Text(txt) = msg {
@@ -134,5 +118,44 @@ impl BybitWebsocketApi {
         }
 
         Ok(())
+    }
+
+    async fn spawn_ping_task(tx: Sender<&'static str>) -> JoinHandle<()> {
+        spawn(async move {
+            loop {
+                sleep(Duration::from_secs(20)).await;
+                tx.send("ping").await.expect("Failed to send ping");
+            }
+        })
+    }
+
+    async fn spawn_message_task(
+        client: Addr<WebsocketClient>,
+        mut ws_stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+        mut rx: Receiver<&'static str>,
+    ) -> JoinHandle<()> {
+        spawn(async move {
+            loop {
+                select! {
+                    _ = rx.recv() => {
+                        if let Err(e) = Self::send_ping(None, &mut ws_stream).await {
+                            println!("Error in Websockets: {:#?}",e);
+                            break;
+                        }
+                    }
+                    msg = ws_stream.next() => {
+                        if let Some(msg) = msg {
+                            match Self::handle_message(&client, msg).await {
+                                Ok(_) => (),
+                                Err(e) => {
+                                    println!("Error in Websockets: {:#?}",e);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
     }
 }
