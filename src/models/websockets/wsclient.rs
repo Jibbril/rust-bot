@@ -1,9 +1,10 @@
 use super::websocket_payload::WebsocketPayload;
-use crate::{data_sources::datasource::DataSource, models::timeseries::TimeSeries};
+use crate::{data_sources::datasource::DataSource, models::{timeseries::TimeSeries, interval::Interval}};
 use actix::{Actor, Addr, AsyncContext, Context, Handler, WrapFuture};
 
 pub struct WebsocketClient {
     source: DataSource,
+    interval: Interval,
     observers: Vec<Addr<TimeSeries>>,
 }
 
@@ -11,11 +12,11 @@ impl Actor for WebsocketClient {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        let addr = ctx.address();
+        let client = ctx.address();
         let source = self.source.clone();
-
+        let interval = self.interval.clone();
         let fut = async move {
-            if let Err(e) = source.connect_ws(addr).await {
+            if let Err(e) = source.connect_ws(client, interval).await {
                 // TODO: Add logic for error handling, restarting client etc.
                 println!("Error: {}", e);
             }
@@ -44,9 +45,10 @@ impl Handler<WebsocketPayload> for WebsocketClient {
 }
 
 impl WebsocketClient {
-    pub fn new(source: DataSource) -> Self {
+    pub fn new(source: DataSource, interval: Interval) -> Self {
         Self {
             source,
+            interval,
             observers: vec![],
         }
     }

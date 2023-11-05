@@ -6,15 +6,17 @@ use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
 
-use crate::models::websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient};
+use crate::models::{websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient}, interval::Interval};
 use outgoing_message::OutgoingMessage;
 
 #[allow(dead_code)]
-pub async fn connect_ws(client: &Addr<WebsocketClient>) -> Result<()> {
+pub async fn connect_ws(client: &Addr<WebsocketClient>, interval: &Interval) -> Result<()> {
     let url = "wss://api-pub.bitfinex.com/ws/2";
     let (mut ws_stream, _) = connect_async(url).await?;
 
-    let outgoing = OutgoingMessage::new("subscribe", "candles", "trade:1m:tBTCUSD");
+    let interval = get_interval(interval);
+    let key = format!("trade:{}:tBTCUSD", interval);
+    let outgoing = OutgoingMessage::new("subscribe", "candles", &key);
 
     let message = Message::Text(outgoing.to_string());
     ws_stream.send(message).await?;
@@ -48,4 +50,20 @@ pub async fn connect_ws(client: &Addr<WebsocketClient>) -> Result<()> {
 
     ws_stream.close(None).await?;
     Ok(())
+}
+
+fn get_interval(interval: &Interval) -> &str {
+    match interval {
+        Interval::Minute1 => "1m",
+        Interval::Minute5 => "5m",
+        _ => panic!("Not implemented"),
+        // Interval::Minute15 => "15m",
+        // Interval::Minute30 => "30m",
+        // Interval::Hour1 => "1h",
+        // Interval::Hour4 => "4h",
+        // Interval::Hour12 => "12h",
+        // Interval::Day1 => "1D",
+        // Interval::Day5 => "5D",
+        // Interval::Week1 => "7D",
+    }
 }

@@ -1,6 +1,6 @@
-use crate::models::websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient};
+use crate::models::{websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient}, interval::Interval};
 use actix::{spawn, Addr};
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use futures_util::{SinkExt, StreamExt};
 use tokio::{
     net::TcpStream,
@@ -20,11 +20,15 @@ use super::{
 
 pub struct BybitWebsocketApi {
     client: Addr<WebsocketClient>,
+    interval: Interval,
 }
 
 impl BybitWebsocketApi {
-    pub fn new(client: &Addr<WebsocketClient>) -> Self {
-        Self { client: client.clone() }
+    pub fn new(client: &Addr<WebsocketClient>, interval: Interval) -> Self {
+        Self { 
+            client: client.clone(),
+            interval
+        }
     }
 
     pub async fn connect(&mut self) -> Result<()> {
@@ -49,7 +53,7 @@ impl BybitWebsocketApi {
     ) -> Result<()> {
         let args = vec![OutgoingMessageArg {
             stream: "kline".to_string(),
-            interval: "1".to_string(),
+            interval: self.interval_as_string()?,
             symbol: "BTCUSDT".to_string(),
         }];
         let sub = OutgoingMessage::new("subscribe", args);
@@ -58,6 +62,21 @@ impl BybitWebsocketApi {
         ws_stream.send(Message::Text(json)).await?;
 
         Ok(())
+    }
+
+    fn interval_as_string(&self) -> Result<String> {
+        let interval = match self.interval {
+            Interval::Minute1 => "1",
+            Interval::Minute5 => "5",
+            Interval::Minute15 => "15",
+            Interval::Minute30 => "30",
+            Interval::Hour1 => "60",
+            Interval::Day1 => "D",
+            Interval::Week1 => "W",
+            _ => return Err(anyhow!("Bybit does not support this interval.")),
+        };
+
+        Ok(interval.to_string())
     }
 
     async fn send_ping(
@@ -136,9 +155,7 @@ impl BybitWebsocketApi {
             let parsed: IncomingMessage = serde_json::from_str(txt.as_str())?;
 
             match parsed {
-                IncomingMessage::Pong(pong) => {
-                    println!("Pong: {:#?}", pong)
-                }
+                IncomingMessage::Pong(_) => {}
                 IncomingMessage::Subscribe(sub) => println!("Subscribe: {:#?}", sub),
                 IncomingMessage::Kline(kline_response) => {
                     Self::handle_kline(kline_response, client).await?

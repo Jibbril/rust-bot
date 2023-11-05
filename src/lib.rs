@@ -26,7 +26,9 @@ use notifications::notify;
 use tokio::time::{sleep, Duration};
 
 pub async fn run() -> Result<()> {
-    let mut client = WebsocketClient::new(DataSource::Bybit);
+    let source = DataSource::Bybit;
+    let interval = Interval::Minute1;
+    let mut client = WebsocketClient::new(source,interval);
     let ts = TimeSeries::dummy();
     let addr = ts.start();
 

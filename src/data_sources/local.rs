@@ -64,6 +64,7 @@ fn construct_path(interval: &Interval, ticker: &str, source: &DataSource) -> Str
     };
 
     let interval = match interval {
+        Interval::Minute1 => "minute-1",
         Interval::Minute5 => "minute-5",
         Interval::Minute15 => "minute-15",
         Interval::Minute30 => "minute-30",
