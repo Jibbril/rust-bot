@@ -1,6 +1,9 @@
-use crate::models::{websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient}, interval::Interval};
+use crate::models::{
+    interval::Interval,
+    websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient},
+};
 use actix::{spawn, Addr};
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use futures_util::{SinkExt, StreamExt};
 use tokio::{
     net::TcpStream,
@@ -11,7 +14,7 @@ use tokio::{
     try_join,
 };
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
-use tungstenite::{Message, Error};
+use tungstenite::{Error, Message};
 
 use super::{
     incoming_message::{IncomingMessage, KlineResponse},
@@ -25,9 +28,9 @@ pub struct BybitWebsocketApi {
 
 impl BybitWebsocketApi {
     pub fn new(client: &Addr<WebsocketClient>, interval: Interval) -> Self {
-        Self { 
+        Self {
             client: client.clone(),
-            interval
+            interval,
         }
     }
 
@@ -107,7 +110,7 @@ impl BybitWebsocketApi {
     ) -> JoinHandle<()> {
         spawn(async move {
             loop {
-                let ws_msg: Option<Result<Message,Error>> = ws_stream.next().await;
+                let ws_msg: Option<Result<Message, Error>> = ws_stream.next().await;
                 select! {
                     _ = Self::handle_ping_message(&mut rx, &mut ws_stream) => {}
                     _ = Self::handle_websocket_message(&client, ws_msg) => {}
@@ -129,10 +132,10 @@ impl BybitWebsocketApi {
             Ok(())
         }
     }
-    
+
     async fn handle_websocket_message(
         client: &Addr<WebsocketClient>,
-        ws_msg: Option<Result<Message,Error>>
+        ws_msg: Option<Result<Message, Error>>,
     ) -> Result<(), ()> {
         if let Some(msg) = ws_msg {
             Self::handle_message(client, msg).await.map_err(|e| {

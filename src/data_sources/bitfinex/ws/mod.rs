@@ -6,7 +6,10 @@ use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::connect_async;
 use tungstenite::Message;
 
-use crate::models::{websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient}, interval::Interval};
+use crate::models::{
+    interval::Interval,
+    websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient},
+};
 use outgoing_message::OutgoingMessage;
 
 #[allow(dead_code)]

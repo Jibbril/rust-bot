@@ -1,5 +1,8 @@
 use super::websocket_payload::WebsocketPayload;
-use crate::{data_sources::datasource::DataSource, models::{timeseries::TimeSeries, interval::Interval}};
+use crate::{
+    data_sources::datasource::DataSource,
+    models::{interval::Interval, timeseries::TimeSeries},
+};
 use actix::{Actor, Addr, AsyncContext, Context, Handler, WrapFuture};
 
 pub struct WebsocketClient {

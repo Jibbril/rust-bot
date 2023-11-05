@@ -1,6 +1,6 @@
-use anyhow::Result;
-use crate::models::timeseries::TimeSeries;
 use super::setup::Setup;
+use crate::models::timeseries::TimeSeries;
+use anyhow::Result;
 
 pub trait FindsSetups {
     fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>>;

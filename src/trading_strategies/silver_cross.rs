@@ -3,8 +3,10 @@ use anyhow::Result;
 use crate::{
     indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
+        setups::{finds_setups::FindsSetups, setup::Setup},
         strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries, setups::{finds_setups::FindsSetups, setup::Setup}, traits::has_max_length::HasMaxLength,
+        timeseries::TimeSeries,
+        traits::has_max_length::HasMaxLength,
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
@@ -27,10 +29,10 @@ pub struct SilverCross {
 impl SilverCross {
     #[allow(dead_code)] // TODO: Remove once used
     pub fn new(orientation: StrategyOrientation, short_len: usize, long_len: usize) -> Self {
-        SilverCross { 
+        SilverCross {
             orientation,
             short_len,
-            long_len 
+            long_len,
         }
     }
 

@@ -5,5 +5,5 @@ pub mod setups;
 pub mod strategy;
 pub mod strategy_orientation;
 pub mod timeseries;
-pub mod websockets;
 pub mod traits;
+pub mod websockets;

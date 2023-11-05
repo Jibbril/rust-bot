@@ -61,7 +61,11 @@ impl DataSource {
         Ok(ts)
     }
 
-    pub async fn connect_ws(&self, client: Addr<WebsocketClient>, interval: Interval) -> Result<()> {
+    pub async fn connect_ws(
+        &self,
+        client: Addr<WebsocketClient>,
+        interval: Interval,
+    ) -> Result<()> {
         match self {
             DataSource::Bitfinex => bitfinex::ws::connect_ws(&client, &interval).await?,
             DataSource::Bybit => {

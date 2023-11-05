@@ -1,11 +1,17 @@
 use anyhow::Result;
 
+use super::{
+    setups::{
+        finds_setups::{FindsReverseSetups, FindsSetups},
+        setup::Setup,
+    },
+    traits::has_max_length::HasMaxLength,
+};
 use crate::{
     models::timeseries::TimeSeries,
     trading_strategies::{rsi_basic::RsiBasic, silver_cross::SilverCross},
 };
 use std::fmt::{Display, Formatter};
-use super::{setups::{finds_setups::{FindsSetups, FindsReverseSetups}, setup::Setup}, traits::has_max_length::HasMaxLength};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]

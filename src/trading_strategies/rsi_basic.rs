@@ -1,15 +1,20 @@
-use anyhow::Result;
 use crate::{
     indicators::{indicator_type::IndicatorType, rsi::RSI},
     models::{
+        setups::{
+            finds_setups::{FindsReverseSetups, FindsSetups},
+            setup::Setup,
+        },
         strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries, setups::{finds_setups::{FindsSetups, FindsReverseSetups}, setup::Setup}, traits::has_max_length::HasMaxLength,
+        timeseries::TimeSeries,
+        traits::has_max_length::HasMaxLength,
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
         ResolutionStrategy,
     },
 };
+use anyhow::Result;
 use std::fmt::{Display, Formatter};
 
 /// # RSIBasic

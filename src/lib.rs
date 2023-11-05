@@ -10,7 +10,8 @@ mod utils;
 use crate::{
     indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI},
     models::{
-        websockets::wsclient::WebsocketClient, strategy::Strategy, setups::finds_setups::FindsReverseSetups,
+        setups::finds_setups::FindsReverseSetups, strategy::Strategy,
+        websockets::wsclient::WebsocketClient,
     },
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
@@ -20,14 +21,14 @@ use actix::Actor;
 use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
-use models::{timeseries::TimeSeries, interval::Interval};
+use models::{interval::Interval, timeseries::TimeSeries};
 use notifications::notify;
 use tokio::time::{sleep, Duration};
 
 pub async fn run() -> Result<()> {
     let source = DataSource::Bybit;
     let interval = Interval::Minute1;
-    let mut client = WebsocketClient::new(source,interval);
+    let mut client = WebsocketClient::new(source, interval);
     let ts = TimeSeries::dummy();
     let addr = ts.start();
 

@@ -1,10 +1,10 @@
+use crate::models::{setups::setup::Setup, strategy::Strategy};
 use anyhow::{anyhow, Result};
 use lettre::{
     message::header::ContentType, transport::smtp::authentication::Credentials, Message,
     SmtpTransport, Transport,
 };
 use std::env;
-use crate::models::{setups::setup::Setup, strategy::Strategy};
 
 pub async fn notify_email(setup: &Setup, strategy: &Strategy) -> Result<()> {
     let sender = env::var("EMAIL_SENDER")?;

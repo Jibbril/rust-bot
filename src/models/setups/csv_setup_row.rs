@@ -1,6 +1,6 @@
-use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
 use crate::models::{interval::Interval, strategy_orientation::StrategyOrientation};
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CsvSetupRow {

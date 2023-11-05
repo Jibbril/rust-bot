@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    models::{
-        candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation,
-    },
+    models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation},
     resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
 };
 
@@ -55,4 +53,3 @@ impl Setup {
         }
     }
 }
-
