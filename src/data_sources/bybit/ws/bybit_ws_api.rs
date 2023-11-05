@@ -11,7 +11,7 @@ use tokio::{
     try_join,
 };
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
-use tungstenite::Message;
+use tungstenite::{Message, Error};
 
 use super::{
     incoming_message::{IncomingMessage, KlineResponse},
@@ -24,9 +24,7 @@ pub struct BybitWebsocketApi {
 
 impl BybitWebsocketApi {
     pub fn new(client: &Addr<WebsocketClient>) -> Self {
-        Self {
-            client: client.clone(),
-        }
+        Self { client: client.clone() }
     }
 
     pub async fn connect(&mut self) -> Result<()> {
@@ -38,22 +36,9 @@ impl BybitWebsocketApi {
         let (tx, rx) = channel(32);
 
         let ping_handle = Self::spawn_ping_task(tx).await;
-        let client = self.client.clone();
-        let message_handle = Self::spawn_message_task(client, ws_stream, rx).await;
+        let message_handle = Self::spawn_message_task(self.client.clone(), ws_stream, rx).await;
 
         try_join!(ping_handle, message_handle)?;
-
-        Ok(())
-    }
-
-    async fn send_ping(
-        req_id: Option<String>,
-        ws_stream: &mut WebSocketStream<MaybeTlsStream<TcpStream>>,
-    ) -> Result<()> {
-        let ping = OutgoingMessage::ping(req_id);
-        let message = Message::Text(ping.to_json());
-
-        ws_stream.send(message).await?;
 
         Ok(())
     }
@@ -73,6 +58,71 @@ impl BybitWebsocketApi {
         ws_stream.send(Message::Text(json)).await?;
 
         Ok(())
+    }
+
+    async fn send_ping(
+        req_id: Option<String>,
+        ws_stream: &mut WebSocketStream<MaybeTlsStream<TcpStream>>,
+    ) -> Result<()> {
+        let ping = OutgoingMessage::ping(req_id);
+        let message = Message::Text(ping.to_json());
+
+        ws_stream.send(message).await?;
+
+        Ok(())
+    }
+
+    async fn spawn_ping_task(tx: Sender<&'static str>) -> JoinHandle<()> {
+        spawn(async move {
+            loop {
+                sleep(Duration::from_secs(20)).await;
+                tx.send("ping").await.expect("Failed to send ping");
+            }
+        })
+    }
+
+    async fn spawn_message_task(
+        client: Addr<WebsocketClient>,
+        mut ws_stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+        mut rx: Receiver<&'static str>,
+    ) -> JoinHandle<()> {
+        spawn(async move {
+            loop {
+                let ws_msg: Option<Result<Message,Error>> = ws_stream.next().await;
+                select! {
+                    _ = Self::handle_ping_message(&mut rx, &mut ws_stream) => {}
+                    _ = Self::handle_websocket_message(&client, ws_msg) => {}
+                }
+            }
+        })
+    }
+
+    async fn handle_ping_message(
+        rx: &mut Receiver<&'static str>,
+        ws_stream: &mut WebSocketStream<MaybeTlsStream<TcpStream>>,
+    ) -> Result<(), ()> {
+        if let Some(_) = rx.recv().await {
+            Self::send_ping(None, ws_stream).await.map_err(|e| {
+                eprintln!("Error in Websockets: {:#?}", e);
+                ()
+            })
+        } else {
+            Ok(())
+        }
+    }
+    
+    async fn handle_websocket_message(
+        client: &Addr<WebsocketClient>,
+        ws_msg: Option<Result<Message,Error>>
+    ) -> Result<(), ()> {
+        if let Some(msg) = ws_msg {
+            Self::handle_message(client, msg).await.map_err(|e| {
+                eprintln!("Error in Websockets: {:#?}", e);
+                ()
+            })
+        } else {
+            Ok(())
+        }
     }
 
     async fn handle_message(
@@ -118,44 +168,5 @@ impl BybitWebsocketApi {
         }
 
         Ok(())
-    }
-
-    async fn spawn_ping_task(tx: Sender<&'static str>) -> JoinHandle<()> {
-        spawn(async move {
-            loop {
-                sleep(Duration::from_secs(20)).await;
-                tx.send("ping").await.expect("Failed to send ping");
-            }
-        })
-    }
-
-    async fn spawn_message_task(
-        client: Addr<WebsocketClient>,
-        mut ws_stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
-        mut rx: Receiver<&'static str>,
-    ) -> JoinHandle<()> {
-        spawn(async move {
-            loop {
-                select! {
-                    _ = rx.recv() => {
-                        if let Err(e) = Self::send_ping(None, &mut ws_stream).await {
-                            println!("Error in Websockets: {:#?}",e);
-                            break;
-                        }
-                    }
-                    msg = ws_stream.next() => {
-                        if let Some(msg) = msg {
-                            match Self::handle_message(&client, msg).await {
-                                Ok(_) => (),
-                                Err(e) => {
-                                    println!("Error in Websockets: {:#?}",e);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        })
     }
 }
