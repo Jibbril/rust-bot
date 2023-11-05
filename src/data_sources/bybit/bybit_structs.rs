@@ -45,10 +45,6 @@ impl ApiResponse for BybitApiResponse {
         candles.map(|mut candles| {
             candles.sort_by_key(|candle| candle.timestamp);
 
-            // Bybit returns the current interval as well, we only want
-            // historical data here.
-            candles.pop();
-
             TimeSeries::new(symbol.to_string(), interval.clone(), candles)
         })
     }

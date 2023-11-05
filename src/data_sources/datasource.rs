@@ -21,6 +21,7 @@ pub enum DataSource {
 }
 
 impl DataSource {
+    #[allow(dead_code)]
     pub async fn load_local_data(&self, symbol: &str, interval: &Interval) -> Result<TimeSeries> {
         local::read(self, symbol, interval).await
     }
@@ -28,12 +29,13 @@ impl DataSource {
     pub async fn get_historical_data(
         &self,
         symbol: &str,
-        interval: &Interval
+        interval: &Interval,
+        len: usize,
     ) -> Result<TimeSeries> {
         let ts = match self {
             DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
             DataSource::Bitfinex => bitfinex::rest::get(symbol, &interval).await?,
-            DataSource::Bybit => bybit::rest::get(symbol, &interval).await?,
+            DataSource::Bybit => bybit::rest::get(symbol, &interval, len).await?,
             DataSource::CoinMarketCap => coinmarketcap::get().await?,
             DataSource::CryptoCompare(exchange) => {
                 cryptocompare::get(symbol, &interval, exchange.clone()).await?

@@ -27,13 +27,14 @@ use tokio::time::{sleep, Duration};
 
 pub async fn run() -> Result<()> {
     let symbol = "BTCUSDT"; 
-    let strategy = Strategy::RsiBasic(RsiBasic::new_default());
+    let _strategy = Strategy::RsiBasic(RsiBasic::new_default());
     let source = DataSource::Bybit;
     let interval = Interval::Minute1;
+    let len = strategy.max_length();
     
-    // let ts = source.get_historical_data(symbol, &interval).await?;
+    let ts = source.get_historical_data(symbol, &interval, len).await?;
     // ts.save_to_local(&source).await?;
-    let ts = source.load_local_data(symbol, &interval).await?;
+    // let ts = source.load_local_data(symbol, &interval).await?;
 
     let mut client = WebsocketClient::new(source, interval);
     let addr = ts.start();
@@ -53,7 +54,7 @@ pub async fn _run() -> Result<()> {
     let source = DataSource::Bybit;
     let interval = Interval::Day1;
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval)
+        .get_historical_data("BTCUSDT", &interval, 1000)
         .await?;
 
     // Calculate indicators for TimeSeries

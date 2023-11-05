@@ -8,8 +8,8 @@ use crate::{
 
 use super::bybit_structs::BybitApiResponse;
 
-pub async fn get(symbol: &str, interval: &Interval) -> Result<TimeSeries> {
-    let url = generate_url(symbol, interval)?;
+pub async fn get(symbol: &str, interval: &Interval, len: usize) -> Result<TimeSeries> {
+    let url = generate_url(symbol, interval, len)?;
 
     let client = Client::new();
     let response = client.get(url).send().await?;
@@ -25,7 +25,7 @@ pub async fn get(symbol: &str, interval: &Interval) -> Result<TimeSeries> {
     }
 }
 
-fn generate_url(symbol: &str, interval: &Interval) -> Result<String> {
+fn generate_url(symbol: &str, interval: &Interval, len: usize) -> Result<String> {
     let interval = match interval {
         Interval::Minute1 => "1",
         Interval::Minute5 => "5",
@@ -40,7 +40,7 @@ fn generate_url(symbol: &str, interval: &Interval) -> Result<String> {
     };
 
     Ok(format!(
-        "https://api.bybit.com/v5/market/kline?category=spot&symbol={}&interval={}&limit=2000",
-        symbol, interval
+        "https://api.bybit.com/v5/market/kline?category=spot&symbol={}&interval={}&limit={}",
+        symbol, interval, len
     ))
 }
