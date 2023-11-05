@@ -1,7 +1,7 @@
 mod test_result;
 
 use crate::{
-    models::{candle::Candle, setup::Setup, strategy_orientation::StrategyOrientation},
+    models::{candle::Candle, strategy_orientation::StrategyOrientation, setups::setup::Setup},
     utils::{f_len_or_one, math::std},
 };
 use chrono::{DateTime, Utc};
@@ -150,10 +150,9 @@ mod tests {
         models::{
             candle::Candle,
             interval::Interval,
-            setup::{FindsSetups, Setup},
             strategy::Strategy,
             strategy_orientation::StrategyOrientation,
-            timeseries::TimeSeries,
+            timeseries::TimeSeries, setups::{setup::Setup, finds_setups::FindsSetups},
         },
         resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
         trading_strategies::rsi_basic::RsiBasic,

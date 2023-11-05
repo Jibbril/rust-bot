@@ -2,12 +2,12 @@ use anyhow::Result;
 
 use crate::{
     models::{
-        setup::{FindsReverseSetups, FindsSetups, Setup},
         timeseries::TimeSeries,
     },
     trading_strategies::{rsi_basic::RsiBasic, silver_cross::SilverCross},
 };
 use std::fmt::{Display, Formatter};
+use super::setups::{finds_setups::{FindsSetups, FindsReverseSetups}, setup::Setup};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]

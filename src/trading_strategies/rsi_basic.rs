@@ -1,11 +1,9 @@
 use anyhow::Result;
-
 use crate::{
     indicators::{indicator_type::IndicatorType, rsi::RSI},
     models::{
-        setup::{FindsReverseSetups, FindsSetups, Setup},
         strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries,
+        timeseries::TimeSeries, setups::{finds_setups::{FindsSetups, FindsReverseSetups}, setup::Setup},
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,

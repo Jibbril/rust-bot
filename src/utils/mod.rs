@@ -1,12 +1,12 @@
 pub mod math;
 
-use crate::models::setup::Setup;
 use anyhow::{anyhow, Context, Result};
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
 use std::{
     fs::{create_dir_all, File},
     path::Path,
 };
+use crate::models::setups::setup::Setup;
 
 pub fn str_date_to_datetime(s: &str) -> Result<DateTime<Utc>> {
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();

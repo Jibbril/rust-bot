@@ -10,8 +10,7 @@ mod utils;
 use crate::{
     indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI},
     models::{
-        interval::Interval, setup::FindsReverseSetups, strategy::Strategy,
-        websockets::wsclient::WebsocketClient,
+        websockets::wsclient::WebsocketClient, strategy::Strategy, setups::finds_setups::FindsReverseSetups,
     },
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
@@ -21,7 +20,7 @@ use actix::Actor;
 use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
-use models::timeseries::TimeSeries;
+use models::{timeseries::TimeSeries, interval::Interval};
 use notifications::notify;
 use tokio::time::{sleep, Duration};
 
@@ -34,8 +33,6 @@ pub async fn run() -> Result<()> {
 
     client.add_observer(addr);
     client.start();
-
-    // TODO: Setup scenario where timeseries is updated with new candles
 
     loop {
         sleep(Duration::from_secs(1)).await;
