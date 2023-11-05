@@ -21,13 +21,13 @@ use actix::Actor;
 use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
-use models::interval::Interval;
+use models::{interval::Interval, traits::has_max_length::HasMaxLength};
 use notifications::notify;
 use tokio::time::{sleep, Duration};
 
 pub async fn run() -> Result<()> {
     let symbol = "BTCUSDT"; 
-    let _strategy = Strategy::RsiBasic(RsiBasic::new_default());
+    let strategy = Strategy::RsiBasic(RsiBasic::new_default());
     let source = DataSource::Bybit;
     let interval = Interval::Minute1;
     let len = strategy.max_length();
