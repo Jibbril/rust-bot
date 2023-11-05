@@ -1,10 +1,10 @@
 use crate::models::websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient};
-use actix::Addr;
+use actix::{Addr, spawn};
 use anyhow::Result;
 use futures_util::{SinkExt, StreamExt};
-use tokio::net::TcpStream;
+use tokio::{net::TcpStream, time::{sleep,Duration}, try_join, sync::mpsc::channel, select};
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
-use tungstenite::{Error, Message};
+use tungstenite::Message;
 
 use super::{
     incoming_message::{IncomingMessage, KlineResponse},
@@ -12,38 +12,63 @@ use super::{
 };
 
 pub struct BybitWebsocketApi {
-    connection_id: Option<String>,
     client: Addr<WebsocketClient>,
 }
 
 impl BybitWebsocketApi {
     pub fn new(client: &Addr<WebsocketClient>) -> Self {
-        Self {
-            connection_id: None,
-            client: client.clone(),
-        }
+        Self { client: client.clone() }
     }
 
     pub async fn connect(&mut self) -> Result<()> {
         let url = "wss://stream-testnet.bybit.com/v5/public/spot";
         let (mut ws_stream, _) = connect_async(url).await?;
-
-        self.send_ping(&mut ws_stream).await?;
         self.subscribe_to_kline(&mut ws_stream).await?;
+        Self::send_ping(None, &mut ws_stream).await?;
 
-        while let Some(msg) = ws_stream.next().await {
-            self.handle_message(msg).await?;
-        }
+        let (tx, mut rx) = channel(32);
 
-        ws_stream.close(None).await?;
+        let ping_handle = spawn(async move {
+            loop {
+                sleep(Duration::from_secs(20)).await;
+                tx.send("ping").await.expect("Failed to send ping");
+            }
+        });
+
+        let client = self.client.clone();
+        let message_handle = spawn(async move {
+            loop {
+                select! {
+                    _ = rx.recv() => {
+                        if let Err(e) = Self::send_ping(None, &mut ws_stream).await {
+                            println!("Error in Websockets: {:#?}",e);
+                            break;
+                        }
+                    }
+                    msg = ws_stream.next() => {
+                        if let Some(msg) = msg {
+                            match Self::handle_message(&client, msg).await {
+                                Ok(_) => (),
+                                Err(e) => {
+                                    println!("Error in Websockets: {:#?}",e);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        try_join!(ping_handle, message_handle)?;
+
         Ok(())
     }
 
     async fn send_ping(
-        &self,
+        req_id: Option<String>,
         ws_stream: &mut WebSocketStream<MaybeTlsStream<TcpStream>>,
     ) -> Result<()> {
-        let req_id = self.connection_id.clone();
         let ping = OutgoingMessage::ping(req_id);
         let message = Message::Text(ping.to_json());
         
@@ -69,7 +94,7 @@ impl BybitWebsocketApi {
         Ok(())
     }
 
-    async fn handle_message(&mut self, msg: Result<Message, Error>) -> Result<()> {
+    async fn handle_message(client: &Addr<WebsocketClient>, msg: Result<Message, tungstenite::Error>) -> Result<()> {
         let msg = msg?;
 
         if let Message::Text(txt) = msg {
@@ -78,15 +103,11 @@ impl BybitWebsocketApi {
 
             match parsed {
                 IncomingMessage::Pong(pong) => {
-                    if self.connection_id.is_none() {
-                        self.connection_id = Some(pong.conn_id.clone());
-                    }
-
                     println!("Pong: {:#?}", pong)
                 }
                 IncomingMessage::Subscribe(sub) => println!("Subscribe: {:#?}", sub),
                 IncomingMessage::Kline(kline_response) => {
-                    Self::handle_kline(kline_response, &self.client).await?
+                    Self::handle_kline(kline_response, client).await?
                 }
             }
         }
