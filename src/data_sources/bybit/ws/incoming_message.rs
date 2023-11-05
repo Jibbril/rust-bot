@@ -101,8 +101,12 @@ impl KlineResponse {
 
 impl Kline {
     pub fn to_candle(&self) -> Result<Candle> {
+        // End time for kline response is always 1 second before the
+        // start time for the next candle.
+        let timestamp = self.end + 1000;
+
         Ok(Candle {
-            timestamp: millis_to_datetime(self.end)?,
+            timestamp: millis_to_datetime(timestamp)?,
             open: self.open.parse::<f64>()?,
             close: self.close.parse::<f64>()?,
             high: self.high.parse::<f64>()?,
