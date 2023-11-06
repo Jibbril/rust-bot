@@ -9,10 +9,7 @@ mod utils;
 
 use crate::{
     indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI},
-    models::{
-        setups::finds_setups::FindsReverseSetups, strategy::Strategy,
-        websockets::wsclient::WebsocketClient,
-    },
+    models::websockets::wsclient::WebsocketClient,
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
     utils::save_setups,
@@ -21,13 +18,13 @@ use actix::Actor;
 use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
-use models::{interval::Interval, traits::has_max_length::HasMaxLength};
+use models::{interval::Interval, traits::trading_strategy::TradingStrategy};
 use notifications::notify;
 use tokio::time::{sleep, Duration};
 
 pub async fn run() -> Result<()> {
     let symbol = "BTCUSDT"; 
-    let strategy = Strategy::RsiBasic(RsiBasic::new_default());
+    let strategy = RsiBasic::new_default();
     let source = DataSource::Bybit;
     let interval = Interval::Minute1;
     let len = strategy.max_length();
@@ -36,12 +33,16 @@ pub async fn run() -> Result<()> {
     // ts.save_to_local(&source).await?;
     // let ts = source.load_local_data(symbol, &interval).await?;
 
+    // TODO: Add calculations for indicators for historical data
+
     let mut client = WebsocketClient::new(source, interval);
     let addr = ts.start();
 
     client.add_observer(addr);
     client.start();
 
+    // TODO: Add calculations for indicators for live data
+    // TODO: Enable check for whether new setups have arisen from updated indicators
     loop {
         sleep(Duration::from_secs(1)).await;
     }
@@ -72,7 +73,7 @@ pub async fn _run() -> Result<()> {
     println!("Candles:{:#?}", ts.candles);
 
     // Implement Strategy to analyze TimeSeries
-    let rsi_strategy = Strategy::RsiBasic(RsiBasic::new_default());
+    let rsi_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_default());
 
     let rsi_setups = rsi_strategy.find_reverse_setups(&ts)?;
 

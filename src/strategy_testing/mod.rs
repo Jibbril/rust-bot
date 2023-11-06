@@ -150,10 +150,9 @@ mod tests {
         models::{
             candle::Candle,
             interval::Interval,
-            setups::{finds_setups::FindsSetups, setup::Setup},
-            strategy::Strategy,
+            setups::setup::Setup,
             strategy_orientation::StrategyOrientation,
-            timeseries::TimeSeries,
+            timeseries::TimeSeries, traits::trading_strategy::TradingStrategy,
         },
         resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
         trading_strategies::rsi_basic::RsiBasic,
@@ -200,7 +199,7 @@ mod tests {
         let _ = RSI::populate_candles(&mut ts, args);
 
         // Create RSIBasic strategy
-        let strat = Strategy::RsiBasic(RsiBasic::new_default());
+        let strat = RsiBasic::new_default();
 
         // Create setups from strategy and candles
         let setups = strat.find_setups(&ts);

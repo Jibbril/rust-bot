@@ -3,10 +3,9 @@ use anyhow::Result;
 use crate::{
     indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
-        setups::{finds_setups::FindsSetups, setup::Setup},
+        setups::setup::Setup,
         strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries,
-        traits::has_max_length::HasMaxLength,
+        timeseries::TimeSeries, traits::trading_strategy::TradingStrategy,
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
@@ -65,7 +64,7 @@ impl SilverCross {
     }
 }
 
-impl FindsSetups for SilverCross {
+impl TradingStrategy for SilverCross {
     fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         let mut setups: Vec<Setup> = Vec::new();
         let key_short = IndicatorType::SMA(self.short_len);
@@ -118,11 +117,20 @@ impl FindsSetups for SilverCross {
 
         Ok(setups)
     }
-}
 
-impl HasMaxLength for SilverCross {
     fn max_length(&self) -> usize {
         self.long_len
+    }
+
+    fn find_reverse_setups(&self, _ts: &TimeSeries) -> Result<Vec<Setup>> {
+        todo!()
+    }
+
+    fn required_indicators(&self) -> Vec<IndicatorType> {
+        vec![
+            IndicatorType::SMA(self.short_len),
+            IndicatorType::SMA(self.long_len),
+        ]
     }
 }
 

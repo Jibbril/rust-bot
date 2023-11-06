@@ -1,13 +1,10 @@
 use crate::{
     indicators::{indicator_type::IndicatorType, rsi::RSI},
     models::{
-        setups::{
-            finds_setups::{FindsReverseSetups, FindsSetups},
-            setup::Setup,
-        },
+        setups::setup::Setup,
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::has_max_length::HasMaxLength,
+        traits::trading_strategy::TradingStrategy,
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
@@ -84,7 +81,7 @@ impl RsiBasic {
     }
 
     fn find_setups_by_direction(&self, ts: &TimeSeries, reversed: bool) -> Result<Vec<Setup>> {
-        let len = 14;
+        let len = self.len;
         let key = IndicatorType::RSI(len);
         let mut setups: Vec<Setup> = Vec::new();
 
@@ -135,19 +132,19 @@ impl RsiBasic {
     }
 }
 
-impl FindsSetups for RsiBasic {
+impl TradingStrategy for RsiBasic {
+    fn find_reverse_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
+        self.find_setups_by_direction(ts, true)   
+    }
+
     fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         self.find_setups_by_direction(ts, false)
     }
-}
 
-impl FindsReverseSetups for RsiBasic {
-    fn find_reverse_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
-        self.find_setups_by_direction(ts, true)
+    fn required_indicators(&self) -> Vec<IndicatorType> {
+        vec![IndicatorType::RSI(self.len)]
     }
-}
 
-impl HasMaxLength for RsiBasic {
     fn max_length(&self) -> usize {
         self.len
     }

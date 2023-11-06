@@ -1,4 +1,4 @@
-use crate::models::{setups::setup::Setup, strategy::Strategy};
+use crate::models::{setups::setup::Setup, traits::trading_strategy::TradingStrategy};
 use anyhow::{anyhow, Result};
 use lettre::{
     message::header::ContentType, transport::smtp::authentication::Credentials, Message,
@@ -6,7 +6,7 @@ use lettre::{
 };
 use std::env;
 
-pub async fn notify_email(setup: &Setup, strategy: &Strategy) -> Result<()> {
+pub async fn notify_email(setup: &Setup, strategy: &Box<dyn TradingStrategy>) -> Result<()> {
     let sender = env::var("EMAIL_SENDER")?;
     let sender = format!("{}", sender);
     let receiver = env::var("EMAIL_RECEIVER")?;
@@ -39,7 +39,7 @@ pub async fn notify_email(setup: &Setup, strategy: &Strategy) -> Result<()> {
     }
 }
 
-fn get_body(setup: &Setup, strategy: &Strategy) -> String {
+fn get_body(setup: &Setup, strategy: &Box<dyn TradingStrategy>) -> String {
     let s = format!(
         r#"Trade Notification:
 
