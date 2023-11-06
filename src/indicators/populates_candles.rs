@@ -7,3 +7,7 @@ pub trait PopulatesCandles {
     fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()>;
     fn populate_candles_default(ts: &mut TimeSeries) -> Result<()>;
 }
+
+pub trait PopulatesCandlesWithSelf {
+    fn populate_candles(&self, ts: &mut TimeSeries) -> Result<()>;
+}
