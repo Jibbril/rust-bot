@@ -18,12 +18,12 @@ pub struct RSI {
 }
 
 impl PopulatesCandles for RSI {
-    fn populate_candles_default(ts: &mut TimeSeries) -> Result<()> {
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
         let args = IndicatorArgs::LengthArg(14);
-        Self::populate_candles(ts, args)
+        Self::populate_candles_args(ts, args)
     }
 
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let mut rsi: Option<RSI> = None;
         let new_rsis: Vec<Option<RSI>> = (0..ts.candles.len())

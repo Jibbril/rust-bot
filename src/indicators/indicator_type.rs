@@ -32,35 +32,35 @@ impl PopulatesCandlesWithSelf for IndicatorType {
         match self {
             IndicatorType::ATR(n) => {
                 let args = IndicatorArgs::LengthArg(*n);
-                ATR::populate_candles(ts, args)
+                ATR::populate_candles_args(ts, args)
             }
             IndicatorType::BBW(len) => {
                 let args = IndicatorArgs::BollingerBandArgs(*len, 2.0);
-                BBW::populate_candles(ts, args)
+                BBW::populate_candles_args(ts, args)
             }
             IndicatorType::BBWP(len, lookback) => {
                 let args = IndicatorArgs::BBWPArgs(*len, *lookback, 5);
-                BBWP::populate_candles(ts, args)
+                BBWP::populate_candles_args(ts, args)
             }
             IndicatorType::BollingerBands(len) => {
                 let args = IndicatorArgs::BollingerBandArgs(*len, 2.0);
-                BollingerBands::populate_candles(ts, args)
+                BollingerBands::populate_candles_args(ts, args)
             }
             IndicatorType::DynamicPivot(len) => {
                 let args = IndicatorArgs::LengthArg(*len);
-                DynamicPivot::populate_candles(ts, args)
+                DynamicPivot::populate_candles_args(ts, args)
             }
             IndicatorType::EMA(len) => {
                 let args = IndicatorArgs::LengthArg(*len);
-                EMA::populate_candles(ts, args)
+                EMA::populate_candles_args(ts, args)
             }
             IndicatorType::RSI(len) => {
                 let args = IndicatorArgs::LengthArg(*len);
-                RSI::populate_candles(ts, args)
+                RSI::populate_candles_args(ts, args)
             }
             IndicatorType::SMA(len) => {
                 let args = IndicatorArgs::LengthArg(*len);
-                SMA::populate_candles(ts, args)
+                SMA::populate_candles_args(ts, args)
             }
         }
     }

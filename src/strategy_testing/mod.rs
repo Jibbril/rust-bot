@@ -194,7 +194,7 @@ mod tests {
 
         // Populate rsi indicator
         let args = IndicatorArgs::LengthArg(14);
-        let _ = RSI::populate_candles(&mut ts, args);
+        let _ = RSI::populate_candles_args(&mut ts, args);
 
         // Create RSIBasic strategy
         let strat = RsiBasic::new_default();

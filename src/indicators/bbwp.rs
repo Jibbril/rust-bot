@@ -17,7 +17,7 @@ pub struct BBWP {
 }
 
 impl PopulatesCandles for BBWP {
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (len, _, sma_len) = args.extract_bbwp_res()?;
         let indicator_type = IndicatorType::BBW(len);
         let mut remove_bbws = false;
@@ -25,7 +25,7 @@ impl PopulatesCandles for BBWP {
         // Populate candles with BBW if not already there
         if !ts.indicators.contains(&indicator_type) {
             let args = IndicatorArgs::BollingerBandArgs(len, 1.0);
-            BBW::populate_candles(ts, args)?;
+            BBW::populate_candles_args(ts, args)?;
             remove_bbws = true;
         }
 
@@ -46,9 +46,9 @@ impl PopulatesCandles for BBWP {
         Ok(())
     }
 
-    fn populate_candles_default(ts: &mut TimeSeries) -> Result<()> {
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
         let args = IndicatorArgs::BBWPArgs(13, 252, 5);
-        Self::populate_candles(ts, args)
+        Self::populate_candles_args(ts, args)
     }
 }
 
@@ -192,7 +192,7 @@ mod tests {
             indicators: HashSet::new(),
         };
 
-        BBWP::populate_candles_default(&mut ts).unwrap();
+        BBWP::populate_candles(&mut ts).unwrap();
 
         let segment = &ts.candles[ts.candles.len() - 5..];
         let correct_values = [
@@ -224,7 +224,7 @@ mod tests {
             indicators: HashSet::new(),
         };
 
-        BBWP::populate_candles_default(&mut ts).unwrap();
+        BBWP::populate_candles(&mut ts).unwrap();
         println!("BBWP:{:#?}", ts.candles);
 
         for candle in ts.candles.iter() {
@@ -249,7 +249,7 @@ mod tests {
             indicators: HashSet::new(),
         };
 
-        BBWP::populate_candles_default(&mut ts).unwrap();
+        BBWP::populate_candles(&mut ts).unwrap();
         println!("BBWP:{:#?}", ts.candles);
 
         for candle in ts.candles.iter() {

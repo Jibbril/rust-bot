@@ -14,12 +14,12 @@ pub struct DynamicPivot {
 }
 
 impl PopulatesCandles for DynamicPivot {
-    fn populate_candles_default(ts: &mut TimeSeries) -> Result<()> {
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
         let args = IndicatorArgs::LengthArg(15);
-        Self::populate_candles(ts, args)
+        Self::populate_candles_args(ts, args)
     }
 
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let mut new_pivots: Vec<Option<DynamicPivot>> = (0..len).map(|_| None).collect();
 

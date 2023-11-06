@@ -20,11 +20,11 @@ pub struct EMA {
 }
 
 impl PopulatesCandles for EMA {
-    fn populate_candles_default(ts: &mut TimeSeries) -> Result<()> {
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
         let args = IndicatorArgs::LengthArg(8);
-        Self::populate_candles(ts, args)
+        Self::populate_candles_args(ts, args)
     }
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let mut ema: Option<EMA> = None;
         let new_emas: Vec<Option<EMA>> = (0..ts.candles.len())

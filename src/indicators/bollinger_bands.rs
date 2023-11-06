@@ -20,7 +20,7 @@ pub struct BollingerBands {
 }
 
 impl PopulatesCandles for BollingerBands {
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (len, _) = args.extract_bb_res()?;
         let mut bb: Option<BollingerBands> = None;
         let new_bbs: Vec<Option<BollingerBands>> = (0..ts.candles.len())
@@ -43,9 +43,9 @@ impl PopulatesCandles for BollingerBands {
         Ok(())
     }
 
-    fn populate_candles_default(ts: &mut TimeSeries) -> Result<()> {
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
         let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
-        Self::populate_candles(ts, args)
+        Self::populate_candles_args(ts, args)
     }
 }
 

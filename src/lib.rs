@@ -61,16 +61,16 @@ pub async fn _run() -> Result<()> {
         .await?;
 
     // Calculate indicators for TimeSeries
-    // SMA::populate_candles_default(&mut ts.candles)?;
-    // SMA::populate_candles_default(&mut ts.candles)?;
-    // SMA::populate_candles_default(&mut ts.candles)?;
-    // BollingerBands::populate_candles_default(&mut ts.candles)?;
-    // DynamicPivot::populate_candles_default(&mut ts.candles)?;
-    // BBW::populate_candles_default(&mut ts)?;
-    // EMA::populate_candles_default(&mut ts)?;
-    BBWP::populate_candles_default(&mut ts)?;
-    RSI::populate_candles_default(&mut ts)?;
-    ATR::populate_candles_default(&mut ts)?;
+    // SMA::populate_candles(&mut ts.candles)?;
+    // SMA::populate_candles(&mut ts.candles)?;
+    // SMA::populate_candles(&mut ts.candles)?;
+    // BollingerBands::populate_candles(&mut ts.candles)?;
+    // DynamicPivot::populate_candles(&mut ts.candles)?;
+    // BBW::populate_candles(&mut ts)?;
+    // EMA::populate_candles(&mut ts)?;
+    BBWP::populate_candles(&mut ts)?;
+    RSI::populate_candles(&mut ts)?;
+    ATR::populate_candles(&mut ts)?;
 
     println!("Candles:{:#?}", ts.candles);
 

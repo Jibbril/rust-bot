@@ -15,12 +15,12 @@ pub struct BBW {
 }
 
 impl PopulatesCandles for BBW {
-    fn populate_candles_default(ts: &mut TimeSeries) -> Result<()> {
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
         let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
-        Self::populate_candles(ts, args)
+        Self::populate_candles_args(ts, args)
     }
 
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (len, _) = args.extract_bb_res()?;
         let new_bbws: Vec<Option<BBW>> = (0..ts.candles.len())
             .map(|i| Self::calculate_rolling(args, i, &ts.candles))
