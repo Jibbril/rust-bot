@@ -2,7 +2,10 @@ use actix::{Actor, Context, Handler};
 use anyhow::Result;
 
 use super::{candle::Candle, interval::Interval, websockets::websocket_payload::WebsocketPayload};
-use crate::{indicators::indicator_type::IndicatorType, data_sources::{local, datasource::DataSource}};
+use crate::{
+    data_sources::{datasource::DataSource, local},
+    indicators::indicator_type::IndicatorType,
+};
 use std::collections::HashSet;
 
 #[derive(Debug, Clone)]

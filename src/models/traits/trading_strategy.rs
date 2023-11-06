@@ -1,6 +1,9 @@
-use std::fmt::Display;
+use crate::{
+    indicators::indicator_type::IndicatorType,
+    models::{setups::setup::Setup, timeseries::TimeSeries},
+};
 use anyhow::Result;
-use crate::{models::{timeseries::TimeSeries, setups::setup::Setup}, indicators::indicator_type::IndicatorType};
+use std::fmt::Display;
 
 pub trait TradingStrategy: Display {
     fn max_length(&self) -> usize;

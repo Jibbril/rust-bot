@@ -23,12 +23,12 @@ use notifications::notify;
 use tokio::time::{sleep, Duration};
 
 pub async fn run() -> Result<()> {
-    let symbol = "BTCUSDT"; 
+    let symbol = "BTCUSDT";
     let strategy = RsiBasic::new_default();
     let source = DataSource::Bybit;
     let interval = Interval::Minute1;
     let len = strategy.max_length();
-    
+
     let ts = source.get_historical_data(symbol, &interval, len).await?;
     // ts.save_to_local(&source).await?;
     // let ts = source.load_local_data(symbol, &interval).await?;

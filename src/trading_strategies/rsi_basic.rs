@@ -1,9 +1,7 @@
 use crate::{
     indicators::{indicator_type::IndicatorType, rsi::RSI},
     models::{
-        setups::setup::Setup,
-        strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries,
+        setups::setup::Setup, strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
         traits::trading_strategy::TradingStrategy,
     },
     resolution_strategies::{
@@ -134,7 +132,7 @@ impl RsiBasic {
 
 impl TradingStrategy for RsiBasic {
     fn find_reverse_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
-        self.find_setups_by_direction(ts, true)   
+        self.find_setups_by_direction(ts, true)
     }
 
     fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {

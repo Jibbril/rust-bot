@@ -3,9 +3,8 @@ use anyhow::Result;
 use crate::{
     indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
-        setups::setup::Setup,
-        strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries, traits::trading_strategy::TradingStrategy,
+        setups::setup::Setup, strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
+        traits::trading_strategy::TradingStrategy,
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
