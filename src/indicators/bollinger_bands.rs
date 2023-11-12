@@ -47,6 +47,14 @@ impl PopulatesCandles for BollingerBands {
         let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
         Self::populate_candles_args(ts, args)
     }
+
+    fn populate_last_candle(_ts: &mut TimeSeries) -> Result<()> {
+        todo!()
+    }
+
+    fn populate_last_candle_args(_ts: &mut TimeSeries, _args: IndicatorArgs) -> Result<()> {
+        todo!()
+    }
 }
 
 impl BollingerBands {

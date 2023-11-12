@@ -4,7 +4,7 @@ use anyhow::Result;
 use super::{candle::Candle, interval::Interval, websockets::websocket_payload::WebsocketPayload};
 use crate::{
     data_sources::{datasource::DataSource, local},
-    indicators::indicator_type::IndicatorType,
+    indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},
 };
 use std::collections::HashSet;
 
@@ -27,7 +27,13 @@ impl Handler<WebsocketPayload> for TimeSeries {
         if msg.ok {
             if let Some(candle) = msg.candle {
                 println!("Adding Candle:{:#?}", candle.clone());
-                self.add_candle(candle);
+                match self.add_candle(candle) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        // TODO: Error handling
+                        println!("Error adding candle: {:#?}", e)
+                    },
+                };
             }
         } else {
             println!(
@@ -51,11 +57,20 @@ impl TimeSeries {
         }
     }
 
-    fn add_candle(&mut self, candle: Candle) {
+    fn add_candle(&mut self, candle: Candle) -> Result<()> {
         // TODO: Perform checks of timestamp to ensure that no
         // duplicates are added, or that there has not been any
         // missed candles in between.
         self.candles.push(candle);
+
+        let indicator_types = self.indicators.clone();
+        for indicator_type in indicator_types {
+            indicator_type.populate_last_candle(self)?;
+        }
+
+        // println!("Added candle: {:#?}", self.candles.last());
+
+        Ok(())
     }
 
     pub fn dummy() -> Self {

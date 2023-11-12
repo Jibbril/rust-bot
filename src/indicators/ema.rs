@@ -47,6 +47,14 @@ impl PopulatesCandles for EMA {
 
         Ok(())
     }
+
+    fn populate_last_candle(_ts: &mut TimeSeries) -> Result<()> {
+        todo!()
+    }
+
+    fn populate_last_candle_args(_ts: &mut TimeSeries, _args: IndicatorArgs) -> Result<()> {
+        todo!()
+    }
 }
 
 impl EMA {

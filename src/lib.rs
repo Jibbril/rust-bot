@@ -18,12 +18,40 @@ use actix::Actor;
 use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
-use indicators::populates_candles::PopulatesCandlesWithSelf;
+use indicators::{populates_candles::PopulatesCandlesWithSelf, indicator_type::IndicatorType};
 use models::{interval::Interval, traits::trading_strategy::TradingStrategy};
 use notifications::notify;
 use tokio::time::{sleep, Duration};
 
-pub async fn run() -> Result<()> {
+
+pub async fn run_single_indicator() -> Result<()> {
+    // let len = ATR::default_args().extract_len_res()?;
+    let len = 3;
+    let indicator_type = IndicatorType::ATR(len);
+
+    let interval = Interval::Minute1;
+    let source = DataSource::Bybit;
+    let mut ts = source
+        .get_historical_data("BTCUSDT", &interval, len)
+        .await?;
+
+    
+    indicator_type.populate_candles(&mut ts)?;
+    println!("Ts:{:#?}", ts);
+
+    let mut client = WebsocketClient::new(source, interval);
+    let addr = ts.start();
+
+    client.add_observer(addr);
+    client.start();
+
+    // TODO: Enable check for whether new setups have arisen from updated indicators
+    loop {
+        sleep(Duration::from_secs(1)).await;
+    }
+}
+
+pub async fn run_strategy() -> Result<()> {
     let strategy = RsiBasic::new_default();
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;

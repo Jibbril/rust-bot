@@ -64,4 +64,14 @@ impl PopulatesCandlesWithSelf for IndicatorType {
             }
         }
     }
+
+    fn populate_last_candle(&self, ts: &mut TimeSeries) -> Result<()> {
+        match self {
+            IndicatorType::ATR(len) => {
+                let args = IndicatorArgs::LengthArg(*len);
+                ATR::populate_last_candle_args(ts, args)
+            }
+            _ => todo!()
+        }
+    }
 }

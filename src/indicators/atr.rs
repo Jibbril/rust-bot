@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result, Context};
 
 use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries};
 
@@ -40,12 +40,35 @@ impl PopulatesCandles for ATR {
     }
 
     fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
-        let args = IndicatorArgs::LengthArg(14);
+        let len = Self::default_args().extract_len_res()?;
+        let args = IndicatorArgs::LengthArg(len);
         Self::populate_candles_args(ts, args)
+    }
+
+    fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
+        let len = Self::default_args().extract_len_res()?;
+        let args = IndicatorArgs::LengthArg(len);
+        Self::populate_last_candle_args(ts, args)
+    }
+
+    fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+        let len = args.extract_len_res()?;
+        let prev = Self::get_prev_atr(ts, len);
+
+        let new_atr = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &prev);
+
+        let new_candle = ts.candles.last_mut().context("Unable to get last candle.")?;
+
+        new_candle.indicators.insert(IndicatorType::ATR(len), Indicator::ATR(new_atr));
+
+        Ok(())
     }
 }
 
 impl ATR {
+    pub fn default_args() -> IndicatorArgs {
+        IndicatorArgs::LengthArg(14)
+    }
     // Default implementation using closing values for calculations.
     pub fn calculate_rolling(
         len: usize,
@@ -112,6 +135,22 @@ impl ATR {
         let c = (curr.low - prev_price).abs();
 
         a.max(b).max(c)
+    }
+
+    fn get_prev_atr(ts: &TimeSeries, len: usize) -> Option<ATR> {
+        let candles_len = ts.candles.len();
+
+        if candles_len < 2 {
+            return None;
+        }
+
+        let indicator_type = IndicatorType::ATR(len);
+
+        let prev_atr = ts.candles.get(candles_len - 2)
+            .and_then(|candle| candle.indicators.get(&indicator_type))
+            .and_then(|indicator| indicator.as_atr());
+
+        prev_atr.clone()
     }
 }
 
