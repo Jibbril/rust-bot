@@ -9,7 +9,7 @@ mod utils;
 
 use crate::{
     indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI},
-    models::websockets::wsclient::WebsocketClient,
+    models::{websockets::wsclient::WebsocketClient, net_version::NetVersion},
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
     utils::save_setups,
@@ -25,21 +25,22 @@ use tokio::time::{sleep, Duration};
 
 
 pub async fn run_single_indicator() -> Result<()> {
-    // let len = ATR::default_args().extract_len_res()?;
-    let len = 3;
+    let len = ATR::default_args().extract_len_res()?;
+    // let len = 3;
     let indicator_type = IndicatorType::ATR(len);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
+    let net = NetVersion::Mainnet;
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, len)
+        .get_historical_data("BTCUSDT", &interval, len, &net)
         .await?;
 
     
     indicator_type.populate_candles(&mut ts)?;
     println!("Ts:{:#?}", ts);
 
-    let mut client = WebsocketClient::new(source, interval);
+    let mut client = WebsocketClient::new(source, interval, net);
     let addr = ts.start();
 
     client.add_observer(addr);
@@ -55,8 +56,9 @@ pub async fn run_strategy() -> Result<()> {
     let strategy = RsiBasic::new_default();
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
+    let net = NetVersion::Mainnet; 
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, strategy.max_length())
+        .get_historical_data("BTCUSDT", &interval, strategy.max_length(), &net)
         .await?;
     // ts.save_to_local(&source).await?;
     // let ts = source.load_local_data(symbol, &interval).await?;
@@ -65,7 +67,7 @@ pub async fn run_strategy() -> Result<()> {
         indicator_type.populate_candles(&mut ts)?;
     }
 
-    let mut client = WebsocketClient::new(source, interval);
+    let mut client = WebsocketClient::new(source, interval, net);
     let addr = ts.start();
 
     client.add_observer(addr);
@@ -84,8 +86,9 @@ pub async fn _run() -> Result<()> {
     // Get TimeSeries data
     let source = DataSource::Bybit;
     let interval = Interval::Day1;
+    let net = NetVersion::Mainnet; 
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, 1000)
+        .get_historical_data("BTCUSDT", &interval, 1000, &net)
         .await?;
 
     // Calculate indicators for TimeSeries

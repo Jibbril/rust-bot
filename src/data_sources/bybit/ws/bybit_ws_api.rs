@@ -1,6 +1,6 @@
 use crate::models::{
     interval::Interval,
-    websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient},
+    websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient}, net_version::NetVersion,
 };
 use actix::{spawn, Addr};
 use anyhow::{anyhow, Result};
@@ -34,8 +34,12 @@ impl BybitWebsocketApi {
         }
     }
 
-    pub async fn connect(&mut self) -> Result<()> {
-        let url = "wss://stream-testnet.bybit.com/v5/public/spot";
+    pub async fn connect(&mut self, net: &NetVersion) -> Result<()> {
+        let url = match net {
+            NetVersion::Testnet => "wss://stream-testnet.bybit.com/v5/public/spot",
+            NetVersion::Mainnet => "wss://stream.bybit.com/v5/public/spot",
+        };
+
         let (mut ws_stream, _) = connect_async(url).await?;
         self.subscribe_to_kline(&mut ws_stream).await?;
         Self::send_ping(None, &mut ws_stream).await?;

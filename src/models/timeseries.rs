@@ -26,7 +26,6 @@ impl Handler<WebsocketPayload> for TimeSeries {
     fn handle(&mut self, msg: WebsocketPayload, _ctx: &mut Context<Self>) -> Self::Result {
         if msg.ok {
             if let Some(candle) = msg.candle {
-                println!("Adding Candle:{:#?}", candle.clone());
                 match self.add_candle(candle) {
                     Ok(_) => (),
                     Err(e) => {

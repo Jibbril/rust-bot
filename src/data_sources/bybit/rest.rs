@@ -1,15 +1,13 @@
 use anyhow::{anyhow, Result};
 use reqwest::Client;
-
 use crate::{
     data_sources::api_response::ApiResponse,
-    models::{interval::Interval, timeseries::TimeSeries},
+    models::{interval::Interval, timeseries::TimeSeries, net_version::NetVersion},
 };
-
 use super::bybit_structs::BybitApiResponse;
 
-pub async fn get(symbol: &str, interval: &Interval, len: usize) -> Result<TimeSeries> {
-    let url = generate_url(symbol, interval, len)?;
+pub async fn get(symbol: &str, interval: &Interval, len: usize, net: &NetVersion) -> Result<TimeSeries> {
+    let url = generate_url(symbol, interval, len, net)?;
 
     let client = Client::new();
     let response = client.get(url).send().await?;
@@ -25,7 +23,7 @@ pub async fn get(symbol: &str, interval: &Interval, len: usize) -> Result<TimeSe
     }
 }
 
-fn generate_url(symbol: &str, interval: &Interval, len: usize) -> Result<String> {
+fn generate_url(symbol: &str, interval: &Interval, len: usize, net: &NetVersion) -> Result<String> {
     let interval = match interval {
         Interval::Minute1 => "1",
         Interval::Minute5 => "5",
@@ -39,8 +37,13 @@ fn generate_url(symbol: &str, interval: &Interval, len: usize) -> Result<String>
         _ => return Err(anyhow!("Bybit does not support this interval.")),
     };
 
+    let base = match net {
+        NetVersion::Testnet => "https://api-testnet.bybit.com",
+        NetVersion::Mainnet => "https://api.bybit.com",
+    };
+
     Ok(format!(
-        "https://api.bybit.com/v5/market/kline?category=spot&symbol={}&interval={}&limit={}",
-        symbol, interval, len
+        "{}/v5/market/kline?category=spot&symbol={}&interval={}&limit={}",
+        base, symbol, interval, len
     ))
 }

@@ -4,7 +4,7 @@ use super::{
     coinmarketcap, cryptocompare, local,
 };
 use crate::models::{
-    interval::Interval, timeseries::TimeSeries, websockets::wsclient::WebsocketClient,
+    interval::Interval, timeseries::TimeSeries, websockets::wsclient::WebsocketClient, net_version::NetVersion,
 };
 use actix::Addr;
 use anyhow::{anyhow, Result};
@@ -31,11 +31,12 @@ impl DataSource {
         symbol: &str,
         interval: &Interval,
         len: usize,
+        net: &NetVersion,
     ) -> Result<TimeSeries> {
         let ts = match self {
             DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
             DataSource::Bitfinex => bitfinex::rest::get(symbol, &interval).await?,
-            DataSource::Bybit => bybit::rest::get(symbol, &interval, len).await?,
+            DataSource::Bybit => bybit::rest::get(symbol, &interval, len, net).await?,
             DataSource::CoinMarketCap => coinmarketcap::get().await?,
             DataSource::CryptoCompare(exchange) => {
                 cryptocompare::get(symbol, &interval, exchange.clone()).await?
@@ -49,12 +50,13 @@ impl DataSource {
         &self,
         client: Addr<WebsocketClient>,
         interval: Interval,
+        net: &NetVersion
     ) -> Result<()> {
         match self {
             DataSource::Bitfinex => bitfinex::ws::connect_ws(&client, &interval).await?,
             DataSource::Bybit => {
                 let mut api = BybitWebsocketApi::new(&client, interval);
-                api.connect().await?
+                api.connect(net).await?
             }
             _ => {
                 let err = format!("{} does not support websockets", self);
