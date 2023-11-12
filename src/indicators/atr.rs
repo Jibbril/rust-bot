@@ -1,4 +1,4 @@
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 
 use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries};
 
@@ -40,15 +40,11 @@ impl PopulatesCandles for ATR {
     }
 
     fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
-        let len = Self::default_args().extract_len_res()?;
-        let args = IndicatorArgs::LengthArg(len);
-        Self::populate_candles_args(ts, args)
+        Self::populate_candles_args(ts, Self::default_args())
     }
 
     fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
-        let len = Self::default_args().extract_len_res()?;
-        let args = IndicatorArgs::LengthArg(len);
-        Self::populate_last_candle_args(ts, args)
+        Self::populate_last_candle_args(ts, Self::default_args())
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
@@ -57,9 +53,14 @@ impl PopulatesCandles for ATR {
 
         let new_atr = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &prev);
 
-        let new_candle = ts.candles.last_mut().context("Unable to get last candle.")?;
+        let new_candle = ts
+            .candles
+            .last_mut()
+            .context("Unable to get last candle.")?;
 
-        new_candle.indicators.insert(IndicatorType::ATR(len), Indicator::ATR(new_atr));
+        new_candle
+            .indicators
+            .insert(IndicatorType::ATR(len), Indicator::ATR(new_atr));
 
         Ok(())
     }
@@ -146,7 +147,9 @@ impl ATR {
 
         let indicator_type = IndicatorType::ATR(len);
 
-        let prev_atr = ts.candles.get(candles_len - 2)
+        let prev_atr = ts
+            .candles
+            .get(candles_len - 2)
             .and_then(|candle| candle.indicators.get(&indicator_type))
             .and_then(|indicator| indicator.as_atr());
 

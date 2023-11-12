@@ -1,12 +1,17 @@
-use anyhow::{anyhow, Result};
-use reqwest::Client;
+use super::bybit_structs::BybitApiResponse;
 use crate::{
     data_sources::api_response::ApiResponse,
-    models::{interval::Interval, timeseries::TimeSeries, net_version::NetVersion},
+    models::{interval::Interval, net_version::NetVersion, timeseries::TimeSeries},
 };
-use super::bybit_structs::BybitApiResponse;
+use anyhow::{anyhow, Result};
+use reqwest::Client;
 
-pub async fn get(symbol: &str, interval: &Interval, len: usize, net: &NetVersion) -> Result<TimeSeries> {
+pub async fn get(
+    symbol: &str,
+    interval: &Interval,
+    len: usize,
+    net: &NetVersion,
+) -> Result<TimeSeries> {
     let url = generate_url(symbol, interval, len, net)?;
 
     let client = Client::new();

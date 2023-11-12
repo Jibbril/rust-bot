@@ -9,7 +9,7 @@ mod utils;
 
 use crate::{
     indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI},
-    models::{websockets::wsclient::WebsocketClient, net_version::NetVersion},
+    models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
     utils::save_setups,
@@ -18,11 +18,10 @@ use actix::Actor;
 use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
-use indicators::{populates_candles::PopulatesCandlesWithSelf, indicator_type::IndicatorType};
+use indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf};
 use models::{interval::Interval, traits::trading_strategy::TradingStrategy};
 use notifications::notify;
 use tokio::time::{sleep, Duration};
-
 
 pub async fn run_single_indicator() -> Result<()> {
     let len = ATR::default_args().extract_len_res()?;
@@ -36,7 +35,6 @@ pub async fn run_single_indicator() -> Result<()> {
         .get_historical_data("BTCUSDT", &interval, len, &net)
         .await?;
 
-    
     indicator_type.populate_candles(&mut ts)?;
     println!("Ts:{:#?}", ts);
 
@@ -56,7 +54,7 @@ pub async fn run_strategy() -> Result<()> {
     let strategy = RsiBasic::new_default();
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
-    let net = NetVersion::Mainnet; 
+    let net = NetVersion::Mainnet;
     let mut ts = source
         .get_historical_data("BTCUSDT", &interval, strategy.max_length(), &net)
         .await?;
@@ -86,7 +84,7 @@ pub async fn _run() -> Result<()> {
     // Get TimeSeries data
     let source = DataSource::Bybit;
     let interval = Interval::Day1;
-    let net = NetVersion::Mainnet; 
+    let net = NetVersion::Mainnet;
     let mut ts = source
         .get_historical_data("BTCUSDT", &interval, 1000, &net)
         .await?;

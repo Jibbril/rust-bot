@@ -4,7 +4,8 @@ use super::{
     coinmarketcap, cryptocompare, local,
 };
 use crate::models::{
-    interval::Interval, timeseries::TimeSeries, websockets::wsclient::WebsocketClient, net_version::NetVersion,
+    interval::Interval, net_version::NetVersion, timeseries::TimeSeries,
+    websockets::wsclient::WebsocketClient,
 };
 use actix::Addr;
 use anyhow::{anyhow, Result};
@@ -50,7 +51,7 @@ impl DataSource {
         &self,
         client: Addr<WebsocketClient>,
         interval: Interval,
-        net: &NetVersion
+        net: &NetVersion,
     ) -> Result<()> {
         match self {
             DataSource::Bitfinex => bitfinex::ws::connect_ws(&client, &interval).await?,

@@ -71,7 +71,7 @@ impl PopulatesCandlesWithSelf for IndicatorType {
                 let args = IndicatorArgs::LengthArg(*len);
                 ATR::populate_last_candle_args(ts, args)
             }
-            _ => todo!()
+            _ => todo!(),
         }
     }
 }

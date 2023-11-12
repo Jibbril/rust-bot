@@ -1,6 +1,7 @@
 use crate::models::{
     interval::Interval,
-    websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient}, net_version::NetVersion,
+    net_version::NetVersion,
+    websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient},
 };
 use actix::{spawn, Addr};
 use anyhow::{anyhow, Result};

@@ -31,7 +31,7 @@ impl Handler<WebsocketPayload> for TimeSeries {
                     Err(e) => {
                         // TODO: Error handling
                         println!("Error adding candle: {:#?}", e)
-                    },
+                    }
                 };
             }
         } else {

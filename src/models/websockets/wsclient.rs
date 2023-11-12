@@ -1,7 +1,7 @@
 use super::websocket_payload::WebsocketPayload;
 use crate::{
     data_sources::datasource::DataSource,
-    models::{interval::Interval, timeseries::TimeSeries, net_version::NetVersion},
+    models::{interval::Interval, net_version::NetVersion, timeseries::TimeSeries},
 };
 use actix::{Actor, Addr, AsyncContext, Context, Handler, WrapFuture};
 
