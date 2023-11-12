@@ -1,6 +1,8 @@
+use crate::models::timeseries::TimeSeries;
+
 use super::{
     atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivot,
-    ema::EMA, rsi::RSI, sma::SMA,
+    ema::EMA, rsi::RSI, sma::SMA, indicator_type::IndicatorType,
 };
 
 #[allow(dead_code)]
@@ -22,6 +24,27 @@ pub enum MovingAverage {
 }
 
 impl Indicator {
+    /// Returns the second last indicator of the given type for the given TimeSeries.
+    /// 
+    /// # Arguments
+    /// * `ts` - The TimeSeries to get the second last indicator from.
+    /// * `indicator_type` - The type of indicator to get the second last indicator of.
+    pub fn get_second_last(ts: &TimeSeries, indicator_type: &IndicatorType) -> Option<Indicator> {
+        let candles_len = ts.candles.len();
+
+        if candles_len < 2 {
+            return None;
+        }
+
+        let prev = ts
+            .candles
+            .get(candles_len - 2)
+            .and_then(|candle| candle.indicators.get(&indicator_type))
+            .and_then(|indicator| Some(indicator.clone()));
+
+        prev.clone()
+    }
+
     pub fn as_sma(&self) -> Option<SMA> {
         let ma = match self {
             Indicator::MA(ma) => ma,

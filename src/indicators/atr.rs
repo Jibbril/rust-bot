@@ -4,7 +4,7 @@ use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeserie
 
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    populates_candles::PopulatesCandles,
+    populates_candles::PopulatesCandles, is_indicator::IsIndicator,
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -49,7 +49,9 @@ impl PopulatesCandles for ATR {
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
-        let prev = Self::get_prev_atr(ts, len);
+        let indicator_type = IndicatorType::ATR(len);
+        let prev = Indicator::get_second_last(ts, &indicator_type)
+            .and_then(|indicator| indicator.as_atr());
 
         let new_atr = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &prev);
 
@@ -67,9 +69,6 @@ impl PopulatesCandles for ATR {
 }
 
 impl ATR {
-    pub fn default_args() -> IndicatorArgs {
-        IndicatorArgs::LengthArg(14)
-    }
     // Default implementation using closing values for calculations.
     pub fn calculate_rolling(
         len: usize,
@@ -138,25 +137,13 @@ impl ATR {
         a.max(b).max(c)
     }
 
-    fn get_prev_atr(ts: &TimeSeries, len: usize) -> Option<ATR> {
-        let candles_len = ts.candles.len();
-
-        if candles_len < 2 {
-            return None;
-        }
-
-        let indicator_type = IndicatorType::ATR(len);
-
-        let prev_atr = ts
-            .candles
-            .get(candles_len - 2)
-            .and_then(|candle| candle.indicators.get(&indicator_type))
-            .and_then(|indicator| indicator.as_atr());
-
-        prev_atr.clone()
-    }
 }
 
+impl IsIndicator for ATR {
+    fn default_args() -> IndicatorArgs {
+        IndicatorArgs::LengthArg(14)
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::ATR;

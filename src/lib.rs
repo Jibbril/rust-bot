@@ -24,9 +24,9 @@ use notifications::notify;
 use tokio::time::{sleep, Duration};
 
 pub async fn run_single_indicator() -> Result<()> {
-    let len = ATR::default_args().extract_len_res()?;
-    // let len = 3;
-    let indicator_type = IndicatorType::ATR(len);
+    // let len = ATR::default_args().extract_len_res()?;
+    let len = 3;
+    let indicator_type = IndicatorType::SMA(len);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;

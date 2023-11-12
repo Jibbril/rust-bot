@@ -71,7 +71,34 @@ impl PopulatesCandlesWithSelf for IndicatorType {
                 let args = IndicatorArgs::LengthArg(*len);
                 ATR::populate_last_candle_args(ts, args)
             }
-            _ => todo!(),
+            IndicatorType::BBW(len) => {
+                let args = IndicatorArgs::BollingerBandArgs(*len, 2.0);
+                BBW::populate_last_candle_args(ts, args)
+            }
+            IndicatorType::BBWP(len, lookback) => {
+                let args = IndicatorArgs::BBWPArgs(*len, *lookback, 5);
+                BBWP::populate_last_candle_args(ts, args)
+            }
+            IndicatorType::BollingerBands(len) => {
+                let args = IndicatorArgs::BollingerBandArgs(*len, 2.0);
+                BollingerBands::populate_last_candle_args(ts, args)
+            }
+            IndicatorType::DynamicPivot(len) => {
+                let args = IndicatorArgs::LengthArg(*len);
+                DynamicPivot::populate_last_candle_args(ts, args)
+            }
+            IndicatorType::EMA(len) => {
+                let args = IndicatorArgs::LengthArg(*len);
+                EMA::populate_last_candle_args(ts, args)
+            }
+            IndicatorType::RSI(len) => {
+                let args = IndicatorArgs::LengthArg(*len);
+                RSI::populate_last_candle_args(ts, args)
+            }
+            IndicatorType::SMA(len) => {
+                let args = IndicatorArgs::LengthArg(*len);
+                SMA::populate_last_candle_args(ts, args)
+            }
         }
     }
 }
