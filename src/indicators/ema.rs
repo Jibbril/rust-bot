@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result, Context};
 
 use crate::{
     models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
@@ -9,7 +9,7 @@ use super::{
     indicator::{Indicator, MovingAverage},
     indicator_args::IndicatorArgs,
     indicator_type::IndicatorType,
-    populates_candles::PopulatesCandles,
+    populates_candles::PopulatesCandles, is_indicator::IsIndicator,
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
@@ -21,9 +21,9 @@ pub struct EMA {
 
 impl PopulatesCandles for EMA {
     fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
-        let args = IndicatorArgs::LengthArg(8);
-        Self::populate_candles_args(ts, args)
+        Self::populate_candles_args(ts, Self::default_args())
     }
+
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let mut ema: Option<EMA> = None;
@@ -48,12 +48,32 @@ impl PopulatesCandles for EMA {
         Ok(())
     }
 
-    fn populate_last_candle(_ts: &mut TimeSeries) -> Result<()> {
-        todo!()
+    fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
     }
 
-    fn populate_last_candle_args(_ts: &mut TimeSeries, _args: IndicatorArgs) -> Result<()> {
-        todo!()
+    fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+        let len = args.extract_len_res()?;
+        let indicator_type = IndicatorType::EMA(len);
+
+        let previous_ema = Indicator::get_second_last(ts, &indicator_type)
+            .and_then(|ema| ema.as_ema());
+
+        let new_ema = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &previous_ema);
+        let new_ema = MovingAverage::Exponential(new_ema);
+        let new_ema = Indicator::MA(new_ema);
+
+        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
+
+        new_candle.indicators.insert(indicator_type, new_ema);
+
+        Ok(())
+    }
+}
+
+impl IsIndicator for EMA {
+    fn default_args() -> IndicatorArgs {
+        IndicatorArgs::LengthArg(8)
     }
 }
 
