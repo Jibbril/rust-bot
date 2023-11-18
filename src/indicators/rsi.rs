@@ -1,17 +1,16 @@
-use anyhow::Result;
+use anyhow::{Result, Context};
 use serde::Serialize;
 
 use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries};
 
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    populates_candles::PopulatesCandles,
+    populates_candles::PopulatesCandles, is_indicator::IsIndicator,
 };
 
 #[derive(Debug, Copy, Clone, Serialize, PartialEq, PartialOrd)]
 pub struct RSI {
     pub value: f64,
-    #[allow(dead_code)] // TODO: Remove once used
     pub len: usize,
     pub avg_gain: f64,
     pub avg_loss: f64,
@@ -19,8 +18,7 @@ pub struct RSI {
 
 impl PopulatesCandles for RSI {
     fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
-        let args = IndicatorArgs::LengthArg(14);
-        Self::populate_candles_args(ts, args)
+        Self::populate_candles_args(ts, Self::default_args())
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
@@ -28,7 +26,7 @@ impl PopulatesCandles for RSI {
         let mut rsi: Option<RSI> = None;
         let new_rsis: Vec<Option<RSI>> = (0..ts.candles.len())
             .map(|i| {
-                rsi = Self::calculate_rolling(i, &ts.candles, &rsi);
+                rsi = Self::calculate_rolling(len, i, &ts.candles, &rsi);
                 rsi
             })
             .collect();
@@ -46,23 +44,42 @@ impl PopulatesCandles for RSI {
         Ok(())
     }
 
-    fn populate_last_candle(_ts: &mut TimeSeries) -> Result<()> {
-        todo!()
+    fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_last_candle_args(ts, Self::default_args())
     }
 
-    fn populate_last_candle_args(_ts: &mut TimeSeries, _args: IndicatorArgs) -> Result<()> {
-        todo!()
+    fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+        let len = args.extract_len_res()?;
+        let indicator_type = IndicatorType::RSI(len);
+
+        let previous_rsi = Indicator::get_second_last(ts, &indicator_type)
+            .and_then(|rsi| rsi.as_rsi());
+
+        let new_rsi = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &previous_rsi);
+        let new_rsi = Indicator::RSI(new_rsi);
+
+        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
+        new_candle.indicators.insert(indicator_type, new_rsi);
+
+        Ok(())
+    }
+}
+
+impl IsIndicator for RSI {
+    fn default_args() -> IndicatorArgs {
+        IndicatorArgs::LengthArg(14)
     }
 }
 
 impl RSI {
     // Default implementation using closing values and for calculations.
     pub fn calculate_rolling(
+        len: usize,
         i: usize,
         candles: &Vec<Candle>,
         prev_rsi: &Option<RSI>,
     ) -> Option<RSI> {
-        Self::calculate_rolling_with_opts(14, i, candles, CalculationMode::Close, prev_rsi)
+        Self::calculate_rolling_with_opts(len, i, candles, CalculationMode::Close, prev_rsi)
     }
 
     fn calculate_rolling_with_opts(
@@ -100,13 +117,15 @@ impl RSI {
                 avg_loss: losses / f_len,
             })
         } else {
-            Self::calculate(i, candles)
+            Self::calculate_with_opts(len, i, candles, mode)
         }
     }
 
     // Default implementation using closing values for calculations.
+    #[allow(dead_code)]
     pub fn calculate(i: usize, candles: &Vec<Candle>) -> Option<RSI> {
-        Self::calculate_with_opts(14, i, candles, CalculationMode::Close)
+        let len = Self::default_args().extract_len_opt()?;
+        Self::calculate_with_opts(len, i, candles, CalculationMode::Close)
     }
 
     fn calculate_with_opts(
@@ -118,20 +137,25 @@ impl RSI {
         if i < len - 1 || len > candles.len() {
             None
         } else {
-            let f_len = len as f64;
             let start = i + 1 - len;
             let end = i + 1;
             let segment = &candles[start..end];
 
-            let (gains, losses) = Self::get_outcomes(segment, mode);
+            let (avg_gain, avg_loss) = Self::get_outcomes(segment, mode);
 
-            let rs = if losses != 0.0 { gains / losses } else { 0.0 };
+            let rs = if avg_loss != 0.0 { avg_gain / avg_loss } else { f64::INFINITY };
+
+            let rsi = if rs.is_infinite() {
+                100.0
+            } else {
+                100.0 - 100.0 / (1.0 + rs)
+            };
 
             Some(RSI {
                 len,
-                value: 100.0 - 100.0 / (1.0 + rs),
-                avg_gain: gains / f_len,
-                avg_loss: losses / f_len,
+                value: rsi,
+                avg_gain,
+                avg_loss,
             })
         }
     }
@@ -152,14 +176,16 @@ impl RSI {
             }
         }
 
-        (gains, losses)
+        let f_len = segment.len() as f64;
+
+        (gains/f_len, losses/f_len)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        indicators::rsi::RSI,
+        indicators::{rsi::RSI, is_indicator::IsIndicator},
         models::{calculation_mode::CalculationMode, candle::Candle},
     };
 
@@ -194,10 +220,11 @@ mod tests {
         let n = 20;
         let candles = Candle::dummy_data(n, "alternating", 100.0);
         let mut rsi = None;
+        let len = RSI::default_args().extract_len_opt().unwrap();
 
         let rsis: Vec<Option<RSI>> = (0..n)
             .map(|i| {
-                rsi = RSI::calculate_rolling(i, &candles, &rsi);
+                rsi = RSI::calculate_rolling(len, i, &candles, &rsi);
                 rsi
             })
             .collect();

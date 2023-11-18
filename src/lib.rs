@@ -25,14 +25,14 @@ use tokio::time::{sleep, Duration};
 
 pub async fn run_single_indicator() -> Result<()> {
     // let len = ATR::default_args().extract_len_res()?;
-    let len = 3;
-    let indicator_type = IndicatorType::EMA(len);
+    let len = 14;
+    let indicator_type = IndicatorType::RSI(len);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, len, &net)
+        .get_historical_data("BTCUSDT", &interval, len+50, &net)
         .await?;
 
     indicator_type.populate_candles(&mut ts)?;
@@ -56,7 +56,7 @@ pub async fn run_strategy() -> Result<()> {
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, strategy.max_length(), &net)
+        .get_historical_data("BTCUSDT", &interval, strategy.max_length() + 50, &net)
         .await?;
     // ts.save_to_local(&source).await?;
     // let ts = source.load_local_data(symbol, &interval).await?;
@@ -77,6 +77,25 @@ pub async fn run_strategy() -> Result<()> {
         sleep(Duration::from_secs(1)).await;
     }
 }
+
+pub async fn run_historical() -> Result<()> {
+    dotenv().ok();
+
+    // Get TimeSeries data
+    let source = DataSource::Bybit;
+    let interval = Interval::Day1;
+    let net = NetVersion::Mainnet;
+    let mut ts = source
+        .get_historical_data("BTCUSDT", &interval, 19, &net)
+        .await?;
+
+    RSI::populate_candles(&mut ts)?;
+
+    println!("Candles:{:#?}", ts.candles);
+
+    Ok(())
+}
+
 
 pub async fn _run() -> Result<()> {
     dotenv().ok();

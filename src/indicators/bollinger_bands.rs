@@ -119,7 +119,7 @@ impl BollingerBands {
             return None;
         } else if let Some(_prev_bb) = previous_bb {
             Self::calculate(args, i, candles)
-            // BELOW PRODUCES INCORRECT RESULTS, FIND BETTER ALGORITHM
+            // TODO: BELOW PRODUCES INCORRECT RESULTS, FIND BETTER ALGORITHM
             // let f_len = len as f64;
             // let price_in = Self::typical_price(&candles[i]);
             // let price_out = Self::typical_price(&candles[i - len]);
