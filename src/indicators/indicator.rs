@@ -24,25 +24,35 @@ pub enum MovingAverage {
 }
 
 impl Indicator {
+    /// Returns the nth last indicator of the given type for the given TimeSeries.
+    /// 
+    /// # Arguments
+    /// * `ts` - The TimeSeries to get the nth last indicator from.
+    /// * `indicator_type` - The type of indicator to get the nth last indicator of.
+    /// * `i` - The index of the indicator to get. 0 Is last, 1 is second last, etc.
+    pub fn get_nth_last(ts: &TimeSeries, indicator_type: &IndicatorType, i: usize) -> Option<Indicator> {
+        let candles_len = ts.candles.len();
+
+        if candles_len < i + 1 {
+            return None;
+        }
+
+        let prev = ts
+            .candles
+            .get(candles_len - 1 - i)
+            .and_then(|candle| candle.indicators.get(&indicator_type))
+            .and_then(|indicator| Some(indicator.clone()));
+
+        prev.clone()
+    }
+
     /// Returns the second last indicator of the given type for the given TimeSeries.
     /// 
     /// # Arguments
     /// * `ts` - The TimeSeries to get the second last indicator from.
     /// * `indicator_type` - The type of indicator to get the second last indicator of.
     pub fn get_second_last(ts: &TimeSeries, indicator_type: &IndicatorType) -> Option<Indicator> {
-        let candles_len = ts.candles.len();
-
-        if candles_len < 2 {
-            return None;
-        }
-
-        let prev = ts
-            .candles
-            .get(candles_len - 2)
-            .and_then(|candle| candle.indicators.get(&indicator_type))
-            .and_then(|indicator| Some(indicator.clone()));
-
-        prev.clone()
+        Self::get_nth_last(ts, indicator_type, 2)
     }
 
     pub fn as_sma(&self) -> Option<SMA> {

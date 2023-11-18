@@ -26,7 +26,7 @@ use tokio::time::{sleep, Duration};
 pub async fn run_single_indicator() -> Result<()> {
     // let len = ATR::default_args().extract_len_res()?;
     let len = 14;
-    let indicator_type = IndicatorType::RSI(len);
+    let indicator_type = IndicatorType::DynamicPivot(len);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
