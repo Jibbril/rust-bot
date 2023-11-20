@@ -8,7 +8,7 @@ mod trading_strategies;
 mod utils;
 
 use crate::{
-    indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI},
+    indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI, is_indicator::IsIndicator},
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
@@ -25,14 +25,14 @@ use tokio::time::{sleep, Duration};
 
 pub async fn run_single_indicator() -> Result<()> {
     // let len = ATR::default_args().extract_len_res()?;
-    let len = 14;
-    let indicator_type = IndicatorType::DynamicPivot(len);
+    let (len, lookback, _) = BBWP::default_args().extract_bbwp_res()?;
+    let indicator_type = IndicatorType::BBWP(len, lookback);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, len+50, &net)
+        .get_historical_data("BTCUSDT", &interval, len+300, &net)
         .await?;
 
     indicator_type.populate_candles(&mut ts)?;
@@ -56,7 +56,7 @@ pub async fn run_strategy() -> Result<()> {
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, strategy.max_length() + 50, &net)
+        .get_historical_data("BTCUSDT", &interval, strategy.max_length() + 300, &net)
         .await?;
     // ts.save_to_local(&source).await?;
     // let ts = source.load_local_data(symbol, &interval).await?;

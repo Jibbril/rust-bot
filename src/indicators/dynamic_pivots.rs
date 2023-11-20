@@ -70,7 +70,6 @@ impl PopulatesCandles for DynamicPivot {
 
         let new_candle = ts.candles.get_mut(offset).context("Failed to get candle")?;
         new_candle.indicators.insert(indicator_type, new_pivots);
-        println!("Updated Candle: {:#?}", new_candle);
 
         Ok(())
     }
