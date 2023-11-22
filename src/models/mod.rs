@@ -7,3 +7,4 @@ pub mod strategy_orientation;
 pub mod timeseries;
 pub mod traits;
 pub mod websockets;
+pub mod candle_added_payload;
