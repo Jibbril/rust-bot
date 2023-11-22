@@ -4,7 +4,7 @@ use crate::{
 };
 use anyhow::{anyhow, Result};
 use reqwest::Client;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub async fn get(symbol: &str, interval: &Interval) -> Result<TimeSeries> {
     let url = generate_url(symbol, interval)?;
@@ -69,10 +69,9 @@ fn generate_timeseries(
         return Err(anyhow!("Bitfinex request failed."));
     }
 
-    Ok(TimeSeries {
-        ticker: symbol.to_string(),
-        interval: interval.clone(),
+    Ok(TimeSeries::new(
+        symbol.to_string(),
+        interval.clone(),
         candles,
-        indicators: HashSet::new(),
-    })
+    ))
 }

@@ -1,7 +1,7 @@
-use actix::{Actor, Context, Handler};
+use actix::{Actor, Context, Handler, Addr};
 use anyhow::Result;
 
-use super::{candle::Candle, interval::Interval, websockets::websocket_payload::WebsocketPayload};
+use super::{candle::Candle, interval::Interval, websockets::websocket_payload::WebsocketPayload, setups::setup_finder::SetupFinder};
 use crate::{
     data_sources::{datasource::DataSource, local},
     indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},
@@ -14,6 +14,7 @@ pub struct TimeSeries {
     pub interval: Interval,
     pub candles: Vec<Candle>,
     pub indicators: HashSet<IndicatorType>,
+    pub observers: Vec<Addr<SetupFinder>>,
 }
 
 impl Actor for TimeSeries {
@@ -53,6 +54,7 @@ impl TimeSeries {
             interval,
             candles,
             indicators: HashSet::new(),
+            observers: vec![],
         }
     }
 
@@ -73,12 +75,11 @@ impl TimeSeries {
     }
 
     pub fn dummy() -> Self {
-        TimeSeries {
-            ticker: "DUMMY".to_string(),
-            interval: Interval::Day1,
-            candles: Vec::new(),
-            indicators: HashSet::new(),
-        }
+        Self::new(
+            "DUMMY".to_string(),
+            Interval::Day1,
+            Vec::new(),
+        )
     }
 
     #[allow(dead_code)]

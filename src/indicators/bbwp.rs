@@ -207,7 +207,7 @@ mod tests {
     use super::BBWP;
     use crate::{
         indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandles},
-        models::{candle::Candle, timeseries::TimeSeries},
+        models::{candle::Candle, timeseries::TimeSeries, interval::Interval},
     };
     use std::collections::HashSet;
 
@@ -251,12 +251,11 @@ mod tests {
         ];
         let candles = Candle::dummy_from_increments(&arr);
 
-        let mut ts = TimeSeries {
-            candles,
-            ticker: "DUMMY".to_string(),
-            interval: crate::models::interval::Interval::Day1,
-            indicators: HashSet::new(),
-        };
+        let mut ts = TimeSeries::new(
+            "DUMMY".to_string(),
+            Interval::Day1,
+            candles
+        );
 
         BBWP::populate_candles(&mut ts).unwrap();
 
@@ -288,6 +287,7 @@ mod tests {
             ticker: "DUMMY".to_string(),
             interval: crate::models::interval::Interval::Day1,
             indicators: HashSet::new(),
+            observers: vec![],
         };
 
         BBWP::populate_candles(&mut ts).unwrap();
@@ -313,6 +313,7 @@ mod tests {
             ticker: "DUMMY".to_string(),
             interval: crate::models::interval::Interval::Day1,
             indicators: HashSet::new(),
+            observers: vec![],
         };
 
         BBWP::populate_candles(&mut ts).unwrap();

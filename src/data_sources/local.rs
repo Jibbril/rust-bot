@@ -4,7 +4,6 @@ use csv::Reader;
 use crate::models::{candle::Candle, interval::Interval, timeseries::TimeSeries};
 
 use std::{
-    collections::HashSet,
     fs::{create_dir_all, File},
     path::Path,
 };
@@ -26,12 +25,11 @@ pub async fn read(source: &DataSource, symbol: &str, interval: &Interval) -> Res
         candles.push(candle);
     }
 
-    Ok(TimeSeries {
-        ticker: symbol.to_string(),
-        interval: interval.clone(),
+    Ok(TimeSeries::new(
+        symbol.to_string(),
+        interval.clone(),
         candles,
-        indicators: HashSet::new(),
-    })
+    ))
 }
 
 #[allow(dead_code)]

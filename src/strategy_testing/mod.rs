@@ -156,7 +156,7 @@ mod tests {
         trading_strategies::rsi_basic::RsiBasic,
     };
     use chrono::{Duration, Utc};
-    use std::collections::{HashMap, HashSet};
+    use std::collections::HashMap;
 
     #[test]
     fn test_empty_arrays() {
@@ -185,12 +185,11 @@ mod tests {
         candles.append(&mut Candle::dummy_data(10, "positive", 100.0));
         candles.append(&mut Candle::dummy_data(10, "negative", 200.0));
 
-        let mut ts = TimeSeries {
+        let mut ts = TimeSeries::new(
+            "TEST".to_string(),
+            Interval::Day1,
             candles,
-            ticker: "TEST".to_string(),
-            interval: Interval::Day1,
-            indicators: HashSet::new(),
-        };
+        );
 
         // Populate rsi indicator
         let args = IndicatorArgs::LengthArg(14);

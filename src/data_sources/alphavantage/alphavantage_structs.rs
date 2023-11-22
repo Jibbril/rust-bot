@@ -1,6 +1,6 @@
 use anyhow::Result;
 use serde::Deserialize;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use crate::{
     data_sources::api_response::ApiResponse,
@@ -99,12 +99,11 @@ impl ApiResponse for AlphaVantageApiResponse {
         candles.map(|mut candles| {
             candles.sort_by_key(|candle| candle.timestamp);
 
-            TimeSeries {
-                ticker: symbol.to_string(),
-                interval: interval.clone(),
+            TimeSeries::new(
+                symbol.to_string(),
+                interval.clone(),
                 candles,
-                indicators: HashSet::new(),
-            }
+            )
         })
     }
 }
