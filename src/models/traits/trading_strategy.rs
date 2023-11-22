@@ -3,7 +3,7 @@ use crate::{
     models::{setups::setup::Setup, timeseries::TimeSeries},
 };
 use anyhow::Result;
-use std::fmt::{Display,Debug};
+use std::fmt::{Debug, Display};
 
 pub trait TradingStrategy: Display + Debug {
     fn max_length(&self) -> usize;

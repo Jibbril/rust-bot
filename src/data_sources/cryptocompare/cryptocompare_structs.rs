@@ -52,11 +52,7 @@ impl ApiResponse for CryptoCompareApiResponse {
             // historical data here.
             candles.pop();
 
-            TimeSeries::new(
-                symbol.to_string(),
-                interval.clone(),
-                candles,
-            )
+            TimeSeries::new(symbol.to_string(), interval.clone(), candles)
         })
     }
 }

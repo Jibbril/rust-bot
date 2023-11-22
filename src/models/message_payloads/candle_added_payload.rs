@@ -1,5 +1,5 @@
-use actix::Message;
 use crate::models::candle::Candle;
+use actix::Message;
 
 #[derive(Debug, Clone)]
 pub struct CandleAddedPayload {

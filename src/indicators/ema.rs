@@ -1,4 +1,4 @@
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 
 use crate::{
     models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
@@ -9,7 +9,8 @@ use super::{
     indicator::{Indicator, MovingAverage},
     indicator_args::IndicatorArgs,
     indicator_type::IndicatorType,
-    populates_candles::PopulatesCandles, is_indicator::IsIndicator,
+    is_indicator::IsIndicator,
+    populates_candles::PopulatesCandles,
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
@@ -56,10 +57,11 @@ impl PopulatesCandles for EMA {
         let len = args.extract_len_res()?;
         let indicator_type = IndicatorType::EMA(len);
 
-        let previous_ema = Indicator::get_second_last(ts, &indicator_type)
-            .and_then(|ema| ema.as_ema());
+        let previous_ema =
+            Indicator::get_second_last(ts, &indicator_type).and_then(|ema| ema.as_ema());
 
-        let new_ema = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &previous_ema);
+        let new_ema =
+            Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &previous_ema);
         let new_ema = MovingAverage::Exponential(new_ema);
         let new_ema = Indicator::MA(new_ema);
 

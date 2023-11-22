@@ -4,7 +4,7 @@ use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeserie
 
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    populates_candles::PopulatesCandles, is_indicator::IsIndicator,
+    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -136,7 +136,6 @@ impl ATR {
 
         a.max(b).max(c)
     }
-
 }
 
 impl IsIndicator for ATR {

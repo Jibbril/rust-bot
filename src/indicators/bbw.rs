@@ -1,10 +1,10 @@
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 
 use crate::models::{candle::Candle, timeseries::TimeSeries};
 
 use super::{
     bollinger_bands::BollingerBands, indicator::Indicator, indicator_args::IndicatorArgs,
-    indicator_type::IndicatorType, populates_candles::PopulatesCandles, is_indicator::IsIndicator,
+    indicator_type::IndicatorType, is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 
 /// Bollinger Band Width
@@ -43,14 +43,16 @@ impl PopulatesCandles for BBW {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len,_) = args.extract_bb_res()?;
+        let (len, _) = args.extract_bb_res()?;
         let indicator_type = IndicatorType::BBW(len);
 
         let new_bbw = Self::calculate_rolling(args, ts.candles.len() - 1, &ts.candles);
 
         let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
 
-        new_candle.indicators.insert(indicator_type, Indicator::BBW(new_bbw));
+        new_candle
+            .indicators
+            .insert(indicator_type, Indicator::BBW(new_bbw));
 
         Ok(())
     }

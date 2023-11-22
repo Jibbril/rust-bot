@@ -1,5 +1,12 @@
-use actix::{Addr, Actor, Context, Handler, AsyncContext, fut::wrap_future};
-use crate::models::{traits::trading_strategy::TradingStrategy, timeseries::TimeSeries, message_payloads::{candle_added_payload::CandleAddedPayload, request_latest_candles_payload::RequestLatestCandlesPayload}};
+use crate::models::{
+    message_payloads::{
+        candle_added_payload::CandleAddedPayload,
+        request_latest_candles_payload::RequestLatestCandlesPayload,
+    },
+    timeseries::TimeSeries,
+    traits::trading_strategy::TradingStrategy,
+};
+use actix::{fut::wrap_future, Actor, Addr, AsyncContext, Context, Handler};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -28,7 +35,7 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                 Ok(candles) => {
                     // TODO: Check for setups
                     println!("Candles{:#?}", candles);
-                },
+                }
                 Err(e) => {
                     println!("Error: {:#?}", e);
                 }
@@ -43,9 +50,6 @@ impl Handler<CandleAddedPayload> for SetupFinder {
 #[allow(dead_code)]
 impl SetupFinder {
     pub fn new(strategy: Box<dyn TradingStrategy>, ts: Addr<TimeSeries>) -> Self {
-        SetupFinder {
-            strategy,
-            ts,
-        }
+        SetupFinder { strategy, ts }
     }
 }

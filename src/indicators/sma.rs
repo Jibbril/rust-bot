@@ -1,4 +1,4 @@
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 
 use crate::{
     models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
@@ -9,7 +9,8 @@ use super::{
     indicator::{Indicator, MovingAverage},
     indicator_args::IndicatorArgs,
     indicator_type::IndicatorType,
-    populates_candles::PopulatesCandles, is_indicator::IsIndicator,
+    is_indicator::IsIndicator,
+    populates_candles::PopulatesCandles,
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
@@ -59,10 +60,7 @@ impl PopulatesCandles for SMA {
 
         let new_sma = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &prev);
 
-        let new_candle = ts
-            .candles
-            .last_mut()
-            .context("Failed to get last candle")?;
+        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
 
         let ma = MovingAverage::Simple(new_sma);
         new_candle

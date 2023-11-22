@@ -1,13 +1,13 @@
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    populates_candles::PopulatesCandles, is_indicator::IsIndicator,
+    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 use crate::models::{candle::Candle, timeseries::TimeSeries};
 
 /// #DynamicPivot indicator
-/// 
+///
 /// Inspired by the TradingView indicator [Support and Resistance Levels](https://www.tradingview.com/script/JDFoWQbL-Support-and-Resistance-Levels-with-Breaks-LuxAlgo/) by LuxAlgo
 #[derive(Debug, Copy, Clone)]
 pub struct DynamicPivot {

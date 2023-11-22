@@ -7,8 +7,8 @@ use tokio_tungstenite::connect_async;
 use tungstenite::Message;
 
 use crate::models::{
-    interval::Interval,
-    websockets::wsclient::WebsocketClient, message_payloads::websocket_payload::WebsocketPayload,
+    interval::Interval, message_payloads::websocket_payload::WebsocketPayload,
+    websockets::wsclient::WebsocketClient,
 };
 use outgoing_message::OutgoingMessage;
 

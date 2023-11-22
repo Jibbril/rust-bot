@@ -1,10 +1,19 @@
-use actix::{Actor, Context, Handler, Addr};
+use actix::{Actor, Addr, Context, Handler};
 use anyhow::Result;
 
-use super::{candle::Candle, interval::Interval, setups::setup_finder::SetupFinder, message_payloads::{websocket_payload::WebsocketPayload, request_latest_candles_payload::RequestLatestCandlesPayload, ts_subscribe_payload::TSSubscribePayload}};
+use super::{
+    candle::Candle,
+    interval::Interval,
+    message_payloads::{
+        request_latest_candles_payload::RequestLatestCandlesPayload,
+        ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
+    },
+    setups::setup_finder::SetupFinder,
+};
 use crate::{
     data_sources::{datasource::DataSource, local},
-    indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf}, models::message_payloads::candle_added_payload::CandleAddedPayload,
+    indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},
+    models::message_payloads::candle_added_payload::CandleAddedPayload,
 };
 use std::collections::HashSet;
 
@@ -51,7 +60,11 @@ impl Handler<WebsocketPayload> for TimeSeries {
 impl Handler<RequestLatestCandlesPayload> for TimeSeries {
     type Result = Vec<Candle>;
 
-    fn handle(&mut self, msg: RequestLatestCandlesPayload, _ctx: &mut Context<Self>) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: RequestLatestCandlesPayload,
+        _ctx: &mut Context<Self>,
+    ) -> Self::Result {
         if self.candles.len() < msg.n {
             // Return what's available
             self.candles.clone()
@@ -101,7 +114,7 @@ impl TimeSeries {
 
         println!("Added candle: {:#?}", self.candles.last());
 
-        // Notify observers 
+        // Notify observers
         let payload = CandleAddedPayload { candle };
 
         for observer in &self.observers {
@@ -117,11 +130,7 @@ impl TimeSeries {
     }
 
     pub fn dummy() -> Self {
-        Self::new(
-            "DUMMY".to_string(),
-            Interval::Day1,
-            Vec::new(),
-        )
+        Self::new("DUMMY".to_string(), Interval::Day1, Vec::new())
     }
 
     #[allow(dead_code)]

@@ -8,7 +8,10 @@ mod trading_strategies;
 mod utils;
 
 use crate::{
-    indicators::{atr::ATR, bbwp::BBWP, populates_candles::PopulatesCandles, rsi::RSI, is_indicator::IsIndicator},
+    indicators::{
+        atr::ATR, bbwp::BBWP, is_indicator::IsIndicator, populates_candles::PopulatesCandles,
+        rsi::RSI,
+    },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
@@ -19,7 +22,16 @@ use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
 use indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf};
-use models::{interval::Interval, traits::trading_strategy::TradingStrategy, timeseries::TimeSeries, setups::setup_finder::SetupFinder, candle::Candle, message_payloads::{websocket_payload::WebsocketPayload, ts_subscribe_payload::TSSubscribePayload}};
+use models::{
+    candle::Candle,
+    interval::Interval,
+    message_payloads::{
+        ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
+    },
+    setups::setup_finder::SetupFinder,
+    timeseries::TimeSeries,
+    traits::trading_strategy::TradingStrategy,
+};
 use notifications::notify;
 use tokio::time::{sleep, Duration};
 
@@ -32,7 +44,7 @@ pub async fn run_single_indicator() -> Result<()> {
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, len+300, &net)
+        .get_historical_data("BTCUSDT", &interval, len + 300, &net)
         .await?;
 
     indicator_type.populate_candles(&mut ts)?;
@@ -117,8 +129,7 @@ pub async fn run_setup_finder() -> Result<()> {
         let payload = WebsocketPayload {
             ok: true,
             message: None,
-            candle: Some(candle)
-
+            candle: Some(candle),
         };
 
         ts.do_send(payload);

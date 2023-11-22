@@ -185,11 +185,7 @@ mod tests {
         candles.append(&mut Candle::dummy_data(10, "positive", 100.0));
         candles.append(&mut Candle::dummy_data(10, "negative", 200.0));
 
-        let mut ts = TimeSeries::new(
-            "TEST".to_string(),
-            Interval::Day1,
-            candles,
-        );
+        let mut ts = TimeSeries::new("TEST".to_string(), Interval::Day1, candles);
 
         // Populate rsi indicator
         let args = IndicatorArgs::LengthArg(14);

@@ -1,6 +1,9 @@
 use crate::{
     data_sources::datasource::DataSource,
-    models::{interval::Interval, net_version::NetVersion, timeseries::TimeSeries, message_payloads::websocket_payload::WebsocketPayload},
+    models::{
+        interval::Interval, message_payloads::websocket_payload::WebsocketPayload,
+        net_version::NetVersion, timeseries::TimeSeries,
+    },
 };
 use actix::{Actor, Addr, AsyncContext, Context, Handler, WrapFuture};
 

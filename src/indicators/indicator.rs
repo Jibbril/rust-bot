@@ -2,7 +2,7 @@ use crate::models::timeseries::TimeSeries;
 
 use super::{
     atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivot,
-    ema::EMA, rsi::RSI, sma::SMA, indicator_type::IndicatorType,
+    ema::EMA, indicator_type::IndicatorType, rsi::RSI, sma::SMA,
 };
 
 #[allow(dead_code)]
@@ -25,12 +25,16 @@ pub enum MovingAverage {
 
 impl Indicator {
     /// Returns the nth last indicator of the given type for the given TimeSeries.
-    /// 
+    ///
     /// # Arguments
     /// * `ts` - The TimeSeries to get the nth last indicator from.
     /// * `indicator_type` - The type of indicator to get the nth last indicator of.
     /// * `i` - The index of the indicator to get. 0 Is last, 1 is second last, etc.
-    pub fn get_nth_last(ts: &TimeSeries, indicator_type: &IndicatorType, i: usize) -> Option<Indicator> {
+    pub fn get_nth_last(
+        ts: &TimeSeries,
+        indicator_type: &IndicatorType,
+        i: usize,
+    ) -> Option<Indicator> {
         let candles_len = ts.candles.len();
 
         if candles_len < i + 1 {
@@ -47,7 +51,7 @@ impl Indicator {
     }
 
     /// Returns the second last indicator of the given type for the given TimeSeries.
-    /// 
+    ///
     /// # Arguments
     /// * `ts` - The TimeSeries to get the second last indicator from.
     /// * `indicator_type` - The type of indicator to get the second last indicator of.

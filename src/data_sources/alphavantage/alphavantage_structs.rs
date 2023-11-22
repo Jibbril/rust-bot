@@ -99,11 +99,7 @@ impl ApiResponse for AlphaVantageApiResponse {
         candles.map(|mut candles| {
             candles.sort_by_key(|candle| candle.timestamp);
 
-            TimeSeries::new(
-                symbol.to_string(),
-                interval.clone(),
-                candles,
-            )
+            TimeSeries::new(symbol.to_string(), interval.clone(), candles)
         })
     }
 }

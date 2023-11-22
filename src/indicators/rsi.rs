@@ -1,11 +1,11 @@
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use serde::Serialize;
 
 use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries};
 
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    populates_candles::PopulatesCandles, is_indicator::IsIndicator,
+    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 
 #[derive(Debug, Copy, Clone, Serialize, PartialEq, PartialOrd)]
@@ -52,10 +52,11 @@ impl PopulatesCandles for RSI {
         let len = args.extract_len_res()?;
         let indicator_type = IndicatorType::RSI(len);
 
-        let previous_rsi = Indicator::get_second_last(ts, &indicator_type)
-            .and_then(|rsi| rsi.as_rsi());
+        let previous_rsi =
+            Indicator::get_second_last(ts, &indicator_type).and_then(|rsi| rsi.as_rsi());
 
-        let new_rsi = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &previous_rsi);
+        let new_rsi =
+            Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &previous_rsi);
         let new_rsi = Indicator::RSI(new_rsi);
 
         let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
@@ -143,7 +144,11 @@ impl RSI {
 
             let (avg_gain, avg_loss) = Self::get_outcomes(segment, mode);
 
-            let rs = if avg_loss != 0.0 { avg_gain / avg_loss } else { f64::INFINITY };
+            let rs = if avg_loss != 0.0 {
+                avg_gain / avg_loss
+            } else {
+                f64::INFINITY
+            };
 
             let rsi = if rs.is_infinite() {
                 100.0
@@ -178,14 +183,14 @@ impl RSI {
 
         let f_len = segment.len() as f64;
 
-        (gains/f_len, losses/f_len)
+        (gains / f_len, losses / f_len)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        indicators::{rsi::RSI, is_indicator::IsIndicator},
+        indicators::{is_indicator::IsIndicator, rsi::RSI},
         models::{calculation_mode::CalculationMode, candle::Candle},
     };
 
