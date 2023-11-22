@@ -1,7 +1,7 @@
 use actix::{Actor, Context, Handler, Addr};
 use anyhow::Result;
 
-use super::{candle::Candle, interval::Interval, websockets::websocket_payload::WebsocketPayload, setups::setup_finder::SetupFinder};
+use super::{candle::Candle, interval::Interval, setups::setup_finder::SetupFinder, message_payloads::websocket_payload::WebsocketPayload};
 use crate::{
     data_sources::{datasource::DataSource, local},
     indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},

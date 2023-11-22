@@ -1,5 +1,5 @@
 use actix::{Addr, Actor, Context, Handler};
-use crate::{models::{traits::trading_strategy::TradingStrategy, timeseries::TimeSeries, interval::Interval, candle_added_payload::CandleAddedPayload}, data_sources::datasource::DataSource};
+use crate::{models::{traits::trading_strategy::TradingStrategy, timeseries::TimeSeries, interval::Interval, message_payloads::candle_added_payload::CandleAddedPayload}, data_sources::datasource::DataSource};
 
 #[allow(dead_code)]
 #[derive(Debug)]

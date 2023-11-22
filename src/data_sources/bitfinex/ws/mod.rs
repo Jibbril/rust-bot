@@ -8,7 +8,7 @@ use tungstenite::Message;
 
 use crate::models::{
     interval::Interval,
-    websockets::{websocket_payload::WebsocketPayload, wsclient::WebsocketClient},
+    websockets::wsclient::WebsocketClient, message_payloads::websocket_payload::WebsocketPayload,
 };
 use outgoing_message::OutgoingMessage;
 

@@ -1,5 +1,4 @@
 use actix::Message;
-
 use crate::models::candle::Candle;
 
 #[derive(Debug, Clone)]
