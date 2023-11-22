@@ -146,6 +146,11 @@ impl TradingStrategy for RsiBasic {
     fn max_length(&self) -> usize {
         self.len
     }
+
+    fn candles_needed_for_setup(&self) -> usize {
+        // TODO: Add real value
+        self.len
+    }
 }
 
 impl Display for RsiBasic {

@@ -131,6 +131,11 @@ impl TradingStrategy for SilverCross {
             IndicatorType::SMA(self.long_len),
         ]
     }
+
+    fn candles_needed_for_setup(&self) -> usize {
+        // TODO: Add real value
+        self.long_len
+    }
 }
 
 impl Display for SilverCross {

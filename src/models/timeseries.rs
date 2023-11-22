@@ -1,10 +1,10 @@
 use actix::{Actor, Context, Handler, Addr};
 use anyhow::Result;
 
-use super::{candle::Candle, interval::Interval, setups::setup_finder::SetupFinder, message_payloads::websocket_payload::WebsocketPayload};
+use super::{candle::Candle, interval::Interval, setups::setup_finder::SetupFinder, message_payloads::{websocket_payload::WebsocketPayload, request_latest_candles_payload::RequestLatestCandlesPayload, ts_subscribe_payload::TSSubscribePayload}};
 use crate::{
     data_sources::{datasource::DataSource, local},
-    indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},
+    indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf}, models::message_payloads::candle_added_payload::CandleAddedPayload,
 };
 use std::collections::HashSet;
 
@@ -12,6 +12,7 @@ use std::collections::HashSet;
 pub struct TimeSeries {
     pub ticker: String,
     pub interval: Interval,
+    pub max_length: usize,
     pub candles: Vec<Candle>,
     pub indicators: HashSet<IndicatorType>,
     pub observers: Vec<Addr<SetupFinder>>,
@@ -47,22 +48,51 @@ impl Handler<WebsocketPayload> for TimeSeries {
     }
 }
 
+impl Handler<RequestLatestCandlesPayload> for TimeSeries {
+    type Result = Vec<Candle>;
+
+    fn handle(&mut self, msg: RequestLatestCandlesPayload, _ctx: &mut Context<Self>) -> Self::Result {
+        if self.candles.len() < msg.n {
+            // Return what's available
+            self.candles.clone()
+        } else {
+            // Return requested number of candles
+            self.candles[self.candles.len() - msg.n..].to_vec()
+        }
+    }
+}
+
+impl Handler<TSSubscribePayload> for TimeSeries {
+    type Result = ();
+
+    fn handle(&mut self, msg: TSSubscribePayload, _ctx: &mut Context<Self>) -> Self::Result {
+        let observer = msg.observer;
+        self.observers.push(observer);
+    }
+}
+
 impl TimeSeries {
     pub fn new(ticker: String, interval: Interval, candles: Vec<Candle>) -> Self {
         TimeSeries {
             ticker,
             interval,
             candles,
+            max_length: 800, // Default value
             indicators: HashSet::new(),
             observers: vec![],
         }
     }
 
-    fn add_candle(&mut self, candle: Candle) -> Result<()> {
+    #[allow(dead_code)]
+    pub fn set_max_length(&mut self, max_length: usize) {
+        self.max_length = max_length;
+    }
+
+    pub fn add_candle(&mut self, candle: Candle) -> Result<()> {
         // TODO: Perform checks of timestamp to ensure that no
         // duplicates are added, or that there has not been any
         // missed candles in between.
-        self.candles.push(candle);
+        self.candles.push(candle.clone());
 
         let indicator_types = self.indicators.clone();
         for indicator_type in indicator_types {
@@ -70,6 +100,18 @@ impl TimeSeries {
         }
 
         println!("Added candle: {:#?}", self.candles.last());
+
+        // Notify observers 
+        let payload = CandleAddedPayload { candle };
+
+        for observer in &self.observers {
+            observer.do_send(payload.clone());
+        }
+
+        // Remove oldest candle if max length is exceeded
+        if self.candles.len() > self.max_length {
+            self.candles.remove(0);
+        }
 
         Ok(())
     }

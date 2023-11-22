@@ -19,7 +19,7 @@ use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
 use indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf};
-use models::{interval::Interval, traits::trading_strategy::TradingStrategy};
+use models::{interval::Interval, traits::trading_strategy::TradingStrategy, timeseries::TimeSeries, setups::setup_finder::SetupFinder, candle::Candle, message_payloads::{websocket_payload::WebsocketPayload, ts_subscribe_payload::TSSubscribePayload}};
 use notifications::notify;
 use tokio::time::{sleep, Duration};
 
@@ -96,6 +96,35 @@ pub async fn run_historical() -> Result<()> {
     Ok(())
 }
 
+pub async fn run_setup_finder() -> Result<()> {
+    let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_default());
+    let ts = TimeSeries::dummy();
+    let ts = ts.start();
+
+    let sf = SetupFinder::new(strategy, ts.clone());
+    let sf = sf.start();
+
+    let payload = TSSubscribePayload {
+        observer: sf.clone(),
+    };
+    ts.do_send(payload);
+
+    let mut i = 0.0;
+    loop {
+        sleep(Duration::from_secs(2)).await;
+        let candle = Candle::dummy_from_val(i * 10.0);
+
+        let payload = WebsocketPayload {
+            ok: true,
+            message: None,
+            candle: Some(candle)
+
+        };
+
+        ts.do_send(payload);
+        i += 1.0;
+    }
+}
 
 pub async fn _run() -> Result<()> {
     dotenv().ok();

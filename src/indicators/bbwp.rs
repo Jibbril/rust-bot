@@ -209,7 +209,6 @@ mod tests {
         indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandles},
         models::{candle::Candle, timeseries::TimeSeries, interval::Interval},
     };
-    use std::collections::HashSet;
 
     #[test]
     fn calculate_bbwp() {
@@ -282,13 +281,11 @@ mod tests {
     fn bbwp_not_enough_data() {
         let candles = Candle::dummy_data(2, "positive", 100.0);
 
-        let mut ts = TimeSeries {
+        let mut ts = TimeSeries::new(
+            "DUMMY".to_string(),
+            Interval::Day1,
             candles,
-            ticker: "DUMMY".to_string(),
-            interval: crate::models::interval::Interval::Day1,
-            indicators: HashSet::new(),
-            observers: vec![],
-        };
+        );
 
         BBWP::populate_candles(&mut ts).unwrap();
         println!("BBWP:{:#?}", ts.candles);
@@ -308,13 +305,11 @@ mod tests {
     fn bbwp_no_candles() {
         let candles = Vec::new();
 
-        let mut ts = TimeSeries {
+        let mut ts = TimeSeries::new(
+            "DUMMY".to_string(),
+            Interval::Day1,
             candles,
-            ticker: "DUMMY".to_string(),
-            interval: crate::models::interval::Interval::Day1,
-            indicators: HashSet::new(),
-            observers: vec![],
-        };
+        );
 
         BBWP::populate_candles(&mut ts).unwrap();
         println!("BBWP:{:#?}", ts.candles);
