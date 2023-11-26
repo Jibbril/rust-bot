@@ -13,10 +13,10 @@ use crate::{
         rsi::RSI,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
+    notifications::notification_center::NotificationCenter,
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
     utils::save_setups,
-    notifications::notification_center::NotificationCenter,
 };
 use actix::Actor;
 use anyhow::Result;
@@ -30,8 +30,9 @@ use models::{
         ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
     },
     setups::setup_finder::SetupFinder,
+    strategy_orientation::StrategyOrientation,
     timeseries::TimeSeries,
-    traits::trading_strategy::TradingStrategy, strategy_orientation::StrategyOrientation,
+    traits::trading_strategy::TradingStrategy,
 };
 use tokio::time::{sleep, Duration};
 
@@ -63,8 +64,10 @@ pub async fn run_single_indicator() -> Result<()> {
 }
 
 pub async fn run_strategy() -> Result<()> {
-    let short_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new(14, 45.0, 55.0, StrategyOrientation::Short));
-    let long_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new(14, 45.0, 55.0, StrategyOrientation::Long));
+    let short_strategy: Box<dyn TradingStrategy> =
+        Box::new(RsiBasic::new(14, 45.0, 55.0, StrategyOrientation::Short));
+    let long_strategy: Box<dyn TradingStrategy> =
+        Box::new(RsiBasic::new(14, 45.0, 55.0, StrategyOrientation::Long));
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
@@ -81,15 +84,14 @@ pub async fn run_strategy() -> Result<()> {
     }
 
     let ts_addr = ts.start();
-    
+
     // Create setup finder and subscribe to timeseries
     let long_setup_finder = SetupFinder::new(long_strategy, ts_addr.clone());
     let short_setup_finder = SetupFinder::new(short_strategy, ts_addr.clone());
-    
+
     let long_sf_addr = long_setup_finder.start();
     let short_sf_addr = short_setup_finder.start();
 
-    
     let long_payload = TSSubscribePayload {
         observer: long_sf_addr.clone(),
     };

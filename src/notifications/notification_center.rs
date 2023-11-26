@@ -1,15 +1,18 @@
 use std::env;
 
-use crate::models::{traits::trading_strategy::TradingStrategy, setups::setup::Setup};
-use anyhow::{Result, anyhow};
-use lettre::{Message, message::header::ContentType, transport::smtp::authentication::Credentials, SmtpTransport, Transport};
+use crate::models::{setups::setup::Setup, traits::trading_strategy::TradingStrategy};
+use anyhow::{anyhow, Result};
+use lettre::{
+    message::header::ContentType, transport::smtp::authentication::Credentials, Message,
+    SmtpTransport, Transport,
+};
 
 pub struct NotificationCenter;
 
 impl NotificationCenter {
     pub async fn notify(setup: &Setup, strategy: &Box<dyn TradingStrategy>) -> Result<()> {
         Self::notify_email(setup, strategy).await?;
-    
+
         Ok(())
     }
 

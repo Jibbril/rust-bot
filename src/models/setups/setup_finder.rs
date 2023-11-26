@@ -1,11 +1,15 @@
-use crate::{models::{
-    message_payloads::{
-        candle_added_payload::CandleAddedPayload,
-        request_latest_candles_payload::RequestLatestCandlesPayload,
+use crate::{
+    models::{
+        message_payloads::{
+            candle_added_payload::CandleAddedPayload,
+            request_latest_candles_payload::RequestLatestCandlesPayload,
+        },
+        timeseries::TimeSeries,
+        traits::trading_strategy::TradingStrategy,
     },
-    timeseries::TimeSeries,
-    traits::trading_strategy::TradingStrategy,
-}, notifications::notification_center::NotificationCenter, resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy}};
+    notifications::notification_center::NotificationCenter,
+    resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
+};
 use actix::{fut::wrap_future, Actor, Addr, AsyncContext, Context, Handler};
 
 #[allow(dead_code)]
@@ -39,9 +43,9 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                 }
             };
 
-            // TODO: Seems actix result types for the RequestLatestCandlesPayload 
-            // are causing this "double" result. Investigate to see if there is 
-            // some way of removing. 
+            // TODO: Seems actix result types for the RequestLatestCandlesPayload
+            // are causing this "double" result. Investigate to see if there is
+            // some way of removing.
             let candle_response = match send_result {
                 Ok(res) => res,
                 Err(e) => {
