@@ -9,7 +9,7 @@ use super::{
 pub enum Indicator {
     SMA(SMA),
     EMA(EMA),
-    RSI(Option<RSI>),
+    RSI(RSI),
     ATR(Option<ATR>),
     BollingerBands(Option<BollingerBands>),
     BBW(Option<BBW>),
@@ -70,7 +70,7 @@ impl Indicator {
 
     pub fn as_rsi(&self) -> Option<RSI> {
         if let Indicator::RSI(rsi) = self {
-            rsi.clone()
+            Some(rsi.clone())
         } else {
             None
         }
