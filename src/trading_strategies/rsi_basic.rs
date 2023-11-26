@@ -1,8 +1,8 @@
 use crate::{
     indicators::{indicator_type::IndicatorType, rsi::RSI},
     models::{
-        setups::setup::Setup, strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
-        traits::trading_strategy::TradingStrategy,
+        setups::{setup::Setup, setup_builder::SetupBuilder}, strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
+        traits::trading_strategy::TradingStrategy, candle::Candle,
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
@@ -66,19 +66,10 @@ impl RsiBasic {
             None
         }
     }
+}
 
-    fn get_reverse_orientation(&self, prev: &RSI, current: &RSI) -> Option<StrategyOrientation> {
-        if let Some(orientation) = self.get_orientation(prev, current) {
-            match orientation {
-                StrategyOrientation::Long => Some(StrategyOrientation::Short),
-                StrategyOrientation::Short => Some(StrategyOrientation::Long),
-            }
-        } else {
-            None
-        }
-    }
-
-    fn find_setups_by_direction(&self, ts: &TimeSeries, reversed: bool) -> Result<Vec<Setup>> {
+impl TradingStrategy for RsiBasic {
+    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         let len = self.len;
         let key = IndicatorType::RSI(len);
         let mut setups: Vec<Setup> = Vec::new();
@@ -90,11 +81,7 @@ impl RsiBasic {
             let current_rsi = candle.get_indicator(&key)?.as_rsi();
 
             if let (Some(prev), Some(current)) = (prev_rsi, current_rsi) {
-                let orientation = if reversed {
-                    self.get_reverse_orientation(&prev, &current)
-                } else {
-                    self.get_orientation(&prev, &current)
-                };
+                let orientation = self.get_orientation(&prev, &current);
 
                 if let Some(orientation) = orientation {
                     let atr = AtrResolution::new(14, 2.0, 1.0);
@@ -117,26 +104,15 @@ impl RsiBasic {
                         candle: candle.clone(),
                         interval: ts.interval.clone(),
                         orientation,
-                        take_profit_resolution: resolution_strategy.clone(),
-                        stop_loss_resolution: resolution_strategy,
-                        stop_loss,
-                        take_profit,
+                        resolution_strategy: Some(resolution_strategy),
+                        stop_loss: Some(stop_loss),
+                        take_profit: Some(take_profit) ,
                     });
                 }
             }
         }
 
         Ok(setups)
-    }
-}
-
-impl TradingStrategy for RsiBasic {
-    fn find_reverse_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
-        self.find_setups_by_direction(ts, true)
-    }
-
-    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
-        self.find_setups_by_direction(ts, false)
     }
 
     fn required_indicators(&self) -> Vec<IndicatorType> {
@@ -150,6 +126,31 @@ impl TradingStrategy for RsiBasic {
     fn candles_needed_for_setup(&self) -> usize {
         // TODO: Add real value
         self.len
+    }
+
+    fn check_last_for_setup(&self, candles: &Vec<Candle>) -> Option<SetupBuilder> {
+        if candles.len() < 2 {
+            return None;
+        }
+        
+        let current = candles.last()?; 
+        let prev = candles.get(candles.len() - 2)?;
+
+        let key = IndicatorType::RSI(self.len);
+        let prev_rsi = prev.get_indicator(&key).ok()?.as_rsi()?;
+        let current_rsi = current.get_indicator(&key).ok()?.as_rsi()?;
+
+        let orientation = self.get_orientation(&prev_rsi, &current_rsi)?;
+
+        let sb = SetupBuilder::new()
+            .candle(current.clone())
+            .orientation(orientation);
+
+        Some(sb)
+    }
+
+    fn clone_box(&self) -> Box<dyn TradingStrategy> {
+        Box::new(self.clone())
     }
 }
 

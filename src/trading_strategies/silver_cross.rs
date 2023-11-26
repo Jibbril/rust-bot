@@ -3,8 +3,8 @@ use anyhow::Result;
 use crate::{
     indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
-        setups::setup::Setup, strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
-        traits::trading_strategy::TradingStrategy,
+        setups::{setup::Setup, setup_builder::SetupBuilder}, strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
+        traits::trading_strategy::TradingStrategy, candle::Candle,
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
@@ -105,10 +105,9 @@ impl TradingStrategy for SilverCross {
                         candle: candle.clone(),
                         interval: ts.interval.clone(),
                         orientation,
-                        stop_loss_resolution: resolution_strategy.clone(),
-                        take_profit_resolution: resolution_strategy,
-                        stop_loss,
-                        take_profit,
+                        resolution_strategy: Some(resolution_strategy),
+                        stop_loss: Some(stop_loss),
+                        take_profit: Some(take_profit),
                     })
                 }
             }
@@ -119,10 +118,6 @@ impl TradingStrategy for SilverCross {
 
     fn max_length(&self) -> usize {
         self.long_len
-    }
-
-    fn find_reverse_setups(&self, _ts: &TimeSeries) -> Result<Vec<Setup>> {
-        todo!()
     }
 
     fn required_indicators(&self) -> Vec<IndicatorType> {
@@ -136,7 +131,16 @@ impl TradingStrategy for SilverCross {
         // TODO: Add real value
         self.long_len
     }
+
+    fn check_last_for_setup(&self, _candles: &Vec<Candle>) -> Option<SetupBuilder> {
+        todo!()
+    }
+
+    fn clone_box(&self) -> Box<dyn TradingStrategy> {
+        Box::new(self.clone())
+    }
 }
+
 
 impl Display for SilverCross {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

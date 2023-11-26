@@ -45,8 +45,8 @@ fn gather_results_data(
         .filter_map(|&(setup_i, candle_i)| {
             let setup = &setups[setup_i];
             let close = setup.candle.close;
-            let take_profit = setup.take_profit;
-            let stop_loss = setup.stop_loss;
+            let take_profit = setup.take_profit?;
+            let stop_loss = setup.stop_loss?;
 
             let mut outcome = 0.0;
             let mut i = candle_i + 1;
@@ -247,42 +247,38 @@ mod tests {
             Setup {
                 candle: long_setup,
                 ticker: "TEST".to_string(),
-                take_profit: 150.0,
-                stop_loss: 95.0,
+                take_profit: Some(150.0),
+                stop_loss: Some(95.0),
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Long,
-                take_profit_resolution: resolution_strategy.clone(),
-                stop_loss_resolution: resolution_strategy.clone(),
+                resolution_strategy: Some(resolution_strategy.clone()),
             },
             Setup {
                 candle: short_setup,
                 ticker: "TEST".to_string(),
-                take_profit: 105.0,
-                stop_loss: 155.0,
+                take_profit: Some(105.0),
+                stop_loss: Some(155.0),
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Short,
-                take_profit_resolution: resolution_strategy.clone(),
-                stop_loss_resolution: resolution_strategy.clone(),
+                resolution_strategy: Some(resolution_strategy.clone()),
             },
             Setup {
                 candle: fail_long,
                 ticker: "TEST".to_string(),
-                take_profit: 130.0,
-                stop_loss: 80.0,
+                take_profit: Some(130.0),
+                stop_loss: Some(80.0),
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Long,
-                take_profit_resolution: resolution_strategy.clone(),
-                stop_loss_resolution: resolution_strategy.clone(),
+                resolution_strategy: Some(resolution_strategy.clone()),
             },
             Setup {
                 candle: fail_short,
                 ticker: "TEST".to_string(),
-                take_profit: 50.0,
-                stop_loss: 91.0,
+                take_profit: Some(50.0),
+                stop_loss: Some(91.0),
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Short,
-                take_profit_resolution: resolution_strategy.clone(),
-                stop_loss_resolution: resolution_strategy.clone(),
+                resolution_strategy: Some(resolution_strategy.clone()),
             },
         ];
 

@@ -60,8 +60,8 @@ Winston"#,
         setup.interval,
         setup.orientation,
         setup.candle.close,
-        setup.take_profit,
-        setup.stop_loss
+        setup.take_profit.unwrap_or(-1.0),
+        setup.stop_loss.unwrap_or(-1.0)
     );
     s.to_string()
 }

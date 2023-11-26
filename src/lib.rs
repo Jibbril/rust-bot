@@ -137,6 +137,42 @@ pub async fn run_setup_finder() -> Result<()> {
     }
 }
 
+pub async fn run_manual_setups() -> Result<()> {
+    let mut ts = TimeSeries::new("BTCUSDT".to_string(), Interval::Day1, vec![]);
+
+    RSI::populate_candles(&mut ts)?;
+
+    let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_default());
+
+    let ts = ts.start();
+
+    let sf = SetupFinder::new(strategy, ts.clone());
+    let sf = sf.start();
+
+    let payload = TSSubscribePayload {
+        observer: sf.clone(),
+    };
+    ts.do_send(payload);
+
+
+    let mut candles = Candle::dummy_data(20, "positive", 100.0);
+    candles.extend(Candle::dummy_data(15, "negative", 300.0));
+
+    for candle in candles { 
+        sleep(Duration::from_millis(500)).await;
+
+        let payload = WebsocketPayload {
+            ok: true,
+            message: None,
+            candle: Some(candle),
+        };
+
+        ts.do_send(payload);
+    }
+
+    Ok(())
+}
+
 pub async fn _run() -> Result<()> {
     dotenv().ok();
 
@@ -165,7 +201,7 @@ pub async fn _run() -> Result<()> {
     // Implement Strategy to analyze TimeSeries
     let rsi_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_default());
 
-    let rsi_setups = rsi_strategy.find_reverse_setups(&ts)?;
+    let rsi_setups = rsi_strategy.find_setups(&ts)?;
 
     save_setups(&rsi_setups, "rsi-setups.csv")?;
 
