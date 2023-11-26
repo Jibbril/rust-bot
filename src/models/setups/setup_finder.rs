@@ -48,7 +48,8 @@ impl Handler<CandleAddedPayload> for SetupFinder {
             };
 
             if let Some(sb) = strategy.check_last_for_setup(&candle_response.candles) {
-                let setup = sb.ticker(candle_response.symbol)
+                let setup = sb
+                    .ticker(candle_response.symbol)
                     .interval(candle_response.interval)
                     .build();
 

@@ -1,6 +1,10 @@
 use crate::{
     indicators::indicator_type::IndicatorType,
-    models::{setups::{setup::Setup, setup_builder::SetupBuilder}, timeseries::TimeSeries, candle::Candle},
+    models::{
+        candle::Candle,
+        setups::{setup::Setup, setup_builder::SetupBuilder},
+        timeseries::TimeSeries,
+    },
 };
 use anyhow::Result;
 use std::fmt::{Debug, Display};

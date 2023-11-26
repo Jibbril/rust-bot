@@ -154,11 +154,10 @@ pub async fn run_manual_setups() -> Result<()> {
     };
     ts.do_send(payload);
 
-
     let mut candles = Candle::dummy_data(20, "positive", 100.0);
     candles.extend(Candle::dummy_data(15, "negative", 300.0));
 
-    for candle in candles { 
+    for candle in candles {
         sleep(Duration::from_millis(500)).await;
 
         let payload = WebsocketPayload {

@@ -1,5 +1,5 @@
+use crate::models::{candle::Candle, interval::Interval};
 use actix::Message;
-use crate::models::{interval::Interval, candle::Candle};
 
 #[allow(dead_code)]
 pub struct LatestCandleResponse {

@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 
+use super::csv_setup_row::CsvSetupRow;
 use crate::{
     models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation},
     resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
 };
-use super::csv_setup_row::CsvSetupRow;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Setup {

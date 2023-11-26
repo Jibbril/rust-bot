@@ -1,6 +1,9 @@
-use anyhow::{Result, anyhow};
-use crate::{models::{candle::Candle, strategy_orientation::StrategyOrientation, interval::Interval}, resolution_strategies::ResolutionStrategy};
 use super::setup::Setup;
+use crate::{
+    models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation},
+    resolution_strategies::ResolutionStrategy,
+};
+use anyhow::{anyhow, Result};
 
 #[derive(Debug, Clone)]
 pub struct SetupBuilder {
@@ -26,7 +29,7 @@ impl SetupBuilder {
             take_profit: None,
         }
     }
-    
+
     pub fn candle(mut self, candle: Candle) -> Self {
         self.candle = Some(candle);
         self
@@ -64,9 +67,14 @@ impl SetupBuilder {
 
     pub fn build(&self) -> Result<Setup> {
         let candle = self.candle.clone().ok_or(anyhow!("Candle is required."))?;
-        let orientation = self.orientation.ok_or(anyhow!("Orientation is required."))?;
+        let orientation = self
+            .orientation
+            .ok_or(anyhow!("Orientation is required."))?;
         let ticker = self.ticker.clone().ok_or(anyhow!("Ticker is required."))?;
-        let interval = self.interval.clone().ok_or(anyhow!("Interval is required."))?;
+        let interval = self
+            .interval
+            .clone()
+            .ok_or(anyhow!("Interval is required."))?;
 
         Ok(Setup {
             candle,

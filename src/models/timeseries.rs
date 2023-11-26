@@ -5,8 +5,9 @@ use super::{
     candle::Candle,
     interval::Interval,
     message_payloads::{
+        latest_candles_payload::LatestCandleResponse,
         request_latest_candles_payload::RequestLatestCandlesPayload,
-        ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload, latest_candles_payload::LatestCandleResponse,
+        ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
     },
     setups::setup_finder::SetupFinder,
 };

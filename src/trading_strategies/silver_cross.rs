@@ -3,8 +3,11 @@ use anyhow::Result;
 use crate::{
     indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
-        setups::{setup::Setup, setup_builder::SetupBuilder}, strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
-        traits::trading_strategy::TradingStrategy, candle::Candle,
+        candle::Candle,
+        setups::{setup::Setup, setup_builder::SetupBuilder},
+        strategy_orientation::StrategyOrientation,
+        timeseries::TimeSeries,
+        traits::trading_strategy::TradingStrategy,
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
@@ -140,7 +143,6 @@ impl TradingStrategy for SilverCross {
         Box::new(self.clone())
     }
 }
-
 
 impl Display for SilverCross {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

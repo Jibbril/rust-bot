@@ -107,7 +107,11 @@ impl RSI {
                 losses += -change;
             }
 
-            let rs = if losses != 0.0 { gains / losses } else { f64::INFINITY };
+            let rs = if losses != 0.0 {
+                gains / losses
+            } else {
+                f64::INFINITY
+            };
 
             let rsi = if rs.is_finite() {
                 100.0 - (100.0 / (1.0 + rs))

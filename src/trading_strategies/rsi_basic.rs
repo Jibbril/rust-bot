@@ -1,8 +1,11 @@
 use crate::{
     indicators::{indicator_type::IndicatorType, rsi::RSI},
     models::{
-        setups::{setup::Setup, setup_builder::SetupBuilder}, strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
-        traits::trading_strategy::TradingStrategy, candle::Candle,
+        candle::Candle,
+        setups::{setup::Setup, setup_builder::SetupBuilder},
+        strategy_orientation::StrategyOrientation,
+        timeseries::TimeSeries,
+        traits::trading_strategy::TradingStrategy,
     },
     resolution_strategies::{
         atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
@@ -106,7 +109,7 @@ impl TradingStrategy for RsiBasic {
                         orientation,
                         resolution_strategy: Some(resolution_strategy),
                         stop_loss: Some(stop_loss),
-                        take_profit: Some(take_profit) ,
+                        take_profit: Some(take_profit),
                     });
                 }
             }
@@ -132,8 +135,8 @@ impl TradingStrategy for RsiBasic {
         if candles.len() < 2 {
             return None;
         }
-        
-        let current = candles.last()?; 
+
+        let current = candles.last()?;
         let prev = candles.get(candles.len() - 2)?;
 
         let key = IndicatorType::RSI(self.len);
