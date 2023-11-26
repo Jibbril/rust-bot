@@ -22,20 +22,18 @@ impl PopulatesCandles for RSI {
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let mut rsi: Option<RSI> = None;
-        let new_rsis: Vec<Option<Indicator>> = (0..ts.candles.len())
+        let new_rsis: Vec<Option<RSI>> = (0..ts.candles.len())
             .map(|i| {
                 rsi = Self::calculate_rolling(len, i, &ts.candles, &rsi);
                 rsi
             })
-            .map(|rsi| rsi.map(|rsi| Indicator::RSI(rsi)))
             .collect();
 
         let indicator_type = IndicatorType::RSI(len);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
-            if let Some(new_rsi) = &new_rsis[i] {
-                candle.indicators.insert(indicator_type, new_rsi.clone());
-            }
+            let new_rsi = Indicator::RSI(new_rsis[i]);
+            candle.indicators.insert(indicator_type, new_rsi);
         }
 
         ts.indicators.insert(indicator_type);
@@ -55,13 +53,11 @@ impl PopulatesCandles for RSI {
             Indicator::get_second_last(ts, &indicator_type).and_then(|rsi| rsi.as_rsi());
 
         let new_rsi =
-            Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &previous_rsi)
-            .and_then(|rsi| Some(Indicator::RSI(rsi)));
+            Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &previous_rsi);
+        let new_rsi = Indicator::RSI(new_rsi);
         
-        if let Some(new_rsi) = new_rsi {
-            let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
-            new_candle.indicators.insert(indicator_type, new_rsi);
-        }
+        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
+        new_candle.indicators.insert(indicator_type, new_rsi);
 
         Ok(())
     }

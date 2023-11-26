@@ -5,7 +5,6 @@ use crate::{
 };
 use super::{
     indicator::Indicator,
-    indicator::Indicator,
     indicator_args::IndicatorArgs,
     indicator_type::IndicatorType,
     is_indicator::IsIndicator,
