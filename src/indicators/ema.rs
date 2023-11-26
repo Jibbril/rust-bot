@@ -4,7 +4,7 @@ use crate::{
     utils::math::{ema, ema_rolling},
 };
 use super::{
-    indicator::{Indicator, MovingAverage},
+    indicator::Indicator,
     indicator_args::IndicatorArgs,
     indicator_type::IndicatorType,
     is_indicator::IsIndicator,
@@ -36,9 +36,7 @@ impl PopulatesCandles for EMA {
         let indicator_type = IndicatorType::EMA(len);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
-            let new_ema = MovingAverage::Exponential(new_emas[i]);
-            let new_ema = Indicator::MA(new_ema);
-
+            let new_ema = Indicator::EMA(new_emas[i]);
             candle.indicators.insert(indicator_type, new_ema);
         }
 
@@ -60,8 +58,7 @@ impl PopulatesCandles for EMA {
 
         let new_ema =
             Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &previous_ema);
-        let new_ema = MovingAverage::Exponential(new_ema);
-        let new_ema = Indicator::MA(new_ema);
+        let new_ema = Indicator::EMA(new_ema);
 
         let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
 

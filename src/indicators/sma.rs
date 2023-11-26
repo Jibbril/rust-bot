@@ -4,7 +4,7 @@ use crate::{
     utils::math::{sma, sma_rolling},
 };
 use super::{
-    indicator::{Indicator, MovingAverage},
+    indicator::Indicator,
     indicator_args::IndicatorArgs,
     indicator_type::IndicatorType,
     is_indicator::IsIndicator,
@@ -35,8 +35,7 @@ impl PopulatesCandles for SMA {
         let indicator_type = IndicatorType::SMA(len);
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
-            let new_sma = MovingAverage::Simple(new_smas[i]);
-            let new_sma = Indicator::MA(new_sma);
+            let new_sma = Indicator::SMA(new_smas[i]);
 
             candle.indicators.insert(indicator_type, new_sma);
         }
@@ -60,10 +59,9 @@ impl PopulatesCandles for SMA {
 
         let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
 
-        let ma = MovingAverage::Simple(new_sma);
         new_candle
             .indicators
-            .insert(IndicatorType::SMA(len), Indicator::MA(ma));
+            .insert(IndicatorType::SMA(len), Indicator::SMA(new_sma));
 
         Ok(())
     }
