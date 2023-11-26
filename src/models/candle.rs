@@ -1,5 +1,6 @@
-use super::{calculation_mode::CalculationMode, generic_result::GenericResult};
+use super::calculation_mode::CalculationMode;
 use crate::indicators::{indicator::Indicator, indicator_type::IndicatorType};
+use anyhow::{Context, Result};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -18,6 +19,25 @@ pub struct Candle {
 }
 
 impl Candle {
+    pub fn new(
+        timestamp: DateTime<Utc>,
+        open: f64,
+        close: f64,
+        high: f64,
+        low: f64,
+        volume: f64,
+    ) -> Candle {
+        Candle {
+            timestamp,
+            open,
+            close,
+            high,
+            low,
+            volume,
+            indicators: HashMap::new(),
+        }
+    }
+
     #[allow(dead_code)]
     pub fn dummy_from_val(val: f64) -> Candle {
         let now = Utc::now();
@@ -118,10 +138,10 @@ impl Candle {
         }
     }
 
-    pub fn get_indicator(&self, key: &IndicatorType) -> GenericResult<Indicator> {
+    pub fn get_indicator(&self, key: &IndicatorType) -> Result<Indicator> {
         self.indicators
             .get(key)
-            .ok_or_else(|| format!("Unable to find indicator with type: {:#?}", key).into())
-            .and_then(|indicator| Ok(indicator.clone()))
+            .context(format!("Unable to find indicator with type: {:#?}", key))
+            .cloned()
     }
 }

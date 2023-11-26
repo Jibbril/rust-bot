@@ -1,7 +1,7 @@
 mod test_result;
 
 use crate::{
-    models::{candle::Candle, setup::Setup, strategy_orientation::StrategyOrientation},
+    models::{candle::Candle, setups::setup::Setup, strategy_orientation::StrategyOrientation},
     utils::{f_len_or_one, math::std},
 };
 use chrono::{DateTime, Utc};
@@ -45,8 +45,8 @@ fn gather_results_data(
         .filter_map(|&(setup_i, candle_i)| {
             let setup = &setups[setup_i];
             let close = setup.candle.close;
-            let take_profit = setup.take_profit;
-            let stop_loss = setup.stop_loss;
+            let take_profit = setup.take_profit?;
+            let stop_loss = setup.stop_loss?;
 
             let mut outcome = 0.0;
             let mut i = candle_i + 1;
@@ -148,18 +148,15 @@ mod tests {
             indicator_args::IndicatorArgs, populates_candles::PopulatesCandles, rsi::RSI,
         },
         models::{
-            candle::Candle,
-            interval::Interval,
-            setup::{FindsSetups, Setup},
-            strategy::Strategy,
-            strategy_orientation::StrategyOrientation,
-            timeseries::TimeSeries,
+            candle::Candle, interval::Interval, setups::setup::Setup,
+            strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
+            traits::trading_strategy::TradingStrategy,
         },
         resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
         trading_strategies::rsi_basic::RsiBasic,
     };
     use chrono::{Duration, Utc};
-    use std::collections::{HashMap, HashSet};
+    use std::collections::HashMap;
 
     #[test]
     fn test_empty_arrays() {
@@ -188,19 +185,14 @@ mod tests {
         candles.append(&mut Candle::dummy_data(10, "positive", 100.0));
         candles.append(&mut Candle::dummy_data(10, "negative", 200.0));
 
-        let mut ts = TimeSeries {
-            candles,
-            ticker: "TEST".to_string(),
-            interval: Interval::Day1,
-            indicators: HashSet::new(),
-        };
+        let mut ts = TimeSeries::new("TEST".to_string(), Interval::Day1, candles);
 
         // Populate rsi indicator
         let args = IndicatorArgs::LengthArg(14);
-        let _ = RSI::populate_candles(&mut ts, args);
+        let _ = RSI::populate_candles_args(&mut ts, args);
 
         // Create RSIBasic strategy
-        let strat = Strategy::RsiBasic(RsiBasic::new_default());
+        let strat = RsiBasic::new_default();
 
         // Create setups from strategy and candles
         let setups = strat.find_setups(&ts);
@@ -255,42 +247,38 @@ mod tests {
             Setup {
                 candle: long_setup,
                 ticker: "TEST".to_string(),
-                take_profit: 150.0,
-                stop_loss: 95.0,
+                take_profit: Some(150.0),
+                stop_loss: Some(95.0),
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Long,
-                take_profit_resolution: resolution_strategy.clone(),
-                stop_loss_resolution: resolution_strategy.clone(),
+                resolution_strategy: Some(resolution_strategy.clone()),
             },
             Setup {
                 candle: short_setup,
                 ticker: "TEST".to_string(),
-                take_profit: 105.0,
-                stop_loss: 155.0,
+                take_profit: Some(105.0),
+                stop_loss: Some(155.0),
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Short,
-                take_profit_resolution: resolution_strategy.clone(),
-                stop_loss_resolution: resolution_strategy.clone(),
+                resolution_strategy: Some(resolution_strategy.clone()),
             },
             Setup {
                 candle: fail_long,
                 ticker: "TEST".to_string(),
-                take_profit: 130.0,
-                stop_loss: 80.0,
+                take_profit: Some(130.0),
+                stop_loss: Some(80.0),
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Long,
-                take_profit_resolution: resolution_strategy.clone(),
-                stop_loss_resolution: resolution_strategy.clone(),
+                resolution_strategy: Some(resolution_strategy.clone()),
             },
             Setup {
                 candle: fail_short,
                 ticker: "TEST".to_string(),
-                take_profit: 50.0,
-                stop_loss: 91.0,
+                take_profit: Some(50.0),
+                stop_loss: Some(91.0),
                 interval: Interval::Day1,
                 orientation: StrategyOrientation::Short,
-                take_profit_resolution: resolution_strategy.clone(),
-                stop_loss_resolution: resolution_strategy.clone(),
+                resolution_strategy: Some(resolution_strategy.clone()),
             },
         ];
 

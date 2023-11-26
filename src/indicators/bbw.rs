@@ -1,8 +1,10 @@
-use crate::models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries};
+use anyhow::{Context, Result};
+
+use crate::models::{candle::Candle, timeseries::TimeSeries};
 
 use super::{
     bollinger_bands::BollingerBands, indicator::Indicator, indicator_args::IndicatorArgs,
-    indicator_type::IndicatorType, populates_candles::PopulatesCandles,
+    indicator_type::IndicatorType, is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 
 /// Bollinger Band Width
@@ -13,12 +15,11 @@ pub struct BBW {
 }
 
 impl PopulatesCandles for BBW {
-    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
-        Self::populate_candles(ts, args)
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
     }
 
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (len, _) = args.extract_bb_res()?;
         let new_bbws: Vec<Option<BBW>> = (0..ts.candles.len())
             .map(|i| Self::calculate_rolling(args, i, &ts.candles))
@@ -35,6 +36,31 @@ impl PopulatesCandles for BBW {
         ts.indicators.insert(indicator_type);
 
         Ok(())
+    }
+
+    fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_last_candle_args(ts, Self::default_args())
+    }
+
+    fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+        let (len, _) = args.extract_bb_res()?;
+        let indicator_type = IndicatorType::BBW(len);
+
+        let new_bbw = Self::calculate_rolling(args, ts.candles.len() - 1, &ts.candles);
+
+        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
+
+        new_candle
+            .indicators
+            .insert(indicator_type, Indicator::BBW(new_bbw));
+
+        Ok(())
+    }
+}
+
+impl IsIndicator for BBW {
+    fn default_args() -> IndicatorArgs {
+        IndicatorArgs::BollingerBandArgs(20, 2.0)
     }
 }
 

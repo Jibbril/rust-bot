@@ -4,6 +4,7 @@ use std::fmt::{Display, Formatter, Result};
 #[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Interval {
+    Minute1,
     Minute5,
     Minute15,
     Minute30,
@@ -18,6 +19,7 @@ pub enum Interval {
 impl Display for Interval {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match *self {
+            Interval::Minute1 => write!(f, "1 Minute"),
             Interval::Minute5 => write!(f, "5 Minute"),
             Interval::Minute15 => write!(f, "15 Minute"),
             Interval::Minute30 => write!(f, "30 Minute"),

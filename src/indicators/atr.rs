@@ -1,11 +1,10 @@
-use crate::models::{
-    calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
-    timeseries::TimeSeries,
-};
+use anyhow::{Context, Result};
+
+use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries};
 
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    populates_candles::PopulatesCandles,
+    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -16,7 +15,7 @@ pub struct ATR {
 }
 
 impl PopulatesCandles for ATR {
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let mut atr: Option<ATR> = None;
 
@@ -40,9 +39,32 @@ impl PopulatesCandles for ATR {
         Ok(())
     }
 
-    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        let args = IndicatorArgs::LengthArg(14);
-        Self::populate_candles(ts, args)
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
+    }
+
+    fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_last_candle_args(ts, Self::default_args())
+    }
+
+    fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+        let len = args.extract_len_res()?;
+        let indicator_type = IndicatorType::ATR(len);
+        let prev = Indicator::get_second_last(ts, &indicator_type)
+            .and_then(|indicator| indicator.as_atr());
+
+        let new_atr = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &prev);
+
+        let new_candle = ts
+            .candles
+            .last_mut()
+            .context("Unable to get last candle.")?;
+
+        new_candle
+            .indicators
+            .insert(IndicatorType::ATR(len), Indicator::ATR(new_atr));
+
+        Ok(())
     }
 }
 
@@ -116,6 +138,11 @@ impl ATR {
     }
 }
 
+impl IsIndicator for ATR {
+    fn default_args() -> IndicatorArgs {
+        IndicatorArgs::LengthArg(14)
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::ATR;

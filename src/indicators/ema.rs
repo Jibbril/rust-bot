@@ -1,8 +1,7 @@
+use anyhow::{Context, Result};
+
 use crate::{
-    models::{
-        calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
-        timeseries::TimeSeries,
-    },
+    models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
     utils::math::{ema, ema_rolling},
 };
 
@@ -10,6 +9,7 @@ use super::{
     indicator::{Indicator, MovingAverage},
     indicator_args::IndicatorArgs,
     indicator_type::IndicatorType,
+    is_indicator::IsIndicator,
     populates_candles::PopulatesCandles,
 };
 
@@ -21,11 +21,11 @@ pub struct EMA {
 }
 
 impl PopulatesCandles for EMA {
-    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        let args = IndicatorArgs::LengthArg(8);
-        Self::populate_candles(ts, args)
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
     }
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let mut ema: Option<EMA> = None;
         let new_emas: Vec<Option<EMA>> = (0..ts.candles.len())
@@ -47,6 +47,35 @@ impl PopulatesCandles for EMA {
         ts.indicators.insert(indicator_type);
 
         Ok(())
+    }
+
+    fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
+    }
+
+    fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+        let len = args.extract_len_res()?;
+        let indicator_type = IndicatorType::EMA(len);
+
+        let previous_ema =
+            Indicator::get_second_last(ts, &indicator_type).and_then(|ema| ema.as_ema());
+
+        let new_ema =
+            Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &previous_ema);
+        let new_ema = MovingAverage::Exponential(new_ema);
+        let new_ema = Indicator::MA(new_ema);
+
+        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
+
+        new_candle.indicators.insert(indicator_type, new_ema);
+
+        Ok(())
+    }
+}
+
+impl IsIndicator for EMA {
+    fn default_args() -> IndicatorArgs {
+        IndicatorArgs::LengthArg(8)
     }
 }
 

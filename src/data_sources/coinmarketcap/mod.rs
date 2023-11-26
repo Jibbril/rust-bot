@@ -1,14 +1,15 @@
 mod coinmarketcap_structs;
 use std::env;
 
+use anyhow::Result;
 use reqwest::Client;
 
 use crate::{
     data_sources::coinmarketcap::coinmarketcap_structs::CoinMarketCapApiResponse,
-    models::{generic_result::GenericResult, interval::Interval, timeseries::TimeSeries},
+    models::{interval::Interval, timeseries::TimeSeries},
 };
 
-pub async fn get() -> GenericResult<TimeSeries> {
+pub async fn get() -> Result<TimeSeries> {
     let symbol = "BTC";
     let interval = &Interval::Day1;
 
@@ -26,7 +27,7 @@ pub async fn get() -> GenericResult<TimeSeries> {
     Ok(TimeSeries::dummy())
 }
 
-fn construct_url(_symbol: &str, _interval: &Interval) -> GenericResult<String> {
+fn construct_url(_symbol: &str, _interval: &Interval) -> Result<String> {
     let market = "cryptocurrency";
     Ok(format!(
         "https://pro-api.coinmarketcap.com/v1/{}/listings/latest?start=1&limit=1&convert=USD",

@@ -2,10 +2,11 @@ use super::{CalculatesStopLosses, CalculatesTakeProfits};
 use crate::{
     indicators::{atr::ATR, indicator_type::IndicatorType},
     models::{
-        calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
+        calculation_mode::CalculationMode, candle::Candle,
         strategy_orientation::StrategyOrientation,
     },
 };
+use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -22,7 +23,7 @@ impl CalculatesStopLosses for AtrResolution {
         i: usize,
         orientation: &StrategyOrientation,
         len: usize,
-    ) -> GenericResult<f64> {
+    ) -> Result<f64> {
         let price = candles[i].price_by_mode(&CalculationMode::Close);
         let atr = self.get_atr(candles, i, len);
 
@@ -34,7 +35,7 @@ impl CalculatesStopLosses for AtrResolution {
                 &orientation,
             ))
         } else {
-            Err("Unable to calculate stop-loss.".into())
+            Err(anyhow!("Unable to calculate stop-loss."))
         }
     }
 }
@@ -46,7 +47,7 @@ impl CalculatesTakeProfits for AtrResolution {
         i: usize,
         orientation: &StrategyOrientation,
         len: usize,
-    ) -> GenericResult<f64> {
+    ) -> Result<f64> {
         let price = candles[i].price_by_mode(&CalculationMode::Close);
         let atr = self.get_atr(candles, i, len);
 
@@ -58,7 +59,7 @@ impl CalculatesTakeProfits for AtrResolution {
                 &orientation,
             ))
         } else {
-            Err("Unable to calculate take-profit".into())
+            Err(anyhow!("Unable to calculate take-profit"))
         }
     }
 }

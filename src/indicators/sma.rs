@@ -1,8 +1,7 @@
+use anyhow::{Context, Result};
+
 use crate::{
-    models::{
-        calculation_mode::CalculationMode, candle::Candle, generic_result::GenericResult,
-        timeseries::TimeSeries,
-    },
+    models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
     utils::math::{sma, sma_rolling},
 };
 
@@ -10,6 +9,7 @@ use super::{
     indicator::{Indicator, MovingAverage},
     indicator_args::IndicatorArgs,
     indicator_type::IndicatorType,
+    is_indicator::IsIndicator,
     populates_candles::PopulatesCandles,
 };
 
@@ -20,11 +20,11 @@ pub struct SMA {
 }
 
 impl PopulatesCandles for SMA {
-    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        let args = IndicatorArgs::LengthArg(8);
-        Self::populate_candles(ts, args)
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
     }
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let mut sma: Option<SMA> = None;
         let new_smas: Vec<Option<SMA>> = (0..ts.candles.len())
@@ -46,6 +46,34 @@ impl PopulatesCandles for SMA {
         ts.indicators.insert(indicator_type);
 
         Ok(())
+    }
+
+    fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_last_candle_args(ts, Self::default_args())
+    }
+
+    fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+        let len = args.extract_len_res()?;
+        let indicator_type = IndicatorType::SMA(len);
+        let prev = Indicator::get_second_last(ts, &indicator_type)
+            .and_then(|indicator| indicator.as_sma());
+
+        let new_sma = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &prev);
+
+        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
+
+        let ma = MovingAverage::Simple(new_sma);
+        new_candle
+            .indicators
+            .insert(IndicatorType::SMA(len), Indicator::MA(ma));
+
+        Ok(())
+    }
+}
+
+impl IsIndicator for SMA {
+    fn default_args() -> IndicatorArgs {
+        IndicatorArgs::LengthArg(8)
     }
 }
 

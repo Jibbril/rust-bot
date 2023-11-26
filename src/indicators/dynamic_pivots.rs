@@ -1,9 +1,14 @@
+use anyhow::{Context, Result};
+
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    populates_candles::PopulatesCandles,
+    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
-use crate::models::{candle::Candle, generic_result::GenericResult, timeseries::TimeSeries};
+use crate::models::{candle::Candle, timeseries::TimeSeries};
 
+/// #DynamicPivot indicator
+///
+/// Inspired by the TradingView indicator [Support and Resistance Levels](https://www.tradingview.com/script/JDFoWQbL-Support-and-Resistance-Levels-with-Breaks-LuxAlgo/) by LuxAlgo
 #[derive(Debug, Copy, Clone)]
 pub struct DynamicPivot {
     pub len: usize,
@@ -12,12 +17,11 @@ pub struct DynamicPivot {
 }
 
 impl PopulatesCandles for DynamicPivot {
-    fn populate_candles_default(ts: &mut TimeSeries) -> GenericResult<()> {
-        let args = IndicatorArgs::LengthArg(15);
-        Self::populate_candles(ts, args)
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
     }
 
-    fn populate_candles(ts: &mut TimeSeries, args: IndicatorArgs) -> GenericResult<()> {
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let mut new_pivots: Vec<Option<DynamicPivot>> = (0..len).map(|_| None).collect();
 
@@ -46,6 +50,34 @@ impl PopulatesCandles for DynamicPivot {
         ts.indicators.insert(indicator_type);
 
         Ok(())
+    }
+
+    fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
+    }
+
+    fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
+        let len = args.extract_len_res()?;
+        let indicator_type = IndicatorType::DynamicPivot(len);
+        let offset = ts.candles.len() - len - 1;
+
+        let previous_pivots = Indicator::get_nth_last(ts, &indicator_type, len + 1)
+            .and_then(|pivots| pivots.as_dynamic_pivots());
+
+        let new_pivots = Self::calculate_rolling(len, offset, &ts.candles, &previous_pivots);
+
+        let new_pivots = Indicator::DynamicPivot(new_pivots);
+
+        let new_candle = ts.candles.get_mut(offset).context("Failed to get candle")?;
+        new_candle.indicators.insert(indicator_type, new_pivots);
+
+        Ok(())
+    }
+}
+
+impl IsIndicator for DynamicPivot {
+    fn default_args() -> IndicatorArgs {
+        IndicatorArgs::LengthArg(15)
     }
 }
 

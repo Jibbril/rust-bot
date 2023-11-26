@@ -1,4 +1,4 @@
-use crate::models::generic_result::GenericResult;
+use anyhow::{anyhow, Result};
 
 #[derive(Debug, Clone, Copy)]
 pub enum IndicatorArgs {
@@ -18,10 +18,10 @@ impl IndicatorArgs {
         }
     }
 
-    pub fn extract_len_res(&self) -> GenericResult<usize> {
+    pub fn extract_len_res(&self) -> Result<usize> {
         match self {
             IndicatorArgs::LengthArg(n) => Ok(*n),
-            _ => return Err(ERR.into()),
+            _ => return Err(anyhow!(ERR)),
         }
     }
 
@@ -32,10 +32,10 @@ impl IndicatorArgs {
         }
     }
 
-    pub fn extract_bb_res(&self) -> GenericResult<(usize, f64)> {
+    pub fn extract_bb_res(&self) -> Result<(usize, f64)> {
         match self {
             IndicatorArgs::BollingerBandArgs(n, m) => Ok((*n, *m)),
-            _ => return Err(ERR.into()),
+            _ => return Err(anyhow!(ERR)),
         }
     }
 
@@ -47,10 +47,10 @@ impl IndicatorArgs {
         }
     }
 
-    pub fn extract_bbwp_res(&self) -> GenericResult<(usize, usize, usize)> {
+    pub fn extract_bbwp_res(&self) -> Result<(usize, usize, usize)> {
         match self {
             IndicatorArgs::BBWPArgs(a, b, c) => Ok((*a, *b, *c)),
-            _ => return Err(ERR.into()),
+            _ => return Err(anyhow!(ERR)),
         }
     }
 }
