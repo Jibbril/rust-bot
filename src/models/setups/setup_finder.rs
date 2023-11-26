@@ -1,11 +1,11 @@
-use crate::models::{
+use crate::{models::{
     message_payloads::{
         candle_added_payload::CandleAddedPayload,
         request_latest_candles_payload::RequestLatestCandlesPayload,
     },
     timeseries::TimeSeries,
     traits::trading_strategy::TradingStrategy,
-};
+}, notifications::notification_center::NotificationCenter, resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy}};
 use actix::{fut::wrap_future, Actor, Addr, AsyncContext, Context, Handler};
 
 #[allow(dead_code)]
@@ -39,6 +39,9 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                 }
             };
 
+            // TODO: Seems actix result types for the RequestLatestCandlesPayload 
+            // are causing this "double" result. Investigate to see if there is 
+            // some way of removing. 
             let candle_response = match send_result {
                 Ok(res) => res,
                 Err(e) => {
@@ -47,18 +50,40 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                 }
             };
 
-            if let Some(sb) = strategy.check_last_for_setup(&candle_response.candles) {
-                let setup = sb
-                    .ticker(candle_response.symbol)
-                    .interval(candle_response.interval)
-                    .build();
+            let sb = strategy.check_last_for_setup(&candle_response.candles);
 
-                println!("Setup found: {:#?}", setup);
-                // TODO: Trigger notification
-            } else {
-                // Do nothing
+            if sb.is_none() {
                 println!("No setup found");
+                return;
             }
+            let sb = sb.unwrap();
+
+            let atr = AtrResolution::new(14, 2.0, 1.0);
+            let resolution_strategy = ResolutionStrategy::ATR(atr);
+
+            let setup = sb
+                .ticker(candle_response.symbol)
+                .interval(candle_response.interval)
+                .resolution_strategy(resolution_strategy)
+                .build();
+
+            let setup = match setup {
+                Ok(setup) => setup,
+                Err(e) => {
+                    println!("Error: {:#?}", e);
+                    return;
+                }
+            };
+
+            println!("Setup found: {:#?}", setup);
+
+            match NotificationCenter::notify(&setup, &strategy).await {
+                Ok(_) => (),
+                Err(e) => {
+                    println!("Error when notifying: {:#?}", e);
+                    return;
+                }
+            };
         };
 
         let actor_fut = wrap_future::<_, Self>(fut);

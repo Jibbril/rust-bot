@@ -16,6 +16,7 @@ use crate::{
     strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
     utils::save_setups,
+    notifications::notification_center::NotificationCenter,
 };
 use actix::Actor;
 use anyhow::Result;
@@ -30,9 +31,8 @@ use models::{
     },
     setups::setup_finder::SetupFinder,
     timeseries::TimeSeries,
-    traits::trading_strategy::TradingStrategy,
+    traits::trading_strategy::TradingStrategy, strategy_orientation::StrategyOrientation,
 };
-use notifications::notify;
 use tokio::time::{sleep, Duration};
 
 pub async fn run_single_indicator() -> Result<()> {
@@ -63,28 +63,49 @@ pub async fn run_single_indicator() -> Result<()> {
 }
 
 pub async fn run_strategy() -> Result<()> {
-    let strategy = RsiBasic::new_default();
+    let short_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new(14, 45.0, 55.0, StrategyOrientation::Short));
+    let long_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new(14, 45.0, 55.0, StrategyOrientation::Long));
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
+
+    // Initialize timeseries and indicators
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, strategy.max_length() + 300, &net)
+        .get_historical_data("BTCUSDT", &interval, long_strategy.max_length() + 300, &net)
         .await?;
     // ts.save_to_local(&source).await?;
     // let ts = source.load_local_data(symbol, &interval).await?;
 
-    for indicator_type in strategy.required_indicators() {
+    for indicator_type in long_strategy.required_indicators() {
         indicator_type.populate_candles(&mut ts)?;
     }
 
-    let mut client = WebsocketClient::new(source, interval, net);
-    let addr = ts.start();
+    let ts_addr = ts.start();
+    
+    // Create setup finder and subscribe to timeseries
+    let long_setup_finder = SetupFinder::new(long_strategy, ts_addr.clone());
+    let short_setup_finder = SetupFinder::new(short_strategy, ts_addr.clone());
+    
+    let long_sf_addr = long_setup_finder.start();
+    let short_sf_addr = short_setup_finder.start();
 
-    client.add_observer(addr);
-    client.start();
+    
+    let long_payload = TSSubscribePayload {
+        observer: long_sf_addr.clone(),
+    };
 
-    // TODO: Add calculations for indicators for live data
-    // TODO: Enable check for whether new setups have arisen from updated indicators
+    let short_payload = TSSubscribePayload {
+        observer: short_sf_addr.clone(),
+    };
+
+    ts_addr.do_send(long_payload);
+    ts_addr.do_send(short_payload);
+
+    // Start websocket client
+    let mut wsclient = WebsocketClient::new(source, interval, net);
+    wsclient.add_observer(ts_addr);
+    wsclient.start();
+
     loop {
         sleep(Duration::from_secs(1)).await;
     }
@@ -139,11 +160,9 @@ pub async fn run_setup_finder() -> Result<()> {
 
 pub async fn run_manual_setups() -> Result<()> {
     let mut ts = TimeSeries::new("BTCUSDT".to_string(), Interval::Day1, vec![]);
-
     RSI::populate_candles(&mut ts)?;
 
     let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_default());
-
     let ts = ts.start();
 
     let sf = SetupFinder::new(strategy, ts.clone());
@@ -173,8 +192,6 @@ pub async fn run_manual_setups() -> Result<()> {
 }
 
 pub async fn _run() -> Result<()> {
-    dotenv().ok();
-
     // Get TimeSeries data
     let source = DataSource::Bybit;
     let interval = Interval::Day1;
@@ -206,7 +223,7 @@ pub async fn _run() -> Result<()> {
 
     // Send email notifications
     if false {
-        notify(&rsi_setups[0], &rsi_strategy).await?;
+        NotificationCenter::notify(&rsi_setups[0], &rsi_strategy).await?;
     }
 
     // Test result of taking setups
