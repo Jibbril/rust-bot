@@ -1,5 +1,4 @@
 use std::env;
-
 use crate::models::{setups::setup::Setup, traits::trading_strategy::TradingStrategy};
 use anyhow::{anyhow, Result};
 use lettre::{

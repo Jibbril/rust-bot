@@ -1,6 +1,5 @@
 use actix::{Actor, Addr, Context, Handler};
 use anyhow::Result;
-
 use super::{
     candle::Candle,
     interval::Interval,

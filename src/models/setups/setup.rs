@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-
 use super::csv_setup_row::CsvSetupRow;
 use crate::{
     models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation},

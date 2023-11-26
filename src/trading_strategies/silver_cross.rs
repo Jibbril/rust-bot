@@ -1,5 +1,4 @@
 use anyhow::Result;
-
 use crate::{
     indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
