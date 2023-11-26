@@ -7,19 +7,14 @@ use super::{
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Indicator {
-    MA(MovingAverage),
+    SMA(SMA),
+    EMA(EMA),
     RSI(Option<RSI>),
     ATR(Option<ATR>),
     BollingerBands(Option<BollingerBands>),
     BBW(Option<BBW>),
     BBWP(Option<BBWP>),
     DynamicPivot(Option<DynamicPivot>),
-}
-
-#[derive(Debug, Clone)]
-pub enum MovingAverage {
-    Simple(Option<SMA>),
-    Exponential(Option<EMA>),
 }
 
 impl Indicator {
@@ -59,27 +54,17 @@ impl Indicator {
     }
 
     pub fn as_sma(&self) -> Option<SMA> {
-        let ma = match self {
-            Indicator::MA(ma) => ma,
+        match self {
+            Indicator::SMA(sma) => Some(sma.clone()),
             _ => return None,
-        };
-
-        match ma {
-            MovingAverage::Simple(s) => s.clone(),
-            _ => None,
         }
     }
 
     #[allow(dead_code)]
     pub fn as_ema(&self) -> Option<EMA> {
-        let ma = match self {
-            Indicator::MA(ma) => ma,
+        match self {
+            Indicator::EMA(ema) => Some(ema.clone()),
             _ => return None,
-        };
-
-        match ma {
-            MovingAverage::Exponential(e) => e.clone(),
-            _ => None,
         }
     }
 
