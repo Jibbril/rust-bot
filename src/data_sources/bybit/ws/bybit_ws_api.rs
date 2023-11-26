@@ -15,7 +15,6 @@ use tokio::{
 };
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use tungstenite::{Error, Message};
-
 use super::{
     incoming_message::{IncomingMessage, KlineResponse},
     outgoing_message::{OutgoingMessage, OutgoingMessageArg},
@@ -180,7 +179,6 @@ impl BybitWebsocketApi {
         let kline = kline_response.get_kline()?;
 
         if kline.confirm {
-            // TODO: Change to taking the next candle instead of the confirmed one. Solves issue with timestamps being wrong.
             let candle = kline.to_candle()?;
             let payload = WebsocketPayload {
                 ok: true,

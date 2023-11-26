@@ -1,7 +1,5 @@
 use anyhow::{Context, Result};
-
 use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries};
-
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
     is_indicator::IsIndicator, populates_candles::PopulatesCandles,

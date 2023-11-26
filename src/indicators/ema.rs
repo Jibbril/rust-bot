@@ -1,10 +1,8 @@
 use anyhow::{Context, Result};
-
 use crate::{
     models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
     utils::math::{ema, ema_rolling},
 };
-
 use super::{
     indicator::{Indicator, MovingAverage},
     indicator_args::IndicatorArgs,

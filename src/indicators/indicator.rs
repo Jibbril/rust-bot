@@ -1,5 +1,4 @@
 use crate::models::timeseries::TimeSeries;
-
 use super::{
     atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivot,
     ema::EMA, indicator_type::IndicatorType, rsi::RSI, sma::SMA,

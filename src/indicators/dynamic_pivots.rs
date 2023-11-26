@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
     is_indicator::IsIndicator, populates_candles::PopulatesCandles,

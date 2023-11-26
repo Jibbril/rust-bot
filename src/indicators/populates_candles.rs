@@ -1,5 +1,4 @@
 use anyhow::Result;
-
 use super::indicator_args::IndicatorArgs;
 use crate::models::timeseries::TimeSeries;
 
