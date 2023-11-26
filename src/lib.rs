@@ -80,7 +80,7 @@ pub async fn run_strategy() -> Result<()> {
     // let ts = source.load_local_data(symbol, &interval).await?;
 
     for indicator_type in long_strategy.required_indicators() {
-        indicator_type.populate_candles(&mut ts)?;
+        ts.add_indicator(indicator_type)?;
     }
 
     let ts_addr = ts.start();

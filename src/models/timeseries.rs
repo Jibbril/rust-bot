@@ -135,6 +135,18 @@ impl TimeSeries {
         Ok(())
     }
 
+    pub fn add_indicator(&mut self, indicator_type: IndicatorType) -> Result<()> {
+        if self.indicators.contains(&indicator_type) {
+            return Ok(());
+        }
+
+        indicator_type.populate_candles(self)?;
+
+        self.indicators.insert(indicator_type);
+
+        Ok(())
+    }
+
     pub fn dummy() -> Self {
         Self::new("DUMMY".to_string(), Interval::Day1, Vec::new())
     }
