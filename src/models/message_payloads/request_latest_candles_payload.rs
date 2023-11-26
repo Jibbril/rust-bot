@@ -1,5 +1,7 @@
 use actix::Message;
-use crate::models::candle::Candle;
+use anyhow::Result;
+
+use super::latest_candles_payload::LatestCandleResponse;
 
 #[derive(Debug, Clone)]
 pub struct RequestLatestCandlesPayload {
@@ -7,5 +9,5 @@ pub struct RequestLatestCandlesPayload {
 }
 
 impl Message for RequestLatestCandlesPayload {
-    type Result = Vec<Candle>;
+    type Result = Result<LatestCandleResponse>;
 }

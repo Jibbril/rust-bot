@@ -6,7 +6,7 @@ use super::{
     interval::Interval,
     message_payloads::{
         request_latest_candles_payload::RequestLatestCandlesPayload,
-        ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
+        ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload, latest_candles_payload::LatestCandleResponse,
     },
     setups::setup_finder::SetupFinder,
 };
@@ -58,20 +58,26 @@ impl Handler<WebsocketPayload> for TimeSeries {
 }
 
 impl Handler<RequestLatestCandlesPayload> for TimeSeries {
-    type Result = Vec<Candle>;
+    type Result = Result<LatestCandleResponse>;
 
     fn handle(
         &mut self,
         msg: RequestLatestCandlesPayload,
         _ctx: &mut Context<Self>,
     ) -> Self::Result {
-        if self.candles.len() < msg.n {
+        let candles = if self.candles.len() < msg.n {
             // Return what's available
             self.candles.clone()
         } else {
             // Return requested number of candles
             self.candles[self.candles.len() - msg.n..].to_vec()
-        }
+        };
+
+        Ok(LatestCandleResponse {
+            symbol: self.ticker.clone(),
+            interval: self.interval.clone(),
+            candles,
+        })
     }
 }
 

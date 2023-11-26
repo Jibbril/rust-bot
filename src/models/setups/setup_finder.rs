@@ -31,18 +31,28 @@ impl Handler<CandleAddedPayload> for SetupFinder {
         let strategy = self.strategy.clone_box();
 
         let fut = async move {
-            let candles = match ts.send(payload).await {
-                Ok(candles) => candles,
+            let send_result = match ts.send(payload).await {
+                Ok(res) => res,
                 Err(e) => {
                     println!("Error: {:#?}", e);
                     return;
                 }
             };
 
-            if let Some(setup) = strategy.check_last_for_setup(&candles) {
+            let candle_response = match send_result {
+                Ok(res) => res,
+                Err(e) => {
+                    println!("Error: {:#?}", e);
+                    return;
+                }
+            };
+
+            if let Some(sb) = strategy.check_last_for_setup(&candle_response.candles) {
+                let setup = sb.ticker(candle_response.symbol)
+                    .interval(candle_response.interval)
+                    .build();
+
                 println!("Setup found: {:#?}", setup);
-                // setup.ticker(symbol)
-                    // .interval(interval);
                 // TODO: Trigger notification
             } else {
                 // Do nothing
