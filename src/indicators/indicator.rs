@@ -72,7 +72,7 @@ impl Indicator {
 
     pub fn as_rsi(&self) -> Option<RSI> {
         if let Indicator::RSI(rsi) = self {
-            rsi.clone()
+            Some(rsi.clone())
         } else {
             None
         }
