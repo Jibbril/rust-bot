@@ -67,6 +67,16 @@ impl IsIndicator for RSI {
     fn default_args() -> IndicatorArgs {
         IndicatorArgs::LengthArg(14)
     }
+
+    fn calculate(_segment: &[Candle]) -> Option<Self>
+    where Self: Sized {
+        todo!()
+    }
+
+    fn calculate_by_mode(_segment: &[Candle],_modee: CalculationMode) -> Option<Self>
+    where Self: Sized {
+        todo!()
+    }
 }
 
 impl RSI {
@@ -90,14 +100,13 @@ impl RSI {
         if i < len - 1 || i >= candles.len() || candles.len() < len {
             None
         } else if let Some(prev_rsi) = prev_rsi {
-            let current = candles[i].price_by_mode(&mode);
-            let previous = candles[i - 1].price_by_mode(&mode);
-
             let f_len = len as f64;
             let mut gains = prev_rsi.avg_gain * (f_len - 1.0);
             let mut losses = prev_rsi.avg_loss * (f_len - 1.0);
-
+            let current = candles[i].price_by_mode(&mode);
+            let previous = candles[i - 1].price_by_mode(&mode);
             let change = current - previous;
+            
             if change >= 0.0 {
                 gains += change;
             } else {

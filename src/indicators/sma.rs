@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use crate::{
     models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
-    utils::math::{sma, sma_rolling},
+    utils::math::sma,
 };
 use super::{
     indicator::Indicator,
@@ -27,7 +27,8 @@ impl PopulatesCandles for SMA {
         let mut sma: Option<SMA> = None;
         let new_smas: Vec<Option<SMA>> = (0..ts.candles.len())
             .map(|i| {
-                sma = Self::calculate_rolling(len, i, &ts.candles, &sma);
+                let end = i + len;
+                sma = Self::calculate(&ts.candles[i..end]);
                 sma
             })
             .collect();
@@ -36,7 +37,6 @@ impl PopulatesCandles for SMA {
 
         for (i, candle) in ts.candles.iter_mut().enumerate() {
             let new_sma = Indicator::SMA(new_smas[i]);
-
             candle.indicators.insert(indicator_type, new_sma);
         }
 
@@ -51,11 +51,10 @@ impl PopulatesCandles for SMA {
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
-        let indicator_type = IndicatorType::SMA(len);
-        let prev = Indicator::get_second_last(ts, &indicator_type)
-            .and_then(|indicator| indicator.as_sma());
+        let start = ts.candles.len() - len;
+        let end = ts.candles.len() - 1;
 
-        let new_sma = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &prev);
+        let new_sma = Self::calculate(&ts.candles[start..end]);
 
         let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
 
@@ -71,123 +70,58 @@ impl IsIndicator for SMA {
     fn default_args() -> IndicatorArgs {
         IndicatorArgs::LengthArg(8)
     }
-}
 
-impl SMA {
-    // Default implementation using closing values for calculations.
-    pub fn calculate_rolling(
-        len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        previous_sma: &Option<SMA>,
-    ) -> Option<SMA> {
-        Self::calculate_rolling_with_opts(len, i, candles, CalculationMode::Close, previous_sma)
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where Self: Sized {
+        Self::calculate_by_mode(segment, CalculationMode::Close)
     }
 
-    fn calculate_rolling_with_opts(
-        len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        mode: CalculationMode,
-        previous_sma: &Option<SMA>,
-    ) -> Option<SMA> {
-        let arr_len = candles.len();
-        if i > arr_len || len > arr_len || i < len - 1 {
-            None
-        } else if let Some(prev_sma) = previous_sma {
-            let sma = sma_rolling(
-                candles[i].price_by_mode(&mode),
-                candles[i - len].price_by_mode(&mode),
-                prev_sma.value,
-                len as f64,
-            );
+    fn calculate_by_mode(segment: &[Candle], mode: CalculationMode) -> Option<Self>
+    where Self: Sized {
+        let len = segment.len();
 
-            Some(SMA { len, value: sma })
-        } else {
-            Self::calculate(len, i, candles)
+        if len == 0 {
+            return None;
         }
-    }
 
-    // Default implementation using closing values for calculations.
-    pub fn calculate(len: usize, i: usize, candles: &Vec<Candle>) -> Option<SMA> {
-        Self::calculate_with_opts(len, i, candles, CalculationMode::Close)
-    }
+        let values: Vec<f64> = segment.iter().map(|c| c.price_by_mode(&mode)).collect();
 
-    fn calculate_with_opts(
-        len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        mode: CalculationMode,
-    ) -> Option<SMA> {
-        let arr_len = candles.len();
-        if i > arr_len || len > arr_len || i < len - 1 {
-            None
-        } else {
-            let start = i + 1 - len;
-            let end = i + 1;
-            let segment = &candles[start..end];
-
-            let values: Vec<f64> = segment.iter().map(|c| c.price_by_mode(&mode)).collect();
-
-            Some(SMA {
-                len,
-                value: sma(&values),
-            })
-        }
+        Some(SMA {
+            len,
+            value: sma(&values),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::models::candle::Candle;
-
+    use crate::{models::candle::Candle, indicators::is_indicator::IsIndicator};
     use super::SMA;
 
     #[test]
     fn calculate_sma() {
         let candles = Candle::dummy_data(4, "positive", 100.0);
-        let sma = SMA::calculate(4, 3, &candles);
+        println!("Candles:{:#?}", candles);
+        let sma = SMA::calculate(&candles[1..4]);
         assert!(sma.is_some());
         let sma = sma.unwrap();
-        assert_eq!(sma.value, 125.0);
+        assert_eq!(sma.value, 130.0);
     }
 
     #[test]
-    fn sma_not_enough_data() {
-        let candles = Candle::dummy_data(2, "positive", 100.0);
-        let sma = SMA::calculate(4, 3, &candles);
-        assert!(sma.is_none());
+    fn calculate_sma_single() {
+        let candles = Candle::dummy_data(1, "positive", 100.0);
+        println!("Candles:{:#?}", candles);
+        let sma = SMA::calculate(&candles);
+        assert!(sma.is_some());
+        let sma = sma.unwrap();
+        assert_eq!(sma.value, 110.0);
     }
 
     #[test]
     fn sma_no_candles() {
         let candles: Vec<Candle> = Vec::new();
-        let sma = SMA::calculate(4, 3, &candles);
+        let sma = SMA::calculate(&candles);
         assert!(sma.is_none());
-    }
-
-    #[test]
-    fn rolling_sma() {
-        let n = 20;
-        let len = 7;
-        let candles = Candle::dummy_data(20, "positive", 100.0);
-        let mut sma = None;
-
-        let smas: Vec<Option<SMA>> = (0..n)
-            .map(|i| {
-                sma = SMA::calculate_rolling(len, i, &candles, &sma);
-                sma
-            })
-            .collect();
-
-        for (i, sma) in smas.iter().enumerate() {
-            if i < len - 1 {
-                assert!(sma.is_none())
-            } else {
-                assert!(sma.is_some())
-            }
-        }
-
-        assert_eq!(smas[n - 1].unwrap().value, 270.0);
     }
 }

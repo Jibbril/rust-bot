@@ -140,6 +140,16 @@ impl IsIndicator for ATR {
     fn default_args() -> IndicatorArgs {
         IndicatorArgs::LengthArg(14)
     }
+
+    fn calculate(_segment: &[Candle]) -> Option<Self>
+    where Self: Sized {
+        todo!()
+    }
+
+    fn calculate_by_mode(_segmentt: &[Candle],_modee: CalculationMode) -> Option<Self>
+    where Self: Sized {
+        todo!()
+    }
 }
 #[cfg(test)]
 mod tests {

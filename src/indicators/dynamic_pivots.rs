@@ -78,6 +78,16 @@ impl IsIndicator for DynamicPivot {
     fn default_args() -> IndicatorArgs {
         IndicatorArgs::LengthArg(15)
     }
+
+    fn calculate(_segment: &[Candle]) -> Option<Self>
+    where Self: Sized {
+        todo!()
+    }
+
+    fn calculate_by_mode(_segment: &[Candle],_modee: crate::models::calculation_mode::CalculationMode) -> Option<Self>
+    where Self: Sized {
+        todo!()
+    }
 }
 
 impl DynamicPivot {

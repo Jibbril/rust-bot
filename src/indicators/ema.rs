@@ -72,6 +72,16 @@ impl IsIndicator for EMA {
     fn default_args() -> IndicatorArgs {
         IndicatorArgs::LengthArg(8)
     }
+
+    fn calculate(_segment: &[Candle]) -> Option<Self>
+    where Self: Sized {
+        todo!()
+    }
+
+    fn calculate_by_mode(_segment: &[Candle],_modee: CalculationMode) -> Option<Self>
+    where Self: Sized {
+        todo!()
+    }
 }
 
 impl EMA {

@@ -17,6 +17,7 @@ pub fn sma(segment: &[f64]) -> f64 {
     segment.iter().sum::<f64>() / (len as f64)
 }
 
+#[allow(dead_code)]
 pub fn sma_rolling(value_in: f64, value_out: f64, prev: f64, len: f64) -> f64 {
     prev + (value_in - value_out) / len
 }
