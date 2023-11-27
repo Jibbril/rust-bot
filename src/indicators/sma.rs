@@ -24,20 +24,18 @@ impl PopulatesCandles for SMA {
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
-        let mut sma: Option<SMA> = None;
-        let new_smas: Vec<Option<SMA>> = (0..ts.candles.len())
-            .map(|i| {
-                let end = i + len;
-                sma = Self::calculate(&ts.candles[i..end]);
-                sma
-            })
-            .collect();
-
         let indicator_type = IndicatorType::SMA(len);
 
-        for (i, candle) in ts.candles.iter_mut().enumerate() {
-            let new_sma = Indicator::SMA(new_smas[i]);
-            candle.indicators.insert(indicator_type, new_sma);
+        for i in 0..ts.candles.len() {
+            let end = i + 1;
+            let sma = if end < len {
+                None
+            } else {
+                let start= end - len;
+                Self::calculate(&ts.candles[start..end])
+            };
+
+            ts.candles[i].indicators.insert(indicator_type, Indicator::SMA(sma));
         }
 
         ts.indicators.insert(indicator_type);
