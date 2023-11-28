@@ -51,13 +51,10 @@ impl PopulatesCandles for SMA {
         let len = args.extract_len_res()?;
         let start = ts.candles.len() - len;
         let end = ts.candles.len() - 1;
-
         let new_sma = Self::calculate(&ts.candles[start..end]);
 
         let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
-
-        new_candle
-            .indicators
+        new_candle.indicators
             .insert(IndicatorType::SMA(len), Indicator::SMA(new_sma));
 
         Ok(())
@@ -93,7 +90,7 @@ impl IsIndicator for SMA {
 
 #[cfg(test)]
 mod tests {
-    use crate::{models::candle::Candle, indicators::is_indicator::IsIndicator};
+    use crate::{models::{candle::Candle, timeseries::TimeSeries, interval::Interval}, indicators::{is_indicator::IsIndicator, populates_candles::PopulatesCandles, indicator_type::IndicatorType}};
     use super::SMA;
 
     #[test]
@@ -114,6 +111,33 @@ mod tests {
         assert!(sma.is_some());
         let sma = sma.unwrap();
         assert_eq!(sma.value, 110.0);
+    }
+
+    #[test]
+    fn sma_populate_candles() {
+        let candles = Candle::dummy_data(10, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+
+        let _ = SMA::populate_candles(&mut ts);
+
+        let len = SMA::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::SMA(len);
+
+        for (i,candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let sma = indicator.as_sma();
+            if i < len - 1 {
+                assert!(sma.is_none());
+            } else {
+                assert!(sma.is_some());
+            }
+        }
+        
+        let last_candle = ts.candles.last().unwrap();
+        let last_sma = last_candle.indicators
+            .get(&indicator_type).unwrap()
+            .as_sma().unwrap();
+        assert_eq!(last_sma.value, 165.0);
     }
 
     #[test]
