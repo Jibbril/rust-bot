@@ -1,5 +1,4 @@
 use crate::models::{candle::Candle, calculation_mode::CalculationMode};
-
 use super::indicator_args::IndicatorArgs;
 
 pub trait IsIndicator {

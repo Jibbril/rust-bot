@@ -296,7 +296,6 @@ mod tests {
         let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
 
         BBWP::populate_candles(&mut ts).unwrap();
-        println!("BBWP:{:#?}", ts.candles);
 
         for candle in ts.candles.iter() {
             let bbwp = candle
@@ -316,7 +315,6 @@ mod tests {
         let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
 
         BBWP::populate_candles(&mut ts).unwrap();
-        println!("BBWP:{:#?}", ts.candles);
 
         for candle in ts.candles.iter() {
             let bbwp = candle

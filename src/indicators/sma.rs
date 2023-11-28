@@ -66,13 +66,11 @@ impl IsIndicator for SMA {
         IndicatorArgs::LengthArg(8)
     }
 
-    fn calculate(segment: &[Candle]) -> Option<Self>
-    where Self: Sized {
+    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized {
         Self::calculate_by_mode(segment, CalculationMode::Close)
     }
 
-    fn calculate_by_mode(segment: &[Candle], mode: CalculationMode) -> Option<Self>
-    where Self: Sized {
+    fn calculate_by_mode(segment: &[Candle], mode: CalculationMode) -> Option<Self> where Self: Sized {
         let len = segment.len();
 
         if len == 0 {
@@ -96,7 +94,6 @@ mod tests {
     #[test]
     fn calculate_sma() {
         let candles = Candle::dummy_data(4, "positive", 100.0);
-        println!("Candles:{:#?}", candles);
         let sma = SMA::calculate(&candles[1..4]);
         assert!(sma.is_some());
         let sma = sma.unwrap();
@@ -106,7 +103,6 @@ mod tests {
     #[test]
     fn calculate_sma_single() {
         let candles = Candle::dummy_data(1, "positive", 100.0);
-        println!("Candles:{:#?}", candles);
         let sma = SMA::calculate(&candles);
         assert!(sma.is_some());
         let sma = sma.unwrap();

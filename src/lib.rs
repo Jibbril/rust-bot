@@ -10,7 +10,7 @@ mod utils;
 use crate::{
     indicators::{
         atr::ATR, bbwp::BBWP, is_indicator::IsIndicator, populates_candles::PopulatesCandles,
-        rsi::RSI, sma::SMA,
+        rsi::RSI, ema::EMA,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
@@ -22,7 +22,7 @@ use actix::Actor;
 use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
-use indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf};
+use indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf, indicator_args::IndicatorArgs};
 use models::{
     candle::Candle,
     interval::Interval,
@@ -36,15 +36,25 @@ use models::{
 };
 use tokio::time::{sleep, Duration};
 
+pub async fn run_dummy() -> Result<()> {
+    let candles = Candle::dummy_data(8, "positive", 100.0);
+    let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+
+    let args = IndicatorArgs::LengthArg(7);
+    let _ = EMA::populate_candles_args(&mut ts, args);
+
+    Ok(())
+}
+
 pub async fn run_single_indicator() -> Result<()> {
-    let len = SMA::default_args().extract_len_res()?;
-    let indicator_type = IndicatorType::SMA(len);
+    let len = EMA::default_args().extract_len_res()?;
+    let indicator_type = IndicatorType::EMA(len);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, len + 300, &net)
+        .get_historical_data("BTCUSDT", &interval, len + 2, &net)
         .await?;
 
     indicator_type.populate_candles(&mut ts)?;

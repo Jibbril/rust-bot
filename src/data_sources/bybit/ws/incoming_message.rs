@@ -103,7 +103,7 @@ impl Kline {
     pub fn to_candle(&self) -> Result<Candle> {
         // End time for kline response is always 1 second before the
         // start time for the next candle.
-        let timestamp = self.end + 1000;
+        let timestamp = self.end - 59000;
 
         Ok(Candle {
             timestamp: millis_to_datetime(timestamp)?,
