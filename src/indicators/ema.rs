@@ -209,13 +209,13 @@ mod tests {
         }
 
         let last_candle = ts.candles.last().unwrap();
-        let last_sma = last_candle
+        let last_ema = last_candle
             .indicators
             .get(&indicator_type)
             .unwrap()
             .as_ema()
             .unwrap();
 
-        assert_eq!(last_sma.value, 165.0);
+        assert_eq!(last_ema.value, 165.0);
     }
 }

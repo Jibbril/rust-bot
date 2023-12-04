@@ -50,7 +50,7 @@ impl PopulatesCandles for SMA {
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let start = ts.candles.len() - len;
-        let end = ts.candles.len() - 1;
+        let end = ts.candles.len();
         let new_sma = Self::calculate(&ts.candles[start..end]);
 
         let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
@@ -141,5 +141,42 @@ mod tests {
         let candles: Vec<Candle> = Vec::new();
         let sma = SMA::calculate(&candles);
         assert!(sma.is_none());
+    }
+
+    #[test]
+    fn sma_populate_last_candle() {
+        let candles = Candle::dummy_data(9, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+
+        let _ = SMA::populate_candles(&mut ts);
+
+        let candle = Candle::dummy_from_val(200.0);
+
+        let _ = ts.add_candle(candle);
+
+        let len = SMA::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::SMA(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let sma = indicator.as_sma();
+            if i < len-1 {
+                println!("{}",i);
+                assert!(sma.is_none());
+            } else {
+                println!("{}",i);
+                assert!(sma.is_some());
+            }
+        }
+
+        let last_candle = ts.candles.last().unwrap();
+        let last_sma = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_sma()
+            .unwrap();
+
+        assert_eq!(last_sma.value, 165.0);
     }
 }

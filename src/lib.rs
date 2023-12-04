@@ -9,8 +9,8 @@ mod utils;
 
 use crate::{
     indicators::{
-        atr::ATR, bbwp::BBWP, is_indicator::IsIndicator, populates_candles::PopulatesCandles,
-        rsi::RSI, ema::EMA,
+        atr::ATR, bbwp::BBWP, ema::EMA, is_indicator::IsIndicator,
+        populates_candles::PopulatesCandles, rsi::RSI,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
@@ -22,7 +22,10 @@ use actix::Actor;
 use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
-use indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf, indicator_args::IndicatorArgs};
+use indicators::{
+    indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    populates_candles::PopulatesCandlesWithSelf, sma::SMA,
+};
 use models::{
     candle::Candle,
     interval::Interval,
@@ -37,11 +40,17 @@ use models::{
 use tokio::time::{sleep, Duration};
 
 pub async fn run_dummy() -> Result<()> {
-    let candles = Candle::dummy_data(8, "positive", 100.0);
+    let candles = Candle::dummy_data(9, "positive", 100.0);
     let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
 
-    let args = IndicatorArgs::LengthArg(7);
-    let _ = EMA::populate_candles_args(&mut ts, args);
+    let _ = SMA::populate_candles(&mut ts);
+
+    let candle = Candle::dummy_from_val(200.0);
+
+    let _ = ts.add_candle(candle);
+
+    let len = SMA::default_args().extract_len_opt().unwrap();
+    let indicator_type = IndicatorType::SMA(len);
 
     Ok(())
 }
