@@ -23,7 +23,7 @@ use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
 use indicators::{
-    indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    indicator_type::IndicatorType,
     populates_candles::PopulatesCandlesWithSelf, sma::SMA,
 };
 use models::{
@@ -48,9 +48,6 @@ pub async fn run_dummy() -> Result<()> {
     let candle = Candle::dummy_from_val(200.0);
 
     let _ = ts.add_candle(candle);
-
-    let len = SMA::default_args().extract_len_opt().unwrap();
-    let indicator_type = IndicatorType::SMA(len);
 
     Ok(())
 }
