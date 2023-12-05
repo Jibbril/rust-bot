@@ -6,7 +6,7 @@ use crate::{
     models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
     utils::math::{ema_rolling, sma},
 };
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct EMA {
@@ -26,15 +26,15 @@ impl PopulatesCandles for EMA {
 
         let mut prev_ema: Option<EMA> = None;
         for i in 0..ts.candles.len() {
-            let end = i + 1;
-            let ema = if end <= len {
+            let end = i;
+            let ema = if end < len {
                 None
-            } else if end == len + 1 || prev_ema.is_none() {
-                let start = end - len - 1;
-                Self::calculate(&ts.candles[start..end])
+            } else if end == len || prev_ema.is_none() {
+                let start = end - len;
+                Self::calculate(&ts.candles[start..end+1])
             } else {
                 let prev = prev_ema.unwrap().value;
-                let current = ts.candles[end - 1].close;
+                let current = ts.candles[end].close;
                 Self::calculate_rolling(prev, current, len)
             };
 
@@ -57,14 +57,15 @@ impl PopulatesCandles for EMA {
         let len = args.extract_len_res()?;
         let indicator_type = IndicatorType::EMA(len);
 
-        let prev = ts.candles[ts.candles.len() - 2]
-            .indicators
-            .get(&indicator_type)
+        let prev = Indicator::get_second_last(ts, &indicator_type)
             .and_then(|indicator| indicator.as_ema());
 
+        let candle_len = ts.candles.len();
+        if candle_len < len { return Err(anyhow!("Not enough candles to populate."))};
+
         let new_ema = if prev.is_none() {
-            let start = ts.candles.len() - len;
-            let end = ts.candles.len() - 1;
+            let start = candle_len - len;
+            let end = candle_len - 1;
             Self::calculate(&ts.candles[start..end])
         } else {
             let prev = prev.unwrap();
@@ -72,8 +73,9 @@ impl PopulatesCandles for EMA {
             Self::calculate_rolling(prev.value, current, len)
         };
 
-        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
-        new_candle
+        ts.candles
+            .last_mut()
+            .context("Failed to get last candle")?
             .indicators
             .insert(indicator_type, Indicator::EMA(new_ema));
 

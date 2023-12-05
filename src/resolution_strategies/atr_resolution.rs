@@ -1,6 +1,6 @@
 use super::{CalculatesStopLosses, CalculatesTakeProfits};
 use crate::{
-    indicators::{atr::ATR, indicator_type::IndicatorType},
+    indicators::{atr::ATR, indicator_type::IndicatorType, is_indicator::IsIndicator},
     models::{
         calculation_mode::CalculationMode, candle::Candle,
         strategy_orientation::StrategyOrientation,
@@ -74,8 +74,10 @@ impl AtrResolution {
             return Some(atr);
         }
 
-        // If atr indicator not available on candle, calculate it from previous candles
-        ATR::calculate(len, i, candles)
+        if i - len - 1 < 0 { return None }
+
+        // If atr indicator is not available on candle, calculate it from previous candles
+        ATR::calculate(&candles[i-len-1..i+1])
     }
 
     pub fn new(len: usize, stop_loss_multiple: f64, take_profit_multiple: f64) -> Self {

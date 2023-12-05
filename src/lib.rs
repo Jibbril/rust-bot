@@ -40,14 +40,10 @@ use models::{
 use tokio::time::{sleep, Duration};
 
 pub async fn run_dummy() -> Result<()> {
-    let candles = Candle::dummy_data(9, "positive", 100.0);
-    let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
-
-    let _ = SMA::populate_candles(&mut ts);
-
-    let candle = Candle::dummy_from_val(200.0);
-
-    let _ = ts.add_candle(candle);
+    let candles = Candle::dummy_data(6, "positive", 100.0);
+    let atr = ATR::calculate(&candles[1..]);
+    println!("{:#?}", atr);
+    let atr = atr.unwrap();
 
     Ok(())
 }
