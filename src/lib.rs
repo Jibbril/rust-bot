@@ -23,8 +23,7 @@ use anyhow::Result;
 use data_sources::datasource::DataSource;
 use dotenv::dotenv;
 use indicators::{
-    indicator_type::IndicatorType,
-    populates_candles::PopulatesCandlesWithSelf, sma::SMA,
+    indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf,
 };
 use models::{
     candle::Candle,
@@ -40,10 +39,31 @@ use models::{
 use tokio::time::{sleep, Duration};
 
 pub async fn run_dummy() -> Result<()> {
-    let candles = Candle::dummy_data(6, "positive", 100.0);
-    let atr = ATR::calculate(&candles[1..]);
-    println!("{:#?}", atr);
-    let atr = atr.unwrap();
+    let candles = Candle::dummy_data(15, "positive", 100.0);
+    let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+
+    let _ = ATR::populate_candles(&mut ts);
+
+    let len = ATR::default_args().extract_len_opt().unwrap();
+    let indicator_type = IndicatorType::ATR(len);
+
+    for (i, candle) in ts.candles.iter().enumerate() {
+        let indicator = candle.indicators.get(&indicator_type).unwrap();
+        let atr = indicator.as_atr();
+        if i < len {
+            assert!(atr.is_none());
+        } else {
+            assert!(atr.is_some());
+        }
+    }
+
+    let last_candle = ts.candles.last().unwrap();
+    let _last_atr = last_candle
+        .indicators
+        .get(&indicator_type)
+        .unwrap()
+        .as_atr()
+        .unwrap();
 
     Ok(())
 }

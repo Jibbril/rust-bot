@@ -96,14 +96,12 @@ impl IsIndicator for EMA {
     where
         Self: Sized,
     {
-        let len = segment.len();
 
-        if len == 0 {
+        if segment.len() == 0 {
             return None;
         }
 
-        let len = len - 1; // Exclude current candle
-
+        let len = segment.len() - 1;
         let initial_values = &segment[..len].to_vec();
         let initial_values: Vec<f64> = initial_values
             .iter()

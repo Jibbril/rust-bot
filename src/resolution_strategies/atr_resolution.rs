@@ -74,7 +74,7 @@ impl AtrResolution {
             return Some(atr);
         }
 
-        if i - len - 1 < 0 { return None }
+        if i < len + 1 { return None }
 
         // If atr indicator is not available on candle, calculate it from previous candles
         ATR::calculate(&candles[i-len-1..i+1])

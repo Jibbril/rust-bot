@@ -1,7 +1,7 @@
 use super::{
     indicator::Indicator,
     indicator_args::IndicatorArgs,
-    indicator_type::{self, IndicatorType},
+    indicator_type::IndicatorType,
     is_indicator::IsIndicator,
     populates_candles::PopulatesCandles,
 };
@@ -113,12 +113,11 @@ impl IsIndicator for ATR {
     }
 
     fn calculate_by_mode(segment: &[Candle], mode: CalculationMode) -> Option<Self> where Self: Sized, {
-        let len = segment.len() - 1;
-
-        if len < 1 {
+        if segment.len() < 1 {
             return None;
         }
 
+        let len = segment.len() - 1;
         let sum: f64 = (1..segment.len())
             .map(|i| Self::true_range(segment[i - 1].price_by_mode(&mode), &segment[i]))
             .sum();
@@ -133,7 +132,7 @@ impl IsIndicator for ATR {
 #[cfg(test)]
 mod tests {
     use super::ATR;
-    use crate::{models::candle::Candle, indicators::is_indicator::IsIndicator};
+    use crate::{models::{candle::Candle, interval::Interval, timeseries::TimeSeries}, indicators::{is_indicator::IsIndicator, populates_candles::PopulatesCandles, indicator_type::IndicatorType}};
 
     #[test]
     fn calculate_atr() {
@@ -145,42 +144,74 @@ mod tests {
         assert_eq!(atr.value, 10.0);
     }
 
-    // #[test]
-    // fn atr_not_enough_data() {
-    //     let candles = Candle::dummy_data(2, "positive", 100.0);
-    //     let sma = ATR::calculate(4, 3, &candles);
-    //     assert!(sma.is_none());
-    // }
-    //
-    // #[test]
-    // fn atr_no_candles() {
-    //     let candles: Vec<Candle> = Vec::new();
-    //     let sma = ATR::calculate(4, 3, &candles);
-    //     assert!(sma.is_none());
-    // }
-    //
-    // #[test]
-    // fn rolling_atr() {
-    //     let n = 20;
-    //     let len = 7;
-    //     let candles = Candle::dummy_data(20, "positive", 100.0);
-    //     let mut atr = None;
-    //
-    //     let atrs: Vec<Option<ATR>> = (0..n)
-    //         .map(|i| {
-    //             atr = ATR::calculate_rolling(len, i, &candles, &atr);
-    //             atr
-    //         })
-    //         .collect();
-    //
-    //     for (i, atr) in atrs.iter().enumerate() {
-    //         if i <= len - 1 {
-    //             assert!(atr.is_none())
-    //         } else {
-    //             assert!(atr.is_some())
-    //         }
-    //     }
-    //
-    //     assert_eq!(atrs[n - 1].unwrap().value, 10.0);
-    // }
+    #[test]
+    fn atr_no_candles() {
+        let candles = Vec::new();
+        let sma = ATR::calculate(&candles);
+        assert!(sma.is_none());
+    }
+
+    #[test]
+    fn atr_populate_candles() {
+        let candles = Candle::dummy_data(15, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+
+        let _ = ATR::populate_candles(&mut ts);
+
+        let len = ATR::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::ATR(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let atr = indicator.as_atr();
+            if i < len {
+                assert!(atr.is_none());
+            } else {
+                assert!(atr.is_some());
+            }
+        }
+
+        let last_candle = ts.candles.last().unwrap();
+        let last_atr = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_atr()
+            .unwrap();
+
+        assert_eq!(last_atr.value, 10.0);
+    }
+
+    #[test]
+    fn atr_populate_last_candle() {
+        let candles = Candle::dummy_data(14, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let _ = ATR::populate_candles(&mut ts);
+
+        let candle = Candle::dummy_from_val(250.0);
+        let _ = ts.add_candle(candle);
+
+        let len = ATR::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::ATR(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let atr = indicator.as_atr();
+            if i < len {
+                assert!(atr.is_none());
+            } else {
+                assert!(atr.is_some());
+            }
+        }
+
+        let last_candle = ts.candles.last().unwrap();
+        let last_atr = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_atr()
+            .unwrap();
+
+        assert_eq!(last_atr.value, 10.0);
+    }
 }
