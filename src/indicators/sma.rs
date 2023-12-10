@@ -72,10 +72,7 @@ impl IsIndicator for SMA {
 
     fn calculate_by_mode(segment: &[Candle], mode: CalculationMode) -> Option<Self> where Self: Sized {
         let len = segment.len();
-
-        if len == 0 {
-            return None;
-        }
+        if len == 0 { return None; }
 
         let values: Vec<f64> = segment.iter().map(|c| c.price_by_mode(&mode)).collect();
 
@@ -161,10 +158,8 @@ mod tests {
             let indicator = candle.indicators.get(&indicator_type).unwrap();
             let sma = indicator.as_sma();
             if i < len-1 {
-                println!("{}",i);
                 assert!(sma.is_none());
             } else {
-                println!("{}",i);
                 assert!(sma.is_some());
             }
         }
