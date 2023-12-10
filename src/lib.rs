@@ -9,7 +9,7 @@ mod utils;
 
 use crate::{
     indicators::{
-        atr::ATR, bbwp::BBWP, ema::EMA, is_indicator::IsIndicator,
+        atr::ATR, bbwp::BBWP, is_indicator::IsIndicator,
         populates_candles::PopulatesCandles, rsi::RSI,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
@@ -20,7 +20,7 @@ use crate::{
 };
 use actix::Actor;
 use anyhow::Result;
-use data_sources::datasource::DataSource;
+use data_sources::{datasource::DataSource, local};
 use dotenv::dotenv;
 use indicators::{
     indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf,
@@ -69,14 +69,14 @@ pub async fn run_dummy() -> Result<()> {
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let len = EMA::default_args().extract_len_res()?;
-    let indicator_type = IndicatorType::EMA(len);
+    let len = ATR::default_args().extract_len_res()?;
+    let indicator_type = IndicatorType::ATR(len);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, len + 2, &net)
+        .get_historical_data("BTCUSDT", &interval, len + 200, &net)
         .await?;
 
     indicator_type.populate_candles(&mut ts)?;
@@ -159,6 +159,15 @@ pub async fn run_historical() -> Result<()> {
 
     println!("Candles:{:#?}", ts.candles);
 
+    Ok(())
+}
+
+pub async fn run_local() -> Result<()> {
+    let mut ts = local::read_dummy_data("src/utils/data/atr_dummy_data.csv").await?;
+    ATR::populate_candles(&mut ts)?;
+
+    println!("{:#?}", ts);
+    
     Ok(())
 }
 

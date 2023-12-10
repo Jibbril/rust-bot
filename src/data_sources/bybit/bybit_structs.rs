@@ -45,6 +45,9 @@ impl ApiResponse for BybitApiResponse {
         candles.map(|mut candles| {
             candles.sort_by_key(|candle| candle.timestamp);
 
+            // Bybit returns incomplete last candle, remove it.
+            candles.pop();
+
             TimeSeries::new(symbol.to_string(), interval.clone(), candles)
         })
     }

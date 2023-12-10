@@ -1,12 +1,9 @@
 use super::{
-    indicator::Indicator,
-    indicator_args::IndicatorArgs,
-    indicator_type::IndicatorType,
-    is_indicator::IsIndicator,
-    populates_candles::PopulatesCandles,
+    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries};
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 
 #[derive(Debug, Copy, Clone)]
 pub struct ATR {
@@ -34,9 +31,9 @@ impl PopulatesCandles for ATR {
                 let start = end - len;
                 Self::calculate(&ts.candles[start..end + 1])
             } else {
+                let candles = (&ts.candles[end - 1],&ts.candles[end]);
                 let prev = prev.unwrap();
-                let current = &ts.candles[end];
-                Self::calculate_rolling(&prev, current, len)
+                Self::calculate_rolling(candles, prev.value, len)
             };
 
             ts.candles[i]
@@ -70,9 +67,8 @@ impl PopulatesCandles for ATR {
             let end = candle_len - 1;
             Self::calculate(&ts.candles[start..end])
         } else {
-            let prev = prev.unwrap();
-            let current = ts.candles.last().unwrap();
-            Self::calculate_rolling(&prev, current, len)
+            let candles = (&ts.candles[candle_len - 2],&ts.candles[candle_len - 1]);
+            Self::calculate_rolling(candles, prev.unwrap().value, len)
         };
 
         ts.candles
@@ -86,10 +82,14 @@ impl PopulatesCandles for ATR {
 }
 
 impl ATR {
-    fn calculate_rolling(prev: &ATR, current: &Candle, len: usize) -> Option<ATR> {
+    fn calculate_rolling(
+        (prev_candle, curr_candle): (&Candle, &Candle),
+        prev_atr: f64,
+        len: usize,
+    ) -> Option<ATR> {
         let f_len = len as f64;
-        let tr = Self::true_range(prev.value, current);
-        let atr = (prev.value * (f_len - 1.0) + tr) / f_len;
+        let tr = Self::true_range(prev_candle.close, curr_candle);
+        let atr = (prev_atr * (f_len - 1.0) + tr) / f_len;
 
         Some(ATR { len, value: atr })
     }
@@ -108,11 +108,17 @@ impl IsIndicator for ATR {
         IndicatorArgs::LengthArg(14)
     }
 
-    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized, {
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
         Self::calculate_by_mode(segment, CalculationMode::Close)
     }
 
-    fn calculate_by_mode(segment: &[Candle], mode: CalculationMode) -> Option<Self> where Self: Sized, {
+    fn calculate_by_mode(segment: &[Candle], mode: CalculationMode) -> Option<Self>
+    where
+        Self: Sized,
+    {
         if segment.len() < 1 {
             return None;
         }
@@ -132,7 +138,13 @@ impl IsIndicator for ATR {
 #[cfg(test)]
 mod tests {
     use super::ATR;
-    use crate::{models::{candle::Candle, interval::Interval, timeseries::TimeSeries}, indicators::{is_indicator::IsIndicator, populates_candles::PopulatesCandles, indicator_type::IndicatorType}};
+    use crate::{
+        indicators::{
+            indicator_type::IndicatorType, is_indicator::IsIndicator,
+            populates_candles::PopulatesCandles,
+        },
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+    };
 
     #[test]
     fn calculate_atr() {

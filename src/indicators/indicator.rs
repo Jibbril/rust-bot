@@ -23,7 +23,7 @@ impl Indicator {
     /// # Arguments
     /// * `ts` - The TimeSeries to get the nth last indicator from.
     /// * `indicator_type` - The type of indicator to get the nth last indicator of.
-    /// * `i` - The index of the indicator to get. 0 Is last, 1 is second last, etc.
+    /// * `i` - The index of the indicator to get. 1 Is last, 2 is second last, etc.
     pub fn get_nth_last(
         ts: &TimeSeries,
         indicator_type: &IndicatorType,
@@ -31,13 +31,13 @@ impl Indicator {
     ) -> Option<Indicator> {
         let candles_len = ts.candles.len();
 
-        if candles_len < i + 1 {
+        if candles_len < i {
             return None;
         }
 
         let prev = ts
             .candles
-            .get(candles_len - 1 - i)
+            .get(candles_len - i)
             .and_then(|candle| candle.indicators.get(&indicator_type))
             .and_then(|indicator| Some(indicator.clone()));
 
