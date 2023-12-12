@@ -23,7 +23,7 @@ use anyhow::Result;
 use data_sources::{datasource::DataSource, local};
 use dotenv::dotenv;
 use indicators::{
-    indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf,
+    indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf, bollinger_bands::BollingerBands,
 };
 use models::{
     candle::Candle,
@@ -39,38 +39,18 @@ use models::{
 use tokio::time::{sleep, Duration};
 
 pub async fn run_dummy() -> Result<()> {
-    let candles = Candle::dummy_data(130, "alternating", 100.0);
-    let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+    let candles = Candle::dummy_data(20, "positive", 100.0);
+    let bb = BollingerBands::calculate(&candles);
+    let _bb = bb.unwrap();
 
-    let _ = RSI::populate_candles(&mut ts);
-
-    let len = RSI::default_args().extract_len_opt().unwrap();
-    let indicator_type = IndicatorType::RSI(len);
-
-    for (i,candle) in ts.candles.iter().enumerate() {
-        let indicator = candle.indicators.get(&indicator_type).unwrap();
-        let rsi = indicator.as_rsi();
-        if i < len {
-            assert!(rsi.is_none());
-        } else {
-            assert!(rsi.is_some());
-        }
-    }
+    print!("jaaa");
     
-    let last_candle = ts.candles.last().unwrap();
-    let _last_sma = last_candle
-        .indicators
-        .get(&indicator_type)
-        .unwrap()
-        .as_rsi()
-        .unwrap();
-
     Ok(())
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let len = ATR::default_args().extract_len_res()?;
-    let indicator_type = IndicatorType::RSI(len);
+    let (len,_) = BollingerBands::default_args().extract_bb_res()?;
+    let indicator_type = IndicatorType::BollingerBands(len);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;

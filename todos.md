@@ -6,3 +6,4 @@
 - [ ] Refactor all indicators so the various calculation methods are added to the IsIndicator trait
 - [ ] Check the add_candle method inside the TimeSeries class
 - [ ] Checkout the shuttle crate for deploying the app
+- [ ] Build indicator from the basic idea of spotting reversions by identifying large moves. So if for example the average candle move over the last 100 candles is 1% and suddenly we see a 5% move, chances are that something significant is happening. Build an indicator that registers the percentile of the width of the candle. One example of a strategy built on this could be that in general after a (or a couple) huge candle there will probably be some correction, maybe this indicator could catch that.
