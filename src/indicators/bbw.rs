@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 
 use crate::models::{candle::Candle, timeseries::TimeSeries};
 
@@ -10,8 +10,8 @@ use super::{
 /// Bollinger Band Width
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BBW {
-    pub bb: BollingerBands,
     pub value: f64,
+    pub len: usize,
 }
 
 impl PopulatesCandles for BBW {
@@ -21,16 +21,19 @@ impl PopulatesCandles for BBW {
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (len, _) = args.extract_bb_res()?;
-        let new_bbws: Vec<Option<BBW>> = (0..ts.candles.len())
-            .map(|i| Self::calculate_rolling(args, i, &ts.candles))
-            .collect();
-
         let indicator_type = IndicatorType::BBW(len);
 
-        for (i, candle) in ts.candles.iter_mut().enumerate() {
-            let new_bb = Indicator::BBW(new_bbws[i]);
+        for i in 0..ts.candles.len() {
+            let end = i + 1;
+            let bbw = if end < len {
+                None
+            } else {
+                Self::calculate(&ts.candles[end-len..end])
+            };
 
-            candle.indicators.insert(indicator_type, new_bb);
+            ts.candles[i]
+                .indicators
+                .insert(indicator_type, Indicator::BBW(bbw));
         }
 
         ts.indicators.insert(indicator_type);
@@ -44,15 +47,28 @@ impl PopulatesCandles for BBW {
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (len, _) = args.extract_bb_res()?;
+        let ctx_err = "Unable to get last candle";
         let indicator_type = IndicatorType::BBW(len);
+        let end = ts.candles.len();
 
-        let new_bbw = Self::calculate_rolling(args, ts.candles.len() - 1, &ts.candles);
+        if end == 0 {
+            return Err(anyhow!("No candle to populate"));
+        } else if end < len {
+            // Not enough candles to populate
+            ts.candles
+                .last_mut()
+                .context(ctx_err)?
+                .indicators
+                .insert(indicator_type, Indicator::BBW(None));
+        } else {
+            let new_bbw = Self::calculate(&ts.candles[end - len..end]);
 
-        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
-
-        new_candle
-            .indicators
-            .insert(indicator_type, Indicator::BBW(new_bbw));
+            ts.candles
+                .last_mut()
+                .context(ctx_err)?
+                .indicators
+                .insert(indicator_type, Indicator::BBW(new_bbw));
+        }
 
         Ok(())
     }
@@ -63,101 +79,105 @@ impl IsIndicator for BBW {
         IndicatorArgs::BollingerBandArgs(20, 2.0)
     }
 
-    fn calculate(_segment: &[Candle]) -> Option<Self>
-    where Self: Sized {
-        todo!()
-    }
-}
-
-impl BBW {
-    pub fn calculate(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BBW> {
-        let (len, _) = args.extract_bb_opt()?;
-
-        if !BollingerBands::calculation_ok(i, len, candles.len()) {
-            None
-        } else {
-            // let bb = BollingerBands::calculate(args, i, candles)?;
-            // Some(BBW {
-            //     bb,
-            //     value: Self::calculate_bbw(&bb),
-            // })
-            todo!()
-        }
-    }
-
-    pub fn calculate_rolling(args: IndicatorArgs, i: usize, candles: &[Candle]) -> Option<BBW> {
-        let (len, _) = args.extract_bb_opt()?;
-
-        if !BollingerBands::calculation_ok(i, len, candles.len()) {
-            return None;
-        } else {
-            Self::calculate(args, i, candles)
-        }
-    }
-
-    #[allow(dead_code)]
-    fn calculate_bbw(bb: &BollingerBands) -> f64 {
-        (bb.upper - bb.lower) / bb.sma.value
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        let bb = BollingerBands::calculate(segment)?;
+        Some(BBW {
+            value: (bb.upper - bb.lower) / bb.sma,
+            len: segment.len(),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        indicators::{bbw::BBW, indicator_args::IndicatorArgs},
-        models::candle::Candle,
+        indicators::{
+            bbw::BBW, indicator_type::IndicatorType, is_indicator::IsIndicator,
+            populates_candles::PopulatesCandles,
+        },
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
     };
 
     #[test]
-    fn calculate_bbw() {
+    fn bbw_calculate() {
         let candles = Candle::dummy_data(20, "positive", 100.0);
-
-        let args = IndicatorArgs::BollingerBandArgs(10, 2.0);
-        let bbw = BBW::calculate(args, 19, &candles);
+        let bbw = BBW::calculate(&candles);
         assert!(bbw.is_some());
         let bbw = bbw.unwrap();
-        assert!(bbw.value - 0.4749255457 < 0.0001)
-    }
-
-    #[test]
-    fn bbw_not_enough_data() {
-        let candles = Candle::dummy_data(2, "positive", 100.0);
-
-        let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
-        let bbw = BBW::calculate(args, 19, &candles);
-
-        assert!(bbw.is_none());
+        assert_eq!(bbw.value, 1.1543570308487054);
     }
 
     #[test]
     fn bbw_no_candles() {
-        let candles: Vec<Candle> = Vec::new();
-
-        let args = IndicatorArgs::BollingerBandArgs(20, 2.0);
-        let bb = BBW::calculate(args, 19, &candles);
-
-        assert!(bb.is_none());
+        let candles = Vec::new();
+        let sma = BBW::calculate(&candles);
+        assert!(sma.is_none());
     }
 
     #[test]
-    fn rolling_bbw() {
-        let n = 40;
-        let len = 20;
-        let args = IndicatorArgs::BollingerBandArgs(len, 2.0);
-        let candles = Candle::dummy_data(n, "positive", 100.0);
+    fn bbw_populate_candles() {
+        let candles = Candle::dummy_data(25, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
 
-        let bbws: Vec<Option<BBW>> = (0..candles.len())
-            .map(|i| BBW::calculate_rolling(args, i, &candles))
-            .collect();
+        let _ = BBW::populate_candles(&mut ts);
 
-        for (i, bbw) in bbws.iter().enumerate() {
+        let (len, _) = BBW::default_args().extract_bb_opt().unwrap();
+        let indicator_type = IndicatorType::BBW(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let bbw = indicator.as_bbw();
             if i < len - 1 {
-                assert!(bbw.is_none())
+                assert!(bbw.is_none());
             } else {
-                assert!(bbw.is_some())
+                assert!(bbw.is_some());
             }
         }
 
-        assert!(bbws[n - 1].unwrap().value - 0.58430417610 < 0.00001)
+        let last_candle = ts.candles.last().unwrap();
+        let last_bbw = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_bbw()
+            .unwrap();
+
+        assert_eq!(last_bbw.value, 0.9280125149960182);
+    }
+
+    #[test]
+    fn bbw_populate_last_candle() {
+        let candles = Candle::dummy_data(24, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let _ = BBW::populate_candles(&mut ts);
+
+        let candle = Candle::dummy_from_val(350.0);
+        let _ = ts.add_candle(candle);
+
+        let (len, _) = BBW::default_args().extract_bb_opt().unwrap();
+        let indicator_type = IndicatorType::BBW(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let bbw = indicator.as_bbw();
+            if i < len - 1 {
+                assert!(bbw.is_none());
+            } else {
+                assert!(bbw.is_some());
+            }
+        }
+
+        let last_candle = ts.candles.last().unwrap();
+        let last_bbw = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_bbw()
+            .unwrap();
+
+        assert_eq!(last_bbw.value, 0.9280125149960182);
     }
 }

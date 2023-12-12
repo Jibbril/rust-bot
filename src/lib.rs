@@ -10,7 +10,7 @@ mod utils;
 use crate::{
     indicators::{
         atr::ATR, bbwp::BBWP, is_indicator::IsIndicator,
-        populates_candles::PopulatesCandles, rsi::RSI,
+        populates_candles::PopulatesCandles, rsi::RSI, bbw::BBW,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
@@ -39,18 +39,40 @@ use models::{
 use tokio::time::{sleep, Duration};
 
 pub async fn run_dummy() -> Result<()> {
-    let candles = Candle::dummy_data(20, "positive", 100.0);
-    let bb = BollingerBands::calculate(&candles);
-    let _bb = bb.unwrap();
+    let candles = Candle::dummy_data(24, "positive", 100.0);
+    let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+    let _ = BBW::populate_candles(&mut ts);
 
-    print!("jaaa");
-    
+    let candle = Candle::dummy_from_val(350.0);
+    let _ = ts.add_candle(candle);
+
+    let (len, _) = BBW::default_args().extract_bb_opt().unwrap();
+    let indicator_type = IndicatorType::BBW(len);
+
+    for (i, candle) in ts.candles.iter().enumerate() {
+        let indicator = candle.indicators.get(&indicator_type).unwrap();
+        let bbw = indicator.as_bbw();
+        if i < len {
+            assert!(bbw.is_none());
+        } else {
+            assert!(bbw.is_some());
+        }
+    }
+
+    let last_candle = ts.candles.last().unwrap();
+    let _last_bbw = last_candle
+        .indicators
+        .get(&indicator_type)
+        .unwrap()
+        .as_bbw()
+        .unwrap();
+
     Ok(())
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let (len,_) = BollingerBands::default_args().extract_bb_res()?;
-    let indicator_type = IndicatorType::BollingerBands(len);
+    let (len,_) = BBW::default_args().extract_bb_res()?;
+    let indicator_type = IndicatorType::BBW(len);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;

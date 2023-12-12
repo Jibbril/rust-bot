@@ -20,16 +20,20 @@ pub struct BollingerBands {
 }
 
 impl PopulatesCandles for BollingerBands {
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
+    }
+
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (len, _) = args.extract_bb_res()?;
         let indicator_type = IndicatorType::BollingerBands(len);
 
         for i in 0..ts.candles.len() {
-            let bb = if i < len {
+            let end = i + 1;
+            let bb = if end < len {
                 None
             } else {
-                let start = i - len;
-                Self::calculate(&ts.candles[start..i+1])
+                Self::calculate(&ts.candles[end-len..end])
             };
 
             ts.candles[i]
@@ -40,10 +44,6 @@ impl PopulatesCandles for BollingerBands {
         ts.indicators.insert(indicator_type);
 
         Ok(())
-    }
-
-    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
-        Self::populate_candles_args(ts, Self::default_args())
     }
 
     fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
@@ -114,7 +114,7 @@ impl IsIndicator for BollingerBands {
 #[cfg(test)]
 mod tests {
     use super::BollingerBands;
-    use crate::{indicators::{indicator_args::IndicatorArgs, is_indicator::IsIndicator, populates_candles::PopulatesCandles, indicator_type::IndicatorType}, models::{candle::Candle, timeseries::TimeSeries, interval::Interval}};
+    use crate::{indicators::{is_indicator::IsIndicator, populates_candles::PopulatesCandles, indicator_type::IndicatorType}, models::{candle::Candle, timeseries::TimeSeries, interval::Interval}};
 
     #[test]
     fn calculate_bollinger_bands() {
@@ -146,7 +146,7 @@ mod tests {
         for (i, candle) in ts.candles.iter().enumerate() {
             let indicator = candle.indicators.get(&indicator_type).unwrap();
             let bb = indicator.as_bollinger_bands();
-            if i < len {
+            if i < len-1 {
                 assert!(bb.is_none());
             } else {
                 assert!(bb.is_some());
@@ -161,16 +161,16 @@ mod tests {
             .as_bollinger_bands()
             .unwrap();
 
-        assert_eq!(last_bb.upper, 374.0967364599086);
+        assert_eq!(last_bb.upper, 373.3215956619923);
     }
 
     #[test]
     fn bb_populate_last_candle() {
-        let candles = Candle::dummy_data(25, "positive", 100.0);
+        let candles = Candle::dummy_data(24, "positive", 100.0);
         let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
         let _ = BollingerBands::populate_candles(&mut ts);
 
-        let candle = Candle::dummy_from_val(250.0);
+        let candle = Candle::dummy_from_val(350.0);
         let _ = ts.add_candle(candle);
 
         let (len,_) = BollingerBands::default_args().extract_bb_opt().unwrap();
@@ -179,7 +179,7 @@ mod tests {
         for (i, candle) in ts.candles.iter().enumerate() {
             let indicator = candle.indicators.get(&indicator_type).unwrap();
             let bb = indicator.as_bollinger_bands();
-            if i < len {
+            if i < len-1 {
                 assert!(bb.is_none());
             } else {
                 assert!(bb.is_some());
@@ -194,6 +194,6 @@ mod tests {
             .as_bollinger_bands()
             .unwrap();
 
-        assert_eq!(last_bb.upper, 369.13576058932597);
+        assert_eq!(last_bb.upper, 373.3215956619923);
     }
 }
