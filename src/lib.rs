@@ -39,30 +39,30 @@ use models::{
 use tokio::time::{sleep, Duration};
 
 pub async fn run_dummy() -> Result<()> {
-    let candles = Candle::dummy_data(15, "positive", 100.0);
+    let candles = Candle::dummy_data(130, "alternating", 100.0);
     let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
 
-    let _ = ATR::populate_candles(&mut ts);
+    let _ = RSI::populate_candles(&mut ts);
 
-    let len = ATR::default_args().extract_len_opt().unwrap();
-    let indicator_type = IndicatorType::ATR(len);
+    let len = RSI::default_args().extract_len_opt().unwrap();
+    let indicator_type = IndicatorType::RSI(len);
 
-    for (i, candle) in ts.candles.iter().enumerate() {
+    for (i,candle) in ts.candles.iter().enumerate() {
         let indicator = candle.indicators.get(&indicator_type).unwrap();
-        let atr = indicator.as_atr();
+        let rsi = indicator.as_rsi();
         if i < len {
-            assert!(atr.is_none());
+            assert!(rsi.is_none());
         } else {
-            assert!(atr.is_some());
+            assert!(rsi.is_some());
         }
     }
-
+    
     let last_candle = ts.candles.last().unwrap();
-    let _last_atr = last_candle
+    let _last_sma = last_candle
         .indicators
         .get(&indicator_type)
         .unwrap()
-        .as_atr()
+        .as_rsi()
         .unwrap();
 
     Ok(())
@@ -70,7 +70,7 @@ pub async fn run_dummy() -> Result<()> {
 
 pub async fn run_single_indicator() -> Result<()> {
     let len = ATR::default_args().extract_len_res()?;
-    let indicator_type = IndicatorType::ATR(len);
+    let indicator_type = IndicatorType::RSI(len);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;

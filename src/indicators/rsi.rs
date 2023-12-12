@@ -58,16 +58,29 @@ impl PopulatesCandles for RSI {
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let indicator_type = IndicatorType::RSI(len);
+        let ctx_err = "Unable to get last candle";
+        let candle_len = ts.candles.len();
 
+        if candle_len == 0 {
+            return Err(anyhow!("No candle to populate"));
+        }
+
+        // Not enough candles to populate
+        if candle_len < len { 
+            ts.candles
+                .last_mut()
+                .context(ctx_err)?
+                .indicators
+                .insert(indicator_type, Indicator::RSI(None));
+
+            return Ok(())
+        };
+        
+        // Calculate new rsi and populate
         let prev_rsi =
             Indicator::get_second_last(ts, &indicator_type)
                 .and_then(|rsi| rsi.as_rsi());
 
-        let candle_len = ts.candles.len();
-        if candle_len < len { 
-            return Err(anyhow!("Not enough candles to populate."))
-        };
-        
         let new_rsi = if prev_rsi.is_none() {
             let start = candle_len - len;
             let end = candle_len - 1;
@@ -79,7 +92,7 @@ impl PopulatesCandles for RSI {
 
         ts.candles
             .last_mut()
-            .context("Failed to get last candle")?
+            .context(ctx_err)?
             .indicators
             .insert(indicator_type, Indicator::RSI(new_rsi));
 

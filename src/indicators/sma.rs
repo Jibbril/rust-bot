@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use crate::{
     models::{candle::Candle, timeseries::TimeSeries},
     utils::math::sma,
@@ -49,13 +49,28 @@ impl PopulatesCandles for SMA {
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
-        let start = ts.candles.len() - len;
         let end = ts.candles.len();
-        let new_sma = Self::calculate(&ts.candles[start..end]);
+        let ctx_err = "Failed to get last candle";
+        let indicator_type = IndicatorType::SMA(len);
 
-        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
-        new_candle.indicators
-            .insert(IndicatorType::SMA(len), Indicator::SMA(new_sma));
+        if end == 0 {
+            return Err(anyhow!("No candle to populate"));
+        } else if end < len {
+            // Not enough candles to populate
+            ts.candles
+                .last_mut()
+                .context(ctx_err)?
+                .indicators
+                .insert(indicator_type, Indicator::SMA(None));
+        } else {
+            let new_sma = Self::calculate(&ts.candles[end-len..end]);
+
+            ts.candles
+                .last_mut()
+                .context(ctx_err)?
+                .indicators
+                .insert(indicator_type, Indicator::SMA(new_sma));
+        }
 
         Ok(())
     }

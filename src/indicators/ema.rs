@@ -50,22 +50,37 @@ impl PopulatesCandles for EMA {
     }
 
     fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
-        Self::populate_candles_args(ts, Self::default_args())
+        Self::populate_last_candle_args(ts, Self::default_args())
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let indicator_type = IndicatorType::EMA(len);
+        let end = ts.candles.len();
+        let ctx_err =  "Unable to get last candle";
+        
+        if end == 0 {
+            return Err(anyhow!("No candle to populate"));
+        } 
 
+        // Not enough candles to get new EMA
+        if end < len { 
+            ts.candles
+                .last_mut()
+                .context(ctx_err)?
+                .indicators
+                .insert(indicator_type, Indicator::EMA(None));
+
+            return Ok(())
+        } 
+
+        // Calculate new and populate
         let prev = Indicator::get_second_last(ts, &indicator_type)
             .and_then(|indicator| indicator.as_ema());
 
-        let candle_len = ts.candles.len();
-        if candle_len < len { return Err(anyhow!("Not enough candles to populate."))};
-
         let new_ema = if prev.is_none() {
-            let start = candle_len - len;
-            let end = candle_len - 1;
+            let start = end - len;
+            let end = end - 1;
             Self::calculate(&ts.candles[start..end])
         } else {
             let prev = prev.unwrap();
@@ -75,7 +90,7 @@ impl PopulatesCandles for EMA {
 
         ts.candles
             .last_mut()
-            .context("Failed to get last candle")?
+            .context(ctx_err)?
             .indicators
             .insert(indicator_type, Indicator::EMA(new_ema));
 

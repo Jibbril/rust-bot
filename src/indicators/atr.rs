@@ -24,14 +24,13 @@ impl PopulatesCandles for ATR {
         let mut prev: Option<ATR> = None;
 
         for i in 0..ts.candles.len() {
-            let end = i;
-            let atr = if end < len {
+            let atr = if i < len {
                 None
-            } else if end == len || prev.is_none() {
-                let start = end - len;
-                Self::calculate(&ts.candles[start..end + 1])
+            } else if i == len || prev.is_none() {
+                let start = i - len;
+                Self::calculate(&ts.candles[start..i + 1])
             } else {
-                let candles = (&ts.candles[end - 1],&ts.candles[end]);
+                let candles = (&ts.candles[i - 1],&ts.candles[i]);
                 let prev = prev.unwrap();
                 Self::calculate_rolling(candles, prev.value, len)
             };
@@ -56,12 +55,25 @@ impl PopulatesCandles for ATR {
         let indicator_type = IndicatorType::ATR(len);
         let prev = Indicator::get_second_last(ts, &indicator_type)
             .and_then(|indicator| indicator.as_atr());
+        let ctx_err = "Unable to get last candle.";
 
         let candle_len = ts.candles.len();
-        if candle_len < len {
+        if candle_len == 0 {
             return Err(anyhow!("Not enough candles to populate."));
+        }
+
+        // Not enough candles to populate
+        if candle_len < len {
+            ts.candles
+                .last_mut()
+                .context(ctx_err)?
+                .indicators
+                .insert(indicator_type, Indicator::ATR(None));
+
+            return Ok(())
         };
 
+        // Calculate new and populate
         let new_atr = if prev.is_none() {
             let start = candle_len - len;
             let end = candle_len - 1;
@@ -73,9 +85,9 @@ impl PopulatesCandles for ATR {
 
         ts.candles
             .last_mut()
-            .context("Unable to get last candle.")?
+            .context(ctx_err)?
             .indicators
-            .insert(IndicatorType::ATR(len), Indicator::ATR(new_atr));
+            .insert(indicator_type, Indicator::ATR(new_atr));
 
         Ok(())
     }
