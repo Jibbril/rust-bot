@@ -2,7 +2,7 @@ use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
     is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
-use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries};
+use crate::models::{candle::Candle, timeseries::TimeSeries};
 use anyhow::{anyhow, Context, Result};
 
 #[derive(Debug, Copy, Clone)]
@@ -112,20 +112,13 @@ impl IsIndicator for ATR {
     where
         Self: Sized,
     {
-        Self::calculate_by_mode(segment, CalculationMode::Close)
-    }
-
-    fn calculate_by_mode(segment: &[Candle], mode: CalculationMode) -> Option<Self>
-    where
-        Self: Sized,
-    {
         if segment.len() < 1 {
             return None;
         }
 
         let len = segment.len() - 1;
         let sum: f64 = (1..segment.len())
-            .map(|i| Self::true_range(segment[i - 1].price_by_mode(&mode), &segment[i]))
+            .map(|i| Self::true_range(segment[i - 1].close, &segment[i]))
             .sum();
 
         Some(ATR {
@@ -143,7 +136,7 @@ mod tests {
             indicator_type::IndicatorType, is_indicator::IsIndicator,
             populates_candles::PopulatesCandles,
         },
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+       models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
     };
 
     #[test]

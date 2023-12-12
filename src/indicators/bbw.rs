@@ -67,11 +67,6 @@ impl IsIndicator for BBW {
     where Self: Sized {
         todo!()
     }
-
-    fn calculate_by_mode(_segment: &[Candle],_modee: crate::models::calculation_mode::CalculationMode) -> Option<Self>
-    where Self: Sized {
-        todo!()
-    }
 }
 
 impl BBW {
@@ -81,11 +76,12 @@ impl BBW {
         if !BollingerBands::calculation_ok(i, len, candles.len()) {
             None
         } else {
-            let bb = BollingerBands::calculate(args, i, candles)?;
-            Some(BBW {
-                bb,
-                value: Self::calculate_bbw(&bb),
-            })
+            // let bb = BollingerBands::calculate(args, i, candles)?;
+            // Some(BBW {
+            //     bb,
+            //     value: Self::calculate_bbw(&bb),
+            // })
+            todo!()
         }
     }
 
@@ -99,6 +95,7 @@ impl BBW {
         }
     }
 
+    #[allow(dead_code)]
     fn calculate_bbw(bb: &BollingerBands) -> f64 {
         (bb.upper - bb.lower) / bb.sma.value
     }

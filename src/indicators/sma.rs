@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use crate::{
-    models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
+    models::{candle::Candle, timeseries::TimeSeries},
     utils::math::sma,
 };
 use super::{
@@ -67,14 +67,10 @@ impl IsIndicator for SMA {
     }
 
     fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized {
-        Self::calculate_by_mode(segment, CalculationMode::Close)
-    }
-
-    fn calculate_by_mode(segment: &[Candle], mode: CalculationMode) -> Option<Self> where Self: Sized {
         let len = segment.len();
         if len == 0 { return None; }
 
-        let values: Vec<f64> = segment.iter().map(|c| c.price_by_mode(&mode)).collect();
+        let values: Vec<f64> = segment.iter().map(|c| c.close).collect();
 
         Some(SMA {
             len,

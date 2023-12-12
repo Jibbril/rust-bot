@@ -3,7 +3,7 @@ use super::{
     is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 use crate::{
-    models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
+    models::{candle::Candle, timeseries::TimeSeries},
     utils::math::{ema_rolling, sma},
 };
 use anyhow::{Context, Result, anyhow};
@@ -89,14 +89,6 @@ impl IsIndicator for EMA {
     }
 
     fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized, {
-        Self::calculate_by_mode(segment, CalculationMode::Close)
-    }
-
-    fn calculate_by_mode(segment: &[Candle], mode: CalculationMode) -> Option<Self>
-    where
-        Self: Sized,
-    {
-
         if segment.len() == 0 {
             return None;
         }
@@ -105,10 +97,10 @@ impl IsIndicator for EMA {
         let initial_values = &segment[..len].to_vec();
         let initial_values: Vec<f64> = initial_values
             .iter()
-            .map(|c| c.price_by_mode(&mode))
+            .map(|c| c.close)
             .collect();
         let initial_value = sma(&initial_values);
-        let price = segment[len].price_by_mode(&mode);
+        let price = segment[len].close;
 
         let ema = ema_rolling(initial_value, price, len as f64);
 

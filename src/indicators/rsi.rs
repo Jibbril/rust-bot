@@ -5,7 +5,7 @@ use super::{
     is_indicator::IsIndicator,
     populates_candles::PopulatesCandles,
 };
-use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries};
+use crate::models::{candle::Candle, timeseries::TimeSeries};
 use anyhow::{Context, Result, anyhow};
 use serde::Serialize;
 
@@ -93,14 +93,10 @@ impl IsIndicator for RSI {
     }
 
     fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized, {
-        Self::calculate_by_mode(segment, CalculationMode::Close)
-    }
-
-    fn calculate_by_mode(segment: &[Candle], mode: CalculationMode) -> Option<Self> where Self: Sized, {
         if segment.len() == 0 { return None; }
         let len = segment.len() - 1;
 
-        let (avg_gain, avg_loss) = Self::get_outcomes(segment, mode);
+        let (avg_gain, avg_loss) = Self::get_outcomes(segment);
 
         let rs = if avg_loss != 0.0 {
             avg_gain / avg_loss
@@ -153,14 +149,14 @@ impl RSI {
         Self::calculate_rsi(rs, len, (gains / f_len, losses / f_len))
     }
 
-    fn get_outcomes(segment: &[Candle], mode: CalculationMode) -> (f64, f64) {
+    fn get_outcomes(segment: &[Candle]) -> (f64, f64) {
         let mut gains = 0.0;
         let mut losses = 0.0;
         let len = segment.len();
 
         for i in 1..len {
-            let current = segment[i].price_by_mode(&mode);
-            let previous = segment[i - 1].price_by_mode(&mode);
+            let current = segment[i].close;
+            let previous = segment[i - 1].close;
 
             let change = current - previous;
             if change > 0.0 {

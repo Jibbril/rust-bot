@@ -2,7 +2,7 @@ use super::{CalculatesStopLosses, CalculatesTakeProfits};
 use crate::{
     indicators::{atr::ATR, indicator_type::IndicatorType, is_indicator::IsIndicator},
     models::{
-        calculation_mode::CalculationMode, candle::Candle,
+        candle::Candle,
         strategy_orientation::StrategyOrientation,
     },
 };
@@ -24,7 +24,7 @@ impl CalculatesStopLosses for AtrResolution {
         orientation: &StrategyOrientation,
         len: usize,
     ) -> Result<f64> {
-        let price = candles[i].price_by_mode(&CalculationMode::Close);
+        let price = candles[i].close;
         let atr = self.get_atr(candles, i, len);
 
         if let Some(atr) = atr {
@@ -48,7 +48,7 @@ impl CalculatesTakeProfits for AtrResolution {
         orientation: &StrategyOrientation,
         len: usize,
     ) -> Result<f64> {
-        let price = candles[i].price_by_mode(&CalculationMode::Close);
+        let price = candles[i].close;
         let atr = self.get_atr(candles, i, len);
 
         if let Some(atr) = atr {
