@@ -1,7 +1,5 @@
 use anyhow::{anyhow, Context, Result};
-
 use crate::models::{candle::Candle, timeseries::TimeSeries};
-
 use super::{
     bollinger_bands::BollingerBands, indicator::Indicator, indicator_args::IndicatorArgs,
     indicator_type::IndicatorType, is_indicator::IsIndicator, populates_candles::PopulatesCandles,

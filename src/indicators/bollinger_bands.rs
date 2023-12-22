@@ -7,7 +7,7 @@ use crate::{
 
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    is_indicator::IsIndicator, populates_candles::PopulatesCandles, sma::SMA,
+    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
