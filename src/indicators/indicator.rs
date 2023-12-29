@@ -1,6 +1,6 @@
 use crate::models::timeseries::TimeSeries;
 use super::{
-    atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivot,
+    atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivots,
     ema::EMA, indicator_type::IndicatorType, rsi::RSI, sma::SMA,
 };
 
@@ -14,7 +14,7 @@ pub enum Indicator {
     BollingerBands(Option<BollingerBands>),
     BBW(Option<BBW>),
     BBWP(Option<BBWP>),
-    DynamicPivot(Option<DynamicPivot>),
+    DynamicPivot(Option<DynamicPivots>),
 }
 
 impl Indicator {
@@ -86,7 +86,7 @@ impl Indicator {
         }
     }
 
-    pub fn as_dynamic_pivots(&self) -> Option<DynamicPivot> {
+    pub fn as_dynamic_pivots(&self) -> Option<DynamicPivots> {
         if let Indicator::DynamicPivot(pivots) = self {
             pivots.clone()
         } else {

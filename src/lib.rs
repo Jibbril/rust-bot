@@ -9,8 +9,8 @@ mod utils;
 
 use crate::{
     indicators::{
-        atr::ATR, bbw::BBW, bbwp::BBWP, is_indicator::IsIndicator,
-        populates_candles::PopulatesCandles, rsi::RSI,
+        atr::ATR, bbwp::BBWP, is_indicator::IsIndicator,
+        populates_candles::PopulatesCandles, rsi::RSI, dynamic_pivots::DynamicPivots,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
@@ -103,8 +103,8 @@ pub async fn run_dummy() -> Result<()> {
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let (len, lookback, _) = BBWP::default_args().extract_bbwp_res()?;
-    let indicator_type = IndicatorType::BBWP(len, lookback);
+    let len = DynamicPivots::default_args().extract_len_res()?;
+    let indicator_type = IndicatorType::DynamicPivot(len);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
