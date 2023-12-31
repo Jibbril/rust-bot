@@ -37,7 +37,6 @@ use models::{
 use tokio::time::{sleep, Duration};
 
 pub async fn run_dummy() -> Result<()> {
-    // TODO: Continue testing BBWP
     let arr = [
         5.09929, 9.74627, -5.33611, 1.94130, -8.76965, 6.66391, 7.27652, 5.97592, -9.85165,
         2.48223, 0.73204, -3.49922, 7.75743, 1.92533, 8.93053, 4.81184, 8.60267, 1.67297, -8.45413,
