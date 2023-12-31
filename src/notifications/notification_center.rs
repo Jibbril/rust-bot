@@ -1,10 +1,10 @@
-use std::env;
 use crate::models::{setups::setup::Setup, traits::trading_strategy::TradingStrategy};
 use anyhow::{anyhow, Result};
 use lettre::{
     message::header::ContentType, transport::smtp::authentication::Credentials, Message,
     SmtpTransport, Transport,
 };
+use std::env;
 
 pub struct NotificationCenter;
 

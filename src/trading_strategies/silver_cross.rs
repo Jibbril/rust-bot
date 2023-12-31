@@ -1,4 +1,3 @@
-use anyhow::Result;
 use crate::{
     indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
@@ -13,6 +12,7 @@ use crate::{
         ResolutionStrategy,
     },
 };
+use anyhow::Result;
 use std::fmt::{Display, Formatter};
 
 /// # Silver Cross Strategy

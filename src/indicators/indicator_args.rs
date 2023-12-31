@@ -7,7 +7,7 @@ pub enum IndicatorArgs {
     BBWPArgs(usize, usize, usize), // bbwp-length, lookback, sma-length
 }
 
-const ERR: &str = "Invalid indicator arguments.";
+const ERR_MSG: &str = "Invalid indicator arguments.";
 
 impl IndicatorArgs {
     #[allow(dead_code)]
@@ -21,7 +21,7 @@ impl IndicatorArgs {
     pub fn extract_len_res(&self) -> Result<usize> {
         match self {
             IndicatorArgs::LengthArg(n) => Ok(*n),
-            _ => return Err(anyhow!(ERR)),
+            _ => return Err(anyhow!(ERR_MSG)),
         }
     }
 
@@ -35,7 +35,7 @@ impl IndicatorArgs {
     pub fn extract_bb_res(&self) -> Result<(usize, f64)> {
         match self {
             IndicatorArgs::BollingerBandArgs(n, m) => Ok((*n, *m)),
-            _ => return Err(anyhow!(ERR)),
+            _ => return Err(anyhow!(ERR_MSG)),
         }
     }
 
@@ -50,7 +50,7 @@ impl IndicatorArgs {
     pub fn extract_bbwp_res(&self) -> Result<(usize, usize, usize)> {
         match self {
             IndicatorArgs::BBWPArgs(a, b, c) => Ok((*a, *b, *c)),
-            _ => return Err(anyhow!(ERR)),
+            _ => return Err(anyhow!(ERR_MSG)),
         }
     }
 }

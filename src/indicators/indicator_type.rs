@@ -3,7 +3,7 @@ use super::{
     bbw::BBW,
     bbwp::BBWP,
     bollinger_bands::BollingerBands,
-    dynamic_pivots::DynamicPivot,
+    dynamic_pivots::DynamicPivots,
     ema::EMA,
     indicator_args::IndicatorArgs,
     populates_candles::{PopulatesCandles, PopulatesCandlesWithSelf},
@@ -48,7 +48,7 @@ impl PopulatesCandlesWithSelf for IndicatorType {
             }
             IndicatorType::DynamicPivot(len) => {
                 let args = IndicatorArgs::LengthArg(*len);
-                DynamicPivot::populate_candles_args(ts, args)
+                DynamicPivots::populate_candles_args(ts, args)
             }
             IndicatorType::EMA(len) => {
                 let args = IndicatorArgs::LengthArg(*len);
@@ -85,7 +85,7 @@ impl PopulatesCandlesWithSelf for IndicatorType {
             }
             IndicatorType::DynamicPivot(len) => {
                 let args = IndicatorArgs::LengthArg(*len);
-                DynamicPivot::populate_last_candle_args(ts, args)
+                DynamicPivots::populate_last_candle_args(ts, args)
             }
             IndicatorType::EMA(len) => {
                 let args = IndicatorArgs::LengthArg(*len);

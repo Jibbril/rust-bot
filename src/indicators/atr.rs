@@ -1,9 +1,9 @@
-use anyhow::{Context, Result};
-use crate::models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries};
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
     is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
+use crate::models::{candle::Candle, timeseries::TimeSeries};
+use anyhow::{anyhow, Context, Result};
 
 #[derive(Debug, Copy, Clone)]
 pub struct ATR {
@@ -13,32 +13,37 @@ pub struct ATR {
 }
 
 impl PopulatesCandles for ATR {
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
+    }
+
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
-        let mut atr: Option<ATR> = None;
-
-        let new_atrs: Vec<Option<ATR>> = (0..ts.candles.len())
-            .map(|i| {
-                atr = Self::calculate_rolling(len, i, &ts.candles, &atr);
-                atr
-            })
-            .collect();
-
         let indicator_type = IndicatorType::ATR(len);
 
-        for (i, candle) in ts.candles.iter_mut().enumerate() {
-            let new_atr = Indicator::ATR(new_atrs[i]);
+        let mut prev: Option<ATR> = None;
 
-            candle.indicators.insert(indicator_type, new_atr);
+        for i in 0..ts.candles.len() {
+            let atr = if i < len {
+                None
+            } else if i == len || prev.is_none() {
+                let start = i - len;
+                Self::calculate(&ts.candles[start..i + 1])
+            } else {
+                let candles = (&ts.candles[i - 1], &ts.candles[i]);
+                let prev = prev.unwrap();
+                Self::calculate_rolling(candles, prev.value, len)
+            };
+
+            ts.candles[i]
+                .indicators
+                .insert(indicator_type, Indicator::ATR(atr));
+            prev = atr;
         }
 
         ts.indicators.insert(indicator_type);
 
         Ok(())
-    }
-
-    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
-        Self::populate_candles_args(ts, Self::default_args())
     }
 
     fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
@@ -50,87 +55,61 @@ impl PopulatesCandles for ATR {
         let indicator_type = IndicatorType::ATR(len);
         let prev = Indicator::get_second_last(ts, &indicator_type)
             .and_then(|indicator| indicator.as_atr());
+        let ctx_err = "Unable to get last candle.";
 
-        let new_atr = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &prev);
+        let candle_len = ts.candles.len();
+        if candle_len == 0 {
+            return Err(anyhow!("Not enough candles to populate."));
+        }
 
-        let new_candle = ts
-            .candles
+        // Not enough candles to populate
+        if candle_len < len {
+            ts.candles
+                .last_mut()
+                .context(ctx_err)?
+                .indicators
+                .insert(indicator_type, Indicator::ATR(None));
+
+            return Ok(());
+        };
+
+        // Calculate new and populate
+        let new_atr = if prev.is_none() {
+            let start = candle_len - len;
+            let end = candle_len - 1;
+            Self::calculate(&ts.candles[start..end])
+        } else {
+            let candles = (&ts.candles[candle_len - 2], &ts.candles[candle_len - 1]);
+            Self::calculate_rolling(candles, prev.unwrap().value, len)
+        };
+
+        ts.candles
             .last_mut()
-            .context("Unable to get last candle.")?;
-
-        new_candle
+            .context(ctx_err)?
             .indicators
-            .insert(IndicatorType::ATR(len), Indicator::ATR(new_atr));
+            .insert(indicator_type, Indicator::ATR(new_atr));
 
         Ok(())
     }
 }
 
 impl ATR {
-    // Default implementation using closing values for calculations.
-    pub fn calculate_rolling(
+    fn calculate_rolling(
+        (prev_candle, curr_candle): (&Candle, &Candle),
+        prev_atr: f64,
         len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        prev: &Option<ATR>,
     ) -> Option<ATR> {
-        Self::calculate_rolling_with_opts(len, i, candles, CalculationMode::Close, prev)
+        let f_len = len as f64;
+        let tr = Self::true_range(prev_candle.close, curr_candle);
+        let atr = (prev_atr * (f_len - 1.0) + tr) / f_len;
+
+        Some(ATR { len, value: atr })
     }
 
-    fn calculate_rolling_with_opts(
-        len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        mode: CalculationMode,
-        prev: &Option<ATR>,
-    ) -> Option<ATR> {
-        let arr_len = candles.len();
-        if i > arr_len || len > arr_len || i < len - 1 {
-            None
-        } else if let Some(prev) = prev {
-            let f_len = len as f64;
-            let tr = Self::true_range(&mode, &candles[i - 1], &candles[i]);
-            let atr = (prev.value * (f_len - 1.0) + tr) / f_len;
-
-            Some(ATR { len, value: atr })
-        } else {
-            Self::calculate(len, i, candles)
-        }
-    }
-
-    // Default implementation using closing values for calculations.
-    pub fn calculate(len: usize, i: usize, candles: &Vec<Candle>) -> Option<ATR> {
-        Self::calculate_with_opts(len, i, candles, CalculationMode::Close)
-    }
-
-    fn calculate_with_opts(
-        len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        mode: CalculationMode,
-    ) -> Option<ATR> {
-        let arr_len = candles.len();
-        if i >= arr_len || len > arr_len || i <= len - 1 {
-            None
-        } else {
-            let start = i + 1 - len;
-            let end = i + 1;
-            let sum: f64 = (start..end)
-                .map(|i| Self::true_range(&mode, &candles[i - 1], &candles[i]))
-                .sum();
-
-            Some(ATR {
-                len,
-                value: sum / (len as f64),
-            })
-        }
-    }
-
-    fn true_range(mode: &CalculationMode, prev: &Candle, curr: &Candle) -> f64 {
-        let prev_price = prev.price_by_mode(mode);
+    fn true_range(prev: f64, curr: &Candle) -> f64 {
         let a = curr.high - curr.low;
-        let b = (curr.high - prev_price).abs();
-        let c = (curr.low - prev_price).abs();
+        let b = (curr.high - prev).abs();
+        let c = (curr.low - prev).abs();
 
         a.max(b).max(c)
     }
@@ -140,57 +119,116 @@ impl IsIndicator for ATR {
     fn default_args() -> IndicatorArgs {
         IndicatorArgs::LengthArg(14)
     }
+
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if segment.len() < 1 {
+            return None;
+        }
+
+        let len = segment.len() - 1;
+        let sum: f64 = (1..segment.len())
+            .map(|i| Self::true_range(segment[i - 1].close, &segment[i]))
+            .sum();
+
+        Some(ATR {
+            len,
+            value: sum / (len as f64),
+        })
+    }
 }
+
 #[cfg(test)]
 mod tests {
     use super::ATR;
-    use crate::models::candle::Candle;
+    use crate::{
+        indicators::{
+            indicator_type::IndicatorType, is_indicator::IsIndicator,
+            populates_candles::PopulatesCandles,
+        },
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+    };
 
     #[test]
     fn calculate_atr() {
         let candles = Candle::dummy_data(6, "positive", 100.0);
-        let atr = ATR::calculate(4, 5, &candles);
+        let atr = ATR::calculate(&candles[1..]);
+        println!("{:#?}", atr);
         assert!(atr.is_some());
         let atr = atr.unwrap();
         assert_eq!(atr.value, 10.0);
     }
 
     #[test]
-    fn atr_not_enough_data() {
-        let candles = Candle::dummy_data(2, "positive", 100.0);
-        let sma = ATR::calculate(4, 3, &candles);
-        assert!(sma.is_none());
-    }
-
-    #[test]
     fn atr_no_candles() {
-        let candles: Vec<Candle> = Vec::new();
-        let sma = ATR::calculate(4, 3, &candles);
+        let candles = Vec::new();
+        let sma = ATR::calculate(&candles);
         assert!(sma.is_none());
     }
 
     #[test]
-    fn rolling_atr() {
-        let n = 20;
-        let len = 7;
-        let candles = Candle::dummy_data(20, "positive", 100.0);
-        let mut atr = None;
+    fn atr_populate_candles() {
+        let candles = Candle::dummy_data(15, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
 
-        let atrs: Vec<Option<ATR>> = (0..n)
-            .map(|i| {
-                atr = ATR::calculate_rolling(len, i, &candles, &atr);
-                atr
-            })
-            .collect();
+        let _ = ATR::populate_candles(&mut ts);
 
-        for (i, atr) in atrs.iter().enumerate() {
-            if i <= len - 1 {
-                assert!(atr.is_none())
+        let len = ATR::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::ATR(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let atr = indicator.as_atr();
+            if i < len {
+                assert!(atr.is_none());
             } else {
-                assert!(atr.is_some())
+                assert!(atr.is_some());
             }
         }
 
-        assert_eq!(atrs[n - 1].unwrap().value, 10.0);
+        let last_candle = ts.candles.last().unwrap();
+        let last_atr = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_atr()
+            .unwrap();
+
+        assert_eq!(last_atr.value, 10.0);
+    }
+
+    #[test]
+    fn atr_populate_last_candle() {
+        let candles = Candle::dummy_data(14, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let _ = ATR::populate_candles(&mut ts);
+
+        let candle = Candle::dummy_from_val(250.0);
+        let _ = ts.add_candle(candle);
+
+        let len = ATR::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::ATR(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let atr = indicator.as_atr();
+            if i < len {
+                assert!(atr.is_none());
+            } else {
+                assert!(atr.is_some());
+            }
+        }
+
+        let last_candle = ts.candles.last().unwrap();
+        let last_atr = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_atr()
+            .unwrap();
+
+        assert_eq!(last_atr.value, 10.0);
     }
 }

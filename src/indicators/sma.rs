@@ -1,15 +1,12 @@
-use anyhow::{Context, Result};
-use crate::{
-    models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
-    utils::math::{sma, sma_rolling},
-};
 use super::{
-    indicator::{Indicator, MovingAverage},
-    indicator_args::IndicatorArgs,
-    indicator_type::IndicatorType,
-    is_indicator::IsIndicator,
-    populates_candles::PopulatesCandles,
+    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
+use crate::{
+    models::{candle::Candle, timeseries::TimeSeries},
+    utils::math::sma,
+};
+use anyhow::{anyhow, Context, Result};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct SMA {
@@ -24,21 +21,20 @@ impl PopulatesCandles for SMA {
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
-        let mut sma: Option<SMA> = None;
-        let new_smas: Vec<Option<SMA>> = (0..ts.candles.len())
-            .map(|i| {
-                sma = Self::calculate_rolling(len, i, &ts.candles, &sma);
-                sma
-            })
-            .collect();
-
         let indicator_type = IndicatorType::SMA(len);
 
-        for (i, candle) in ts.candles.iter_mut().enumerate() {
-            let new_sma = MovingAverage::Simple(new_smas[i]);
-            let new_sma = Indicator::MA(new_sma);
+        for i in 0..ts.candles.len() {
+            let end = i + 1;
+            let sma = if end < len {
+                None
+            } else {
+                let start = end - len;
+                Self::calculate(&ts.candles[start..end])
+            };
 
-            candle.indicators.insert(indicator_type, new_sma);
+            ts.candles[i]
+                .indicators
+                .insert(indicator_type, Indicator::SMA(sma));
         }
 
         ts.indicators.insert(indicator_type);
@@ -52,18 +48,28 @@ impl PopulatesCandles for SMA {
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
+        let end = ts.candles.len();
+        let ctx_err = "Failed to get last candle";
         let indicator_type = IndicatorType::SMA(len);
-        let prev = Indicator::get_second_last(ts, &indicator_type)
-            .and_then(|indicator| indicator.as_sma());
 
-        let new_sma = Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &prev);
+        if end == 0 {
+            return Err(anyhow!("No candle to populate"));
+        } else if end < len {
+            // Not enough candles to populate
+            ts.candles
+                .last_mut()
+                .context(ctx_err)?
+                .indicators
+                .insert(indicator_type, Indicator::SMA(None));
+        } else {
+            let new_sma = Self::calculate(&ts.candles[end - len..end]);
 
-        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
-
-        let ma = MovingAverage::Simple(new_sma);
-        new_candle
-            .indicators
-            .insert(IndicatorType::SMA(len), Indicator::MA(ma));
+            ts.candles
+                .last_mut()
+                .context(ctx_err)?
+                .indicators
+                .insert(indicator_type, Indicator::SMA(new_sma));
+        }
 
         Ok(())
     }
@@ -73,123 +79,123 @@ impl IsIndicator for SMA {
     fn default_args() -> IndicatorArgs {
         IndicatorArgs::LengthArg(8)
     }
-}
 
-impl SMA {
-    // Default implementation using closing values for calculations.
-    pub fn calculate_rolling(
-        len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        previous_sma: &Option<SMA>,
-    ) -> Option<SMA> {
-        Self::calculate_rolling_with_opts(len, i, candles, CalculationMode::Close, previous_sma)
-    }
-
-    fn calculate_rolling_with_opts(
-        len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        mode: CalculationMode,
-        previous_sma: &Option<SMA>,
-    ) -> Option<SMA> {
-        let arr_len = candles.len();
-        if i > arr_len || len > arr_len || i < len - 1 {
-            None
-        } else if let Some(prev_sma) = previous_sma {
-            let sma = sma_rolling(
-                candles[i].price_by_mode(&mode),
-                candles[i - len].price_by_mode(&mode),
-                prev_sma.value,
-                len as f64,
-            );
-
-            Some(SMA { len, value: sma })
-        } else {
-            Self::calculate(len, i, candles)
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        let len = segment.len();
+        if len == 0 {
+            return None;
         }
-    }
 
-    // Default implementation using closing values for calculations.
-    pub fn calculate(len: usize, i: usize, candles: &Vec<Candle>) -> Option<SMA> {
-        Self::calculate_with_opts(len, i, candles, CalculationMode::Close)
-    }
+        let values: Vec<f64> = segment.iter().map(|c| c.close).collect();
 
-    fn calculate_with_opts(
-        len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        mode: CalculationMode,
-    ) -> Option<SMA> {
-        let arr_len = candles.len();
-        if i > arr_len || len > arr_len || i < len - 1 {
-            None
-        } else {
-            let start = i + 1 - len;
-            let end = i + 1;
-            let segment = &candles[start..end];
-
-            let values: Vec<f64> = segment.iter().map(|c| c.price_by_mode(&mode)).collect();
-
-            Some(SMA {
-                len,
-                value: sma(&values),
-            })
-        }
+        Some(SMA {
+            len,
+            value: sma(&values),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::models::candle::Candle;
-
     use super::SMA;
+    use crate::{
+        indicators::{
+            indicator_type::IndicatorType, is_indicator::IsIndicator,
+            populates_candles::PopulatesCandles,
+        },
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+    };
 
     #[test]
     fn calculate_sma() {
         let candles = Candle::dummy_data(4, "positive", 100.0);
-        let sma = SMA::calculate(4, 3, &candles);
+        let sma = SMA::calculate(&candles[1..4]);
         assert!(sma.is_some());
         let sma = sma.unwrap();
-        assert_eq!(sma.value, 125.0);
+        assert_eq!(sma.value, 130.0);
     }
 
     #[test]
-    fn sma_not_enough_data() {
-        let candles = Candle::dummy_data(2, "positive", 100.0);
-        let sma = SMA::calculate(4, 3, &candles);
-        assert!(sma.is_none());
+    fn calculate_sma_single() {
+        let candles = Candle::dummy_data(1, "positive", 100.0);
+        let sma = SMA::calculate(&candles);
+        assert!(sma.is_some());
+        let sma = sma.unwrap();
+        assert_eq!(sma.value, 110.0);
+    }
+
+    #[test]
+    fn sma_populate_candles() {
+        let candles = Candle::dummy_data(10, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+
+        let _ = SMA::populate_candles(&mut ts);
+
+        let len = SMA::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::SMA(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let sma = indicator.as_sma();
+            if i < len - 1 {
+                assert!(sma.is_none());
+            } else {
+                assert!(sma.is_some());
+            }
+        }
+
+        let last_candle = ts.candles.last().unwrap();
+        let last_sma = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_sma()
+            .unwrap();
+        assert_eq!(last_sma.value, 165.0);
     }
 
     #[test]
     fn sma_no_candles() {
         let candles: Vec<Candle> = Vec::new();
-        let sma = SMA::calculate(4, 3, &candles);
+        let sma = SMA::calculate(&candles);
         assert!(sma.is_none());
     }
 
     #[test]
-    fn rolling_sma() {
-        let n = 20;
-        let len = 7;
-        let candles = Candle::dummy_data(20, "positive", 100.0);
-        let mut sma = None;
+    fn sma_populate_last_candle() {
+        let candles = Candle::dummy_data(9, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
 
-        let smas: Vec<Option<SMA>> = (0..n)
-            .map(|i| {
-                sma = SMA::calculate_rolling(len, i, &candles, &sma);
-                sma
-            })
-            .collect();
+        let _ = SMA::populate_candles(&mut ts);
 
-        for (i, sma) in smas.iter().enumerate() {
+        let candle = Candle::dummy_from_val(200.0);
+
+        let _ = ts.add_candle(candle);
+
+        let len = SMA::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::SMA(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let sma = indicator.as_sma();
             if i < len - 1 {
-                assert!(sma.is_none())
+                assert!(sma.is_none());
             } else {
-                assert!(sma.is_some())
+                assert!(sma.is_some());
             }
         }
 
-        assert_eq!(smas[n - 1].unwrap().value, 270.0);
+        let last_candle = ts.candles.last().unwrap();
+        let last_sma = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_sma()
+            .unwrap();
+
+        assert_eq!(last_sma.value, 165.0);
     }
 }

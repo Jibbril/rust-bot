@@ -1,15 +1,12 @@
-use anyhow::{Context, Result};
-use crate::{
-    models::{calculation_mode::CalculationMode, candle::Candle, timeseries::TimeSeries},
-    utils::math::{ema, ema_rolling},
-};
 use super::{
-    indicator::{Indicator, MovingAverage},
-    indicator_args::IndicatorArgs,
-    indicator_type::IndicatorType,
-    is_indicator::IsIndicator,
-    populates_candles::PopulatesCandles,
+    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
+use crate::{
+    models::{candle::Candle, timeseries::TimeSeries},
+    utils::math::{ema_rolling, sma},
+};
+use anyhow::{anyhow, Context, Result};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct EMA {
@@ -25,21 +22,26 @@ impl PopulatesCandles for EMA {
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
-        let mut ema: Option<EMA> = None;
-        let new_emas: Vec<Option<EMA>> = (0..ts.candles.len())
-            .map(|i| {
-                ema = Self::calculate_rolling(len, i, &ts.candles, &ema);
-                ema
-            })
-            .collect();
-
         let indicator_type = IndicatorType::EMA(len);
 
-        for (i, candle) in ts.candles.iter_mut().enumerate() {
-            let new_ema = MovingAverage::Exponential(new_emas[i]);
-            let new_ema = Indicator::MA(new_ema);
+        let mut prev_ema: Option<EMA> = None;
+        for i in 0..ts.candles.len() {
+            let end = i;
+            let ema = if end < len {
+                None
+            } else if end == len || prev_ema.is_none() {
+                let start = end - len;
+                Self::calculate(&ts.candles[start..end + 1])
+            } else {
+                let prev = prev_ema.unwrap().value;
+                let current = ts.candles[end].close;
+                Self::calculate_rolling(prev, current, len)
+            };
 
-            candle.indicators.insert(indicator_type, new_ema);
+            ts.candles[i]
+                .indicators
+                .insert(indicator_type, Indicator::EMA(ema));
+            prev_ema = ema;
         }
 
         ts.indicators.insert(indicator_type);
@@ -48,24 +50,49 @@ impl PopulatesCandles for EMA {
     }
 
     fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
-        Self::populate_candles_args(ts, Self::default_args())
+        Self::populate_last_candle_args(ts, Self::default_args())
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let len = args.extract_len_res()?;
         let indicator_type = IndicatorType::EMA(len);
+        let end = ts.candles.len();
+        let ctx_err = "Unable to get last candle";
 
-        let previous_ema =
-            Indicator::get_second_last(ts, &indicator_type).and_then(|ema| ema.as_ema());
+        if end == 0 {
+            return Err(anyhow!("No candle to populate"));
+        }
 
-        let new_ema =
-            Self::calculate_rolling(len, ts.candles.len() - 1, &ts.candles, &previous_ema);
-        let new_ema = MovingAverage::Exponential(new_ema);
-        let new_ema = Indicator::MA(new_ema);
+        // Not enough candles to get new EMA
+        if end < len {
+            ts.candles
+                .last_mut()
+                .context(ctx_err)?
+                .indicators
+                .insert(indicator_type, Indicator::EMA(None));
 
-        let new_candle = ts.candles.last_mut().context("Failed to get last candle")?;
+            return Ok(());
+        }
 
-        new_candle.indicators.insert(indicator_type, new_ema);
+        // Calculate new and populate
+        let prev = Indicator::get_second_last(ts, &indicator_type)
+            .and_then(|indicator| indicator.as_ema());
+
+        let new_ema = if prev.is_none() {
+            let start = end - len;
+            let end = end - 1;
+            Self::calculate(&ts.candles[start..end])
+        } else {
+            let prev = prev.unwrap();
+            let current = ts.candles.last().unwrap().close;
+            Self::calculate_rolling(prev.value, current, len)
+        };
+
+        ts.candles
+            .last_mut()
+            .context(ctx_err)?
+            .indicators
+            .insert(indicator_type, Indicator::EMA(new_ema));
 
         Ok(())
     }
@@ -75,111 +102,127 @@ impl IsIndicator for EMA {
     fn default_args() -> IndicatorArgs {
         IndicatorArgs::LengthArg(8)
     }
+
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if segment.len() == 0 {
+            return None;
+        }
+
+        let len = segment.len() - 1;
+        let initial_values = &segment[..len].to_vec();
+        let initial_values: Vec<f64> = initial_values.iter().map(|c| c.close).collect();
+        let initial_value = sma(&initial_values);
+        let price = segment[len].close;
+
+        let ema = ema_rolling(initial_value, price, len as f64);
+
+        Some(EMA { len, value: ema })
+    }
 }
 
 impl EMA {
-    // Default implementation using closing values for calculations.
-    pub fn calculate_rolling(
-        len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        previous_ema: &Option<EMA>,
-    ) -> Option<EMA> {
-        Self::calculate_rolling_with_opts(len, i, candles, CalculationMode::Close, previous_ema)
-    }
-
-    fn calculate_rolling_with_opts(
-        len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        mode: CalculationMode,
-        previous_ema: &Option<EMA>,
-    ) -> Option<EMA> {
-        let arr_len = candles.len();
-        if i > arr_len || len > arr_len || i < len - 1 {
-            None
-        } else if let Some(prev_ema) = previous_ema {
-            let ema = ema_rolling(prev_ema.value, candles[i].price_by_mode(&mode), len as f64);
-
-            Some(EMA { len, value: ema })
-        } else {
-            Self::calculate(len, i, candles)
-        }
-    }
-
-    // Default implementation using closing values for calculations.
-    pub fn calculate(len: usize, i: usize, candles: &Vec<Candle>) -> Option<EMA> {
-        Self::calculate_with_opts(len, i, candles, CalculationMode::Close)
-    }
-
-    fn calculate_with_opts(
-        len: usize,
-        i: usize,
-        candles: &Vec<Candle>,
-        mode: CalculationMode,
-    ) -> Option<EMA> {
-        let arr_len = candles.len();
-        if i > arr_len || len > arr_len || i < len - 1 {
-            None
-        } else {
-            let start = i + 1 - len;
-            let end = i + 1;
-            let segment = &candles[start..end];
-
-            let values: Vec<f64> = segment.iter().map(|c| c.price_by_mode(&mode)).collect();
-
-            Some(EMA {
-                len,
-                value: ema(&values),
-            })
-        }
+    pub fn calculate_rolling(prev: f64, x: f64, len: usize) -> Option<Self> {
+        Some(EMA {
+            len,
+            value: ema_rolling(prev, x, len as f64),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::models::candle::Candle;
-
     use super::EMA;
+    use crate::{
+        indicators::{
+            indicator_type::IndicatorType, is_indicator::IsIndicator,
+            populates_candles::PopulatesCandles,
+        },
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+    };
 
     #[test]
     fn calculate_ema() {
-        let data: Vec<f64> = (0..7).map(|i| 100.0 + i as f64).collect();
-        let candles = Candle::dummy_from_arr(&data);
-
-        let ema = EMA::calculate(7, 6, &candles);
+        let candles = Candle::dummy_data(8, "positive", 100.0);
+        let ema = EMA::calculate(&candles);
         assert!(ema.is_some());
-        let ema = ema.unwrap();
-        assert_eq!(ema.value, 103.75);
-    }
 
-    #[test]
-    fn ema_not_enough_data() {
-        let candles = Candle::dummy_data(2, "positive", 100.0);
-        let ema = EMA::calculate(4, 3, &candles);
-        assert!(ema.is_none());
+        let ema = ema.unwrap();
+        assert_eq!(ema.value, 150.0);
     }
 
     #[test]
     fn ema_no_candles() {
         let candles: Vec<Candle> = Vec::new();
-        let ema = EMA::calculate(4, 3, &candles);
+        let ema = EMA::calculate(&candles);
         assert!(ema.is_none());
     }
 
     #[test]
-    fn rolling_ema() {
-        let len = 7;
-        let data: Vec<f64> = (0..len).map(|i| 100.0 + i as f64).collect();
-        let mut candles = Candle::dummy_from_arr(&data);
-        let initial_ema = EMA::calculate(len, 6, &candles);
+    fn ema_populate_candles() {
+        let candles = Candle::dummy_data(10, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
 
-        candles.push(Candle::dummy_from_val(107.0));
+        let _ = EMA::populate_candles(&mut ts);
 
-        let ema = EMA::calculate_rolling(len, len, &candles, &initial_ema);
+        let len = EMA::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::EMA(len);
 
-        assert!(ema.is_some());
-        let ema = ema.unwrap();
-        assert_eq!(ema.value, 104.5625);
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let ema = indicator.as_ema();
+            if i < len {
+                assert!(ema.is_none());
+            } else {
+                assert!(ema.is_some());
+            }
+        }
+
+        let last_candle = ts.candles.last().unwrap();
+        let last_sma = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_ema()
+            .unwrap();
+
+        assert_eq!(last_sma.value, 165.0);
+    }
+
+    #[test]
+    fn ema_populate_last_candle() {
+        let candles = Candle::dummy_data(9, "positive", 100.0);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+
+        let _ = EMA::populate_candles(&mut ts);
+
+        let candle = Candle::dummy_from_val(200.0);
+
+        let _ = ts.add_candle(candle);
+
+        let len = EMA::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::EMA(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let ema = indicator.as_ema();
+            if i < len {
+                assert!(ema.is_none());
+            } else {
+                assert!(ema.is_some());
+            }
+        }
+
+        let last_candle = ts.candles.last().unwrap();
+        let last_ema = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_ema()
+            .unwrap();
+
+        assert_eq!(last_ema.value, 165.0);
     }
 }

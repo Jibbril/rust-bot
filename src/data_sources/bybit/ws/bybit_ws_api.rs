@@ -1,3 +1,7 @@
+use super::{
+    incoming_message::{IncomingMessage, KlineResponse},
+    outgoing_message::{OutgoingMessage, OutgoingMessageArg},
+};
 use crate::models::{
     interval::Interval, message_payloads::websocket_payload::WebsocketPayload,
     net_version::NetVersion, websockets::wsclient::WebsocketClient,
@@ -15,10 +19,6 @@ use tokio::{
 };
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use tungstenite::{Error, Message};
-use super::{
-    incoming_message::{IncomingMessage, KlineResponse},
-    outgoing_message::{OutgoingMessage, OutgoingMessageArg},
-};
 
 pub struct BybitWebsocketApi {
     client: Addr<WebsocketClient>,

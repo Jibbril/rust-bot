@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 pub enum CalculationMode {
     Close,
     #[allow(dead_code)] // TODO: Remove once used

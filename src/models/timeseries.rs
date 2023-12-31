@@ -1,5 +1,3 @@
-use actix::{Actor, Addr, Context, Handler};
-use anyhow::Result;
 use super::{
     candle::Candle,
     interval::Interval,
@@ -15,6 +13,8 @@ use crate::{
     indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},
     models::message_payloads::candle_added_payload::CandleAddedPayload,
 };
+use actix::{Actor, Addr, Context, Handler};
+use anyhow::Result;
 use std::collections::HashSet;
 
 #[derive(Debug, Clone)]
@@ -131,6 +131,30 @@ impl TimeSeries {
         if self.candles.len() > self.max_length {
             self.candles.remove(0);
         }
+
+        Ok(())
+    }
+
+    pub fn set_candles(&mut self, candles: &[Candle]) {
+        self.candles = candles.to_vec();
+    }
+
+    pub fn get_candles(&self) -> Vec<Candle> {
+        self.candles.clone()
+    }
+
+    pub fn clear_candles(&mut self) {
+        self.candles.clear()
+    }
+
+    pub fn add_indicator(&mut self, indicator_type: IndicatorType) -> Result<()> {
+        if self.indicators.contains(&indicator_type) {
+            return Ok(());
+        }
+
+        indicator_type.populate_candles(self)?;
+
+        self.indicators.insert(indicator_type);
 
         Ok(())
     }

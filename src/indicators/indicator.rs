@@ -1,25 +1,20 @@
-use crate::models::timeseries::TimeSeries;
 use super::{
-    atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivot,
+    atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivots,
     ema::EMA, indicator_type::IndicatorType, rsi::RSI, sma::SMA,
 };
+use crate::models::timeseries::TimeSeries;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Indicator {
-    MA(MovingAverage),
+    SMA(Option<SMA>),
+    EMA(Option<EMA>),
     RSI(Option<RSI>),
     ATR(Option<ATR>),
     BollingerBands(Option<BollingerBands>),
     BBW(Option<BBW>),
     BBWP(Option<BBWP>),
-    DynamicPivot(Option<DynamicPivot>),
-}
-
-#[derive(Debug, Clone)]
-pub enum MovingAverage {
-    Simple(Option<SMA>),
-    Exponential(Option<EMA>),
+    DynamicPivot(Option<DynamicPivots>),
 }
 
 impl Indicator {
@@ -28,7 +23,7 @@ impl Indicator {
     /// # Arguments
     /// * `ts` - The TimeSeries to get the nth last indicator from.
     /// * `indicator_type` - The type of indicator to get the nth last indicator of.
-    /// * `i` - The index of the indicator to get. 0 Is last, 1 is second last, etc.
+    /// * `i` - The index of the indicator to get. 1 Is last, 2 is second last, etc.
     pub fn get_nth_last(
         ts: &TimeSeries,
         indicator_type: &IndicatorType,
@@ -36,13 +31,13 @@ impl Indicator {
     ) -> Option<Indicator> {
         let candles_len = ts.candles.len();
 
-        if candles_len < i + 1 {
+        if candles_len < i {
             return None;
         }
 
         let prev = ts
             .candles
-            .get(candles_len - 1 - i)
+            .get(candles_len - i)
             .and_then(|candle| candle.indicators.get(&indicator_type))
             .and_then(|indicator| Some(indicator.clone()));
 
@@ -59,27 +54,19 @@ impl Indicator {
     }
 
     pub fn as_sma(&self) -> Option<SMA> {
-        let ma = match self {
-            Indicator::MA(ma) => ma,
-            _ => return None,
-        };
-
-        match ma {
-            MovingAverage::Simple(s) => s.clone(),
-            _ => None,
+        if let Indicator::SMA(sma) = self {
+            sma.clone()
+        } else {
+            None
         }
     }
 
     #[allow(dead_code)]
     pub fn as_ema(&self) -> Option<EMA> {
-        let ma = match self {
-            Indicator::MA(ma) => ma,
-            _ => return None,
-        };
-
-        match ma {
-            MovingAverage::Exponential(e) => e.clone(),
-            _ => None,
+        if let Indicator::EMA(ema) = self {
+            ema.clone()
+        } else {
+            None
         }
     }
 
@@ -99,7 +86,7 @@ impl Indicator {
         }
     }
 
-    pub fn as_dynamic_pivots(&self) -> Option<DynamicPivot> {
+    pub fn as_dynamic_pivots(&self) -> Option<DynamicPivots> {
         if let Indicator::DynamicPivot(pivots) = self {
             pivots.clone()
         } else {
