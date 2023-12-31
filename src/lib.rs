@@ -9,8 +9,8 @@ mod utils;
 
 use crate::{
     indicators::{
-        atr::ATR, bbwp::BBWP, is_indicator::IsIndicator,
-        populates_candles::PopulatesCandles, rsi::RSI, dynamic_pivots::DynamicPivots,
+        atr::ATR, bbwp::BBWP, dynamic_pivots::DynamicPivots, is_indicator::IsIndicator,
+        populates_candles::PopulatesCandles, rsi::RSI,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,

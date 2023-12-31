@@ -32,8 +32,12 @@ impl CalculatesStopLosses for DynamicPivotResolution {
 
             if let Some(pivot) = indicator.as_dynamic_pivots() {
                 return match orientation {
-                    StrategyOrientation::Long => Ok(pivot.low.expect("Unable to find previous low")),
-                    StrategyOrientation::Short => Ok(pivot.high.expect("Unable to find previous high")),
+                    StrategyOrientation::Long => {
+                        Ok(pivot.low.expect("Unable to find previous low"))
+                    }
+                    StrategyOrientation::Short => {
+                        Ok(pivot.high.expect("Unable to find previous high"))
+                    }
                 };
             } else {
                 j -= 1;

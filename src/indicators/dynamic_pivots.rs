@@ -1,9 +1,9 @@
-use anyhow::{Context, Result, anyhow};
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
     is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 use crate::models::{candle::Candle, timeseries::TimeSeries};
+use anyhow::{anyhow, Context, Result};
 
 /// #DynamicPivot indicator
 ///
@@ -33,14 +33,10 @@ impl PopulatesCandles for DynamicPivots {
                 Self::calculate(&ts.candles[end - min_len..end])
             };
 
-            // Since the dynamic pivots are populated for the "len/2"-nth 
+            // Since the dynamic pivots are populated for the "len/2"-nth
             // (by default 15+1 = 16) candle we need extra handling to select
             // the correct index when populating.
-            let j = if end <= len {
-                i
-            } else {
-                i - len
-            };
+            let j = if end <= len { i } else { i - len };
 
             ts.candles[j]
                 .indicators
@@ -64,7 +60,7 @@ impl PopulatesCandles for DynamicPivots {
         let min_len = 2 * len + 1;
         if candle_len == 0 {
             return Err(anyhow!("No candle to populate"));
-        } 
+        }
 
         if candle_len < len {
             // Not enough candles to populate
@@ -74,12 +70,13 @@ impl PopulatesCandles for DynamicPivots {
                 .indicators
                 .insert(indicator_type, Indicator::DynamicPivot(None));
 
-            return Ok(())
+            return Ok(());
         }
 
         let new_pivot = Self::calculate(&ts.candles[candle_len - min_len..candle_len]);
 
-        ts.candles.get_mut(candle_len - (len + 1))
+        ts.candles
+            .get_mut(candle_len - (len + 1))
             .context(ctx_err)?
             .indicators
             .insert(indicator_type, Indicator::DynamicPivot(new_pivot));
@@ -94,25 +91,30 @@ impl IsIndicator for DynamicPivots {
     }
 
     fn calculate(segment: &[Candle]) -> Option<Self>
-    where Self: Sized {
+    where
+        Self: Sized,
+    {
         // Unable to calculate for even number of Candles
-        if segment.len() % 2 == 0 { return None };
+        if segment.len() % 2 == 0 {
+            return None;
+        };
 
-        let len = (segment.len()-1)/2;
+        let len = (segment.len() - 1) / 2;
         let candle = &segment[len];
 
         let is_high = segment.iter().all(|c| c.high <= candle.high);
         let is_low = segment.iter().all(|c| c.low >= candle.low);
 
         let mut pivots = DynamicPivots::new_empty(len);
-        let prev = segment[len-1].indicators
-                .get(&IndicatorType::DynamicPivot(len))
-                .and_then(|p| p.as_dynamic_pivots());
-        
+        let prev = segment[len - 1]
+            .indicators
+            .get(&IndicatorType::DynamicPivot(len))
+            .and_then(|p| p.as_dynamic_pivots());
+
         pivots.high = if is_high {
             Some(candle.high)
         } else {
-                prev.and_then(|p| p.high)
+            prev.and_then(|p| p.high)
         };
 
         pivots.low = if is_low {
@@ -130,7 +132,7 @@ impl DynamicPivots {
         Self {
             len,
             high: None,
-            low: None
+            low: None,
         }
     }
 }

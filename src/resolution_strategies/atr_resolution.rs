@@ -1,10 +1,7 @@
 use super::{CalculatesStopLosses, CalculatesTakeProfits};
 use crate::{
     indicators::{atr::ATR, indicator_type::IndicatorType, is_indicator::IsIndicator},
-    models::{
-        candle::Candle,
-        strategy_orientation::StrategyOrientation,
-    },
+    models::{candle::Candle, strategy_orientation::StrategyOrientation},
 };
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -74,10 +71,12 @@ impl AtrResolution {
             return Some(atr);
         }
 
-        if i < len + 1 { return None }
+        if i < len + 1 {
+            return None;
+        }
 
         // If atr indicator is not available on candle, calculate it from previous candles
-        ATR::calculate(&candles[i-len-1..i+1])
+        ATR::calculate(&candles[i - len - 1..i + 1])
     }
 
     pub fn new(len: usize, stop_loss_multiple: f64, take_profit_multiple: f64) -> Self {

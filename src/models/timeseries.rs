@@ -1,5 +1,3 @@
-use actix::{Actor, Addr, Context, Handler};
-use anyhow::Result;
 use super::{
     candle::Candle,
     interval::Interval,
@@ -15,6 +13,8 @@ use crate::{
     indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},
     models::message_payloads::candle_added_payload::CandleAddedPayload,
 };
+use actix::{Actor, Addr, Context, Handler};
+use anyhow::Result;
 use std::collections::HashSet;
 
 #[derive(Debug, Clone)]

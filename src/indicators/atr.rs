@@ -30,7 +30,7 @@ impl PopulatesCandles for ATR {
                 let start = i - len;
                 Self::calculate(&ts.candles[start..i + 1])
             } else {
-                let candles = (&ts.candles[i - 1],&ts.candles[i]);
+                let candles = (&ts.candles[i - 1], &ts.candles[i]);
                 let prev = prev.unwrap();
                 Self::calculate_rolling(candles, prev.value, len)
             };
@@ -70,7 +70,7 @@ impl PopulatesCandles for ATR {
                 .indicators
                 .insert(indicator_type, Indicator::ATR(None));
 
-            return Ok(())
+            return Ok(());
         };
 
         // Calculate new and populate
@@ -79,7 +79,7 @@ impl PopulatesCandles for ATR {
             let end = candle_len - 1;
             Self::calculate(&ts.candles[start..end])
         } else {
-            let candles = (&ts.candles[candle_len - 2],&ts.candles[candle_len - 1]);
+            let candles = (&ts.candles[candle_len - 2], &ts.candles[candle_len - 1]);
             Self::calculate_rolling(candles, prev.unwrap().value, len)
         };
 
@@ -148,7 +148,7 @@ mod tests {
             indicator_type::IndicatorType, is_indicator::IsIndicator,
             populates_candles::PopulatesCandles,
         },
-       models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
     };
 
     #[test]

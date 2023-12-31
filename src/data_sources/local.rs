@@ -1,11 +1,11 @@
+use super::datasource::DataSource;
+use crate::models::{candle::Candle, interval::Interval, timeseries::TimeSeries};
 use anyhow::Result;
 use csv::Reader;
-use crate::models::{candle::Candle, interval::Interval, timeseries::TimeSeries};
 use std::{
     fs::{create_dir_all, File},
     path::Path,
 };
-use super::datasource::DataSource;
 
 const FILE_NAME: &str = "data.csv";
 

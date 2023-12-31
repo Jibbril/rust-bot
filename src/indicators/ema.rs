@@ -6,7 +6,7 @@ use crate::{
     models::{candle::Candle, timeseries::TimeSeries},
     utils::math::{ema_rolling, sma},
 };
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct EMA {
@@ -31,7 +31,7 @@ impl PopulatesCandles for EMA {
                 None
             } else if end == len || prev_ema.is_none() {
                 let start = end - len;
-                Self::calculate(&ts.candles[start..end+1])
+                Self::calculate(&ts.candles[start..end + 1])
             } else {
                 let prev = prev_ema.unwrap().value;
                 let current = ts.candles[end].close;
@@ -57,22 +57,22 @@ impl PopulatesCandles for EMA {
         let len = args.extract_len_res()?;
         let indicator_type = IndicatorType::EMA(len);
         let end = ts.candles.len();
-        let ctx_err =  "Unable to get last candle";
-        
+        let ctx_err = "Unable to get last candle";
+
         if end == 0 {
             return Err(anyhow!("No candle to populate"));
-        } 
+        }
 
         // Not enough candles to get new EMA
-        if end < len { 
+        if end < len {
             ts.candles
                 .last_mut()
                 .context(ctx_err)?
                 .indicators
                 .insert(indicator_type, Indicator::EMA(None));
 
-            return Ok(())
-        } 
+            return Ok(());
+        }
 
         // Calculate new and populate
         let prev = Indicator::get_second_last(ts, &indicator_type)
@@ -103,17 +103,17 @@ impl IsIndicator for EMA {
         IndicatorArgs::LengthArg(8)
     }
 
-    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized, {
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
         if segment.len() == 0 {
             return None;
         }
 
         let len = segment.len() - 1;
         let initial_values = &segment[..len].to_vec();
-        let initial_values: Vec<f64> = initial_values
-            .iter()
-            .map(|c| c.close)
-            .collect();
+        let initial_values: Vec<f64> = initial_values.iter().map(|c| c.close).collect();
         let initial_value = sma(&initial_values);
         let price = segment[len].close;
 

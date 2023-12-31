@@ -1,12 +1,9 @@
 use super::{
-    indicator::Indicator,
-    indicator_args::IndicatorArgs,
-    indicator_type::IndicatorType,
-    is_indicator::IsIndicator,
-    populates_candles::PopulatesCandles,
+    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 use crate::models::{candle::Candle, timeseries::TimeSeries};
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
 #[derive(Debug, Copy, Clone, Serialize, PartialEq, PartialOrd)]
@@ -66,20 +63,18 @@ impl PopulatesCandles for RSI {
         }
 
         // Not enough candles to populate
-        if candle_len < len { 
+        if candle_len < len {
             ts.candles
                 .last_mut()
                 .context(ctx_err)?
                 .indicators
                 .insert(indicator_type, Indicator::RSI(None));
 
-            return Ok(())
+            return Ok(());
         };
-        
+
         // Calculate new rsi and populate
-        let prev_rsi =
-            Indicator::get_second_last(ts, &indicator_type)
-                .and_then(|rsi| rsi.as_rsi());
+        let prev_rsi = Indicator::get_second_last(ts, &indicator_type).and_then(|rsi| rsi.as_rsi());
 
         let new_rsi = if prev_rsi.is_none() {
             let start = candle_len - len;
@@ -105,8 +100,13 @@ impl IsIndicator for RSI {
         IndicatorArgs::LengthArg(14)
     }
 
-    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized, {
-        if segment.len() == 0 { return None; }
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if segment.len() == 0 {
+            return None;
+        }
         let len = segment.len() - 1;
 
         let (avg_gain, avg_loss) = Self::get_outcomes(segment);
@@ -188,8 +188,11 @@ impl RSI {
 #[cfg(test)]
 mod tests {
     use crate::{
-        indicators::{is_indicator::IsIndicator, rsi::RSI, populates_candles::PopulatesCandles, indicator_type::IndicatorType},
-        models::{candle::Candle, timeseries::TimeSeries, interval::Interval},
+        indicators::{
+            indicator_type::IndicatorType, is_indicator::IsIndicator,
+            populates_candles::PopulatesCandles, rsi::RSI,
+        },
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
     };
 
     #[test]
@@ -219,7 +222,7 @@ mod tests {
         let len = RSI::default_args().extract_len_opt().unwrap();
         let indicator_type = IndicatorType::RSI(len);
 
-        for (i,candle) in ts.candles.iter().enumerate() {
+        for (i, candle) in ts.candles.iter().enumerate() {
             let indicator = candle.indicators.get(&indicator_type).unwrap();
             let rsi = indicator.as_rsi();
             if i < len {
@@ -228,14 +231,15 @@ mod tests {
                 assert!(rsi.is_some());
             }
         }
-        
+
         let last_candle = ts.candles.last().unwrap();
-        let last_sma = last_candle.indicators
+        let last_sma = last_candle
+            .indicators
             .get(&indicator_type)
             .unwrap()
             .as_rsi()
             .unwrap();
-        assert!(last_sma.value -  48.14777970740 < 0.00001);
+        assert!(last_sma.value - 48.14777970740 < 0.00001);
     }
 
     #[test]

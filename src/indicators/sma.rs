@@ -1,15 +1,12 @@
-use anyhow::{Context, Result, anyhow};
+use super::{
+    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
+};
 use crate::{
     models::{candle::Candle, timeseries::TimeSeries},
     utils::math::sma,
 };
-use super::{
-    indicator::Indicator,
-    indicator_args::IndicatorArgs,
-    indicator_type::IndicatorType,
-    is_indicator::IsIndicator,
-    populates_candles::PopulatesCandles,
-};
+use anyhow::{anyhow, Context, Result};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct SMA {
@@ -31,11 +28,13 @@ impl PopulatesCandles for SMA {
             let sma = if end < len {
                 None
             } else {
-                let start= end - len;
+                let start = end - len;
                 Self::calculate(&ts.candles[start..end])
             };
 
-            ts.candles[i].indicators.insert(indicator_type, Indicator::SMA(sma));
+            ts.candles[i]
+                .indicators
+                .insert(indicator_type, Indicator::SMA(sma));
         }
 
         ts.indicators.insert(indicator_type);
@@ -63,7 +62,7 @@ impl PopulatesCandles for SMA {
                 .indicators
                 .insert(indicator_type, Indicator::SMA(None));
         } else {
-            let new_sma = Self::calculate(&ts.candles[end-len..end]);
+            let new_sma = Self::calculate(&ts.candles[end - len..end]);
 
             ts.candles
                 .last_mut()
@@ -81,9 +80,14 @@ impl IsIndicator for SMA {
         IndicatorArgs::LengthArg(8)
     }
 
-    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized {
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
         let len = segment.len();
-        if len == 0 { return None; }
+        if len == 0 {
+            return None;
+        }
 
         let values: Vec<f64> = segment.iter().map(|c| c.close).collect();
 
@@ -96,8 +100,14 @@ impl IsIndicator for SMA {
 
 #[cfg(test)]
 mod tests {
-    use crate::{models::{candle::Candle, timeseries::TimeSeries, interval::Interval}, indicators::{is_indicator::IsIndicator, populates_candles::PopulatesCandles, indicator_type::IndicatorType}};
     use super::SMA;
+    use crate::{
+        indicators::{
+            indicator_type::IndicatorType, is_indicator::IsIndicator,
+            populates_candles::PopulatesCandles,
+        },
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+    };
 
     #[test]
     fn calculate_sma() {
@@ -127,7 +137,7 @@ mod tests {
         let len = SMA::default_args().extract_len_opt().unwrap();
         let indicator_type = IndicatorType::SMA(len);
 
-        for (i,candle) in ts.candles.iter().enumerate() {
+        for (i, candle) in ts.candles.iter().enumerate() {
             let indicator = candle.indicators.get(&indicator_type).unwrap();
             let sma = indicator.as_sma();
             if i < len - 1 {
@@ -136,11 +146,14 @@ mod tests {
                 assert!(sma.is_some());
             }
         }
-        
+
         let last_candle = ts.candles.last().unwrap();
-        let last_sma = last_candle.indicators
-            .get(&indicator_type).unwrap()
-            .as_sma().unwrap();
+        let last_sma = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_sma()
+            .unwrap();
         assert_eq!(last_sma.value, 165.0);
     }
 
@@ -168,7 +181,7 @@ mod tests {
         for (i, candle) in ts.candles.iter().enumerate() {
             let indicator = candle.indicators.get(&indicator_type).unwrap();
             let sma = indicator.as_sma();
-            if i < len-1 {
+            if i < len - 1 {
                 assert!(sma.is_none());
             } else {
                 assert!(sma.is_some());
