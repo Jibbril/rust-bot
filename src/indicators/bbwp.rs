@@ -333,12 +333,10 @@ mod tests {
     #[test]
     fn bbwp_populate_last_candle() {
         let mut candles = Candle::dummy_from_increments(&BBWP_ARR);
-        candles.pop();
+        let candle = candles.pop().unwrap();
 
         let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
         let _ = BBWP::populate_candles(&mut ts);
-
-        let candle = Candle::dummy_from_val(1768.6946700000012);
         let _ = ts.add_candle(candle);
 
         let (len, lookback, _sma_len) = BBWP::default_args().extract_bbwp_opt().unwrap();

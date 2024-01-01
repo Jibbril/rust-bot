@@ -201,13 +201,12 @@ mod tests {
 
     #[test]
     fn atr_populate_last_candle() {
-        let candles = Candle::dummy_data(14, "positive", 100.0);
+        let mut candles = Candle::dummy_data(15, "positive", 100.0);
+        let candle = candles.pop().unwrap();
         let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
         let _ = ATR::populate_candles(&mut ts);
 
-        let candle = Candle::dummy_from_val(250.0);
         let _ = ts.add_candle(candle);
-
         let len = ATR::default_args().extract_len_opt().unwrap();
         let indicator_type = IndicatorType::ATR(len);
 

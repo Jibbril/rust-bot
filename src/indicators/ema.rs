@@ -193,13 +193,11 @@ mod tests {
 
     #[test]
     fn ema_populate_last_candle() {
-        let candles = Candle::dummy_data(9, "positive", 100.0);
+        let mut candles = Candle::dummy_data(10, "positive", 100.0);
+        let candle = candles.pop().unwrap();
+
         let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
-
         let _ = EMA::populate_candles(&mut ts);
-
-        let candle = Candle::dummy_from_val(200.0);
-
         let _ = ts.add_candle(candle);
 
         let len = EMA::default_args().extract_len_opt().unwrap();

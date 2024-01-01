@@ -1,4 +1,4 @@
-use super::bybit_structs::BybitApiResponse;
+use super::{bybit_structs::BybitApiResponse, util::interval_to_str};
 use crate::{
     data_sources::api_response::ApiResponse,
     models::{interval::Interval, net_version::NetVersion, timeseries::TimeSeries},
@@ -29,19 +29,7 @@ pub async fn get(
 }
 
 fn generate_url(symbol: &str, interval: &Interval, len: usize, net: &NetVersion) -> Result<String> {
-    let interval = match interval {
-        Interval::Minute1 => "1",
-        Interval::Minute5 => "5",
-        Interval::Minute15 => "15",
-        Interval::Minute30 => "30",
-        Interval::Hour1 => "60",
-        Interval::Hour4 => "240",
-        Interval::Day1 => "D",
-        Interval::Week1 => "W",
-        // Interval::Month1 => "1M",
-        _ => return Err(anyhow!("Bybit does not support this interval.")),
-    };
-
+    let interval = interval_to_str(interval)?;
     let base = match net {
         NetVersion::Testnet => "https://api-testnet.bybit.com",
         NetVersion::Mainnet => "https://api.bybit.com",
