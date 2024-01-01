@@ -53,6 +53,18 @@ impl Candle {
         }
     }
 
+    pub fn from_val(timestamp: DateTime<Utc>, val: f64, volume: f64) -> Candle {
+        Candle {
+            timestamp,
+            open: val,
+            close: val,
+            high: val,
+            low: val,
+            volume,
+            indicators: HashMap::new(),
+        }
+    }
+
     #[allow(dead_code)]
     pub fn dummy_from_arr(nums: &[f64]) -> Vec<Candle> {
         let mut now = Utc::now();
