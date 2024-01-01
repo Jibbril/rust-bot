@@ -172,11 +172,11 @@ mod tests {
 
     #[test]
     fn bb_populate_last_candle() {
-        let candles = Candle::dummy_data(24, "positive", 100.0);
+        let mut candles = Candle::dummy_data(25, "positive", 100.0);
+        let candle = candles.pop().unwrap();
         let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
         let _ = BollingerBands::populate_candles(&mut ts);
 
-        let candle = Candle::dummy_from_val(350.0);
         let _ = ts.add_candle(candle);
 
         let (len, _) = BollingerBands::default_args().extract_bb_opt().unwrap();
