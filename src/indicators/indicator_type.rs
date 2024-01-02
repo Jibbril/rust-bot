@@ -8,7 +8,7 @@ use super::{
     indicator_args::IndicatorArgs,
     populates_candles::{PopulatesCandles, PopulatesCandlesWithSelf},
     rsi::RSI,
-    sma::SMA,
+    sma::SMA, pmar::PMAR,
 };
 use crate::models::timeseries::TimeSeries;
 use anyhow::Result;
@@ -25,6 +25,7 @@ pub enum IndicatorType {
     BBW(usize),
     BBWP(usize, usize), // length, lookback
     DynamicPivot(usize),
+    PMAR(usize),
 }
 
 impl PopulatesCandlesWithSelf for IndicatorType {
@@ -62,6 +63,10 @@ impl PopulatesCandlesWithSelf for IndicatorType {
                 let args = IndicatorArgs::LengthArg(*len);
                 SMA::populate_candles_args(ts, args)
             }
+            IndicatorType::PMAR(len) => {
+                let args = IndicatorArgs::LengthArg(*len);
+                PMAR::populate_candles_args(ts, args)
+            },
         }
     }
 
@@ -99,6 +104,10 @@ impl PopulatesCandlesWithSelf for IndicatorType {
                 let args = IndicatorArgs::LengthArg(*len);
                 SMA::populate_last_candle_args(ts, args)
             }
+            IndicatorType::PMAR(len) => {
+                let args = IndicatorArgs::LengthArg(*len);
+                PMAR::populate_last_candle_args(ts, args)
+            },
         }
     }
 }
