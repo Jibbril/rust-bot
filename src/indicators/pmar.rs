@@ -2,16 +2,25 @@ use anyhow::{Context, anyhow, Result};
 use crate::{models::{candle::Candle, timeseries::TimeSeries}, utils::math::sma};
 use super::{is_indicator::IsIndicator, indicator_args::IndicatorArgs, populates_candles::PopulatesCandles, indicator_type::IndicatorType, indicator::Indicator};
 
-/// Price Moving Average Ratio
+/// # Price Moving Average Ratio (PMAR)
 ///
 /// Indicator based on Caretaker's Tradingview PMAR indicator found
 /// [here](https://www.tradingview.com/script/QK6EciNv-Price-Moving-Average-Ratio-Percentile/).
-/// It measures...
-
+/// It measures the ratio of the current closing price to a moving average of
+/// the n most recent candle closes. A high PMAR indicates that the current 
+/// closing price is significantly higher than the previous n candles have been. 
+///
+/// ## Examples 
+/// For an SMA-based PMAR with length 3 the following is true 
+///
+/// Current close = 120
+/// previous 3 closes = [99,100,101]
+/// PMAR = 120 / ((99 + 100 + 101) / 3) = 1.2
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct PMAR {
     value: f64,
-    len: usize
+    len: usize,
+    ma: Option<f64>,
 }
 
 impl PopulatesCandles for PMAR {
@@ -35,6 +44,20 @@ impl PopulatesCandles for PMAR {
             ts.candles[i]
                 .indicators
                 .insert(indicator_type, Indicator::PMAR(pmar));
+
+            // Not enough candles to populate pmar sma
+            if end < len { continue; }
+
+            let mut pmar = pmar.context("Unable to calculate PMAR")?;
+            let sma = Self::pmar_sma(&ts.candles[end - len..end], &indicator_type);
+
+            if let Some(sma) = sma {
+                pmar.ma = Some(sma);
+
+                ts.candles[i]
+                    .indicators
+                    .insert(indicator_type, Indicator::PMAR(Some(pmar)));
+            }
         }
 
         ts.indicators.insert(indicator_type);
@@ -54,22 +77,42 @@ impl PopulatesCandles for PMAR {
 
         if end == 0 {
             return Err(anyhow!("No candle to populate"));
-        } else if end < len {
+        } 
+
+        if end < len {
             // Not enough candles to populate
             ts.candles
                 .last_mut()
                 .context(ctx_err)?
                 .indicators
                 .insert(indicator_type, Indicator::PMAR(None));
-        } else {
-            let new_pmar = Self::calculate(&ts.candles[end - len..end]);
 
-            ts.candles
-                .last_mut()
-                .context(ctx_err)?
-                .indicators
-                .insert(indicator_type, Indicator::PMAR(new_pmar));
-        }
+            return Ok(())
+        } 
+
+        let new_pmar = Self::calculate(&ts.candles[end - len..end]);
+
+        // Insert pmar without moving average
+        ts.candles
+            .last_mut()
+            .context(ctx_err)?
+            .indicators
+            .insert(indicator_type, Indicator::PMAR(new_pmar));
+
+        // Attempt to calculate and insert pmar moving average
+        let sma_segment = &ts.candles[end - len..end];
+        let sma = Self::pmar_sma(sma_segment, &indicator_type);
+        
+        ts.candles  
+            .last_mut()
+            .and_then(|candle| candle.indicators.get_mut(&indicator_type))
+            .and_then(|indicator| {
+                match indicator {
+                    Indicator::PMAR(pmar) => pmar.as_mut(),
+                    _ => None
+                }
+            })
+            .map(|pmar| pmar.ma = sma);
 
         Ok(())
     }
@@ -80,15 +123,15 @@ impl IsIndicator for PMAR {
         IndicatorArgs::LengthArg(20)
     }
 
-    fn calculate(segment: &[Candle]) -> Option<Self>
-    where
-        Self: Sized {
+    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized {
         let segment_len = segment.len();
 
         if segment_len == 0 { return None }
         if segment_len == 1 { return Some(PMAR::new(1.0, segment_len)) } 
 
         let values: Vec<f64> = segment.iter().map(|c| c.close).collect();
+
+        // TODO: Change to using vwma instead of sma once that indicator is implemented
         let pmar = segment[segment_len-1].close / sma(&values);
 
         Some(PMAR::new(pmar, segment_len))
@@ -97,6 +140,20 @@ impl IsIndicator for PMAR {
 
 impl PMAR {
     pub fn new(value: f64, len: usize) -> Self {
-        Self { value, len }
+        Self { 
+            value, 
+            len, 
+            ma: None
+        }
+    }
+
+    fn pmar_sma(segment: &[Candle], indicator_type: &IndicatorType) -> Option<f64> {
+        let values: Vec<f64> = segment
+            .iter()
+            .filter_map(|c| c.clone_indicator(indicator_type).ok()?.as_pmar())
+            .map(|pmar| pmar.value)
+            .collect();
+
+        (values.len() == segment.len()).then_some(sma(&values))
     }
 }

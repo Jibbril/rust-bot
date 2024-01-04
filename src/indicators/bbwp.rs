@@ -8,7 +8,7 @@ use crate::{
 };
 use anyhow::{anyhow, Context, Result};
 
-/// Bollinger Band Width Percentile
+/// # Bollinger Band Width Percentile
 ///
 /// Indicator based on Caretaker's Tradingview BBWP indicator found
 /// [here](https://www.tradingview.com/script/tqitSsyG-Bollinger-Band-Width-Percentile/).
