@@ -28,7 +28,7 @@ impl CalculatesStopLosses for DynamicPivotResolution {
         }
 
         loop {
-            let indicator = candles[j].get_indicator(&IndicatorType::DynamicPivot(len))?;
+            let indicator = candles[j].clone_indicator(&IndicatorType::DynamicPivot(len))?;
 
             if let Some(pivot) = indicator.as_dynamic_pivots() {
                 return match orientation {

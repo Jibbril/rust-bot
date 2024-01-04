@@ -144,19 +144,14 @@ fn calculate_test_result(data: &[(f64, usize, StrategyOrientation)]) -> TestResu
 mod tests {
     use super::test_setups;
     use crate::{
-        indicators::{
-            indicator_args::IndicatorArgs, populates_candles::PopulatesCandles, rsi::RSI,
-        },
         models::{
             candle::Candle, interval::Interval, setups::setup::Setup,
-            strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
-            traits::trading_strategy::TradingStrategy,
+            strategy_orientation::StrategyOrientation,
         },
         resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
-        trading_strategies::rsi_basic::RsiBasic,
     };
     use chrono::{Duration, Utc};
-    use std::{collections::HashMap, ops::Add};
+    use std::collections::HashMap;
 
     #[test]
     fn test_empty_arrays() {

@@ -10,7 +10,7 @@ mod utils;
 use crate::{
     indicators::{
         atr::ATR, bbwp::BBWP, is_indicator::IsIndicator,
-        populates_candles::PopulatesCandles, rsi::RSI, sma::SMA,
+        populates_candles::PopulatesCandles, rsi::RSI, pmar::PMAR,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
@@ -91,7 +91,7 @@ pub async fn run_dummy() -> Result<()> {
     let (len, lookback, _) = BBWP::default_args().extract_bbwp_opt().unwrap();
     for (i, val) in correct_values.iter().enumerate() {
         let bbwp = segment[i]
-            .get_indicator(&IndicatorType::BBWP(len, lookback))
+            .clone_indicator(&IndicatorType::BBWP(len, lookback))
             .unwrap()
             .as_bbwp()
             .unwrap();
@@ -102,8 +102,8 @@ pub async fn run_dummy() -> Result<()> {
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let len = SMA::default_args().extract_len_res()?;
-    let indicator_type = IndicatorType::SMA(len);
+    let len = PMAR::default_args().extract_len_res()?;
+    let indicator_type = IndicatorType::PMAR(len);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;

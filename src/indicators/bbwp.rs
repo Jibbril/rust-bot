@@ -109,8 +109,8 @@ impl PopulatesCandles for BBWP {
             0
         };
 
-        let mut new_bbwp =
-            Self::calculate(&ts.candles[start..end]).context("Unable to calculate BBWP")?;
+        let mut new_bbwp = Self::calculate(&ts.candles[start..end])
+            .context("Unable to calculate BBWP")?;
 
         ts.candles
             .last_mut()
@@ -182,7 +182,7 @@ impl BBWP {
     fn bbwp_sma(segment: &[Candle], indicator_type: &IndicatorType) -> Option<f64> {
         let values: Vec<f64> = segment
             .iter()
-            .filter_map(|c| c.get_indicator(indicator_type).ok()?.as_bbwp())
+            .filter_map(|c| c.clone_indicator(indicator_type).ok()?.as_bbwp())
             .map(|bbwp| bbwp.value)
             .collect();
 
@@ -207,7 +207,7 @@ impl BBWP {
         let bbws: Vec<Option<BBW>> = temp_ts
             .candles
             .iter()
-            .map(|candle| candle.get_indicator(&ind_type).unwrap().as_bbw())
+            .map(|candle| candle.clone_indicator(&ind_type).unwrap().as_bbw())
             .collect();
 
         Ok(bbws)
@@ -282,7 +282,7 @@ mod tests {
         let (len, lookback, _) = BBWP::default_args().extract_bbwp_opt().unwrap();
         for (i, val) in FINAL_VALUES.iter().enumerate() {
             let bbwp = segment[i]
-                .get_indicator(&IndicatorType::BBWP(len, lookback))
+                .clone_indicator(&IndicatorType::BBWP(len, lookback))
                 .unwrap()
                 .as_bbwp()
                 .unwrap();
@@ -322,7 +322,7 @@ mod tests {
         let (len, lookback, _) = BBWP::default_args().extract_bbwp_opt().unwrap();
         for (i, val) in FINAL_VALUES.iter().enumerate() {
             let bbwp = segment[i]
-                .get_indicator(&IndicatorType::BBWP(len, lookback))
+                .clone_indicator(&IndicatorType::BBWP(len, lookback))
                 .unwrap()
                 .as_bbwp()
                 .unwrap();
