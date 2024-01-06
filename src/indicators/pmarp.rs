@@ -50,7 +50,7 @@ impl PopulatesCandles for PMARP {
                 .indicators
                 .insert(indicator_type, Indicator::PMARP(pmarp));
 
-            // Not enough candles to populate bbwp sma so return
+            // Not enough candles to populate pmarp sma so return
             if end < len + sma_len {
                 continue;
             }
