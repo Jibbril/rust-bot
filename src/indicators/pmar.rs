@@ -18,9 +18,9 @@ use super::{is_indicator::IsIndicator, indicator_args::IndicatorArgs, populates_
 /// PMAR = 120 / ((99 + 100 + 101) / 3) = 1.2
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct PMAR {
-    value: f64,
-    len: usize,
-    ma: Option<f64>,
+    pub value: f64,
+    pub len: usize,
+    pub ma: Option<f64>,
 }
 
 impl PopulatesCandles for PMAR {

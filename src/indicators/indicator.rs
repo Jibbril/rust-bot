@@ -1,6 +1,6 @@
 use super::{
     atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivots,
-    ema::EMA, indicator_type::IndicatorType, rsi::RSI, sma::SMA, pmar::PMAR,
+    ema::EMA, indicator_type::IndicatorType, rsi::RSI, sma::SMA, pmar::PMAR, pmarp::PMARP,
 };
 use crate::models::timeseries::TimeSeries;
 
@@ -16,6 +16,7 @@ pub enum Indicator {
     BBWP(Option<BBWP>),
     DynamicPivot(Option<DynamicPivots>),
     PMAR(Option<PMAR>),
+    PMARP(Option<PMARP>)
 }
 
 impl Indicator {
@@ -119,10 +120,17 @@ impl Indicator {
         }
     }
 
-    #[allow(dead_code)] // TODO: Remove once used
     pub fn as_pmar(&self) -> Option<PMAR> {
         if let Indicator::PMAR(pmar) = self {
             pmar.clone()
+        } else {
+            None
+        }
+    }
+
+    pub fn as_pmarp(&self) -> Option<PMARP> {
+        if let Indicator::PMARP(pmarp) = self {
+            pmarp.clone()
         } else {
             None
         }

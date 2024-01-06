@@ -5,6 +5,7 @@ pub enum IndicatorArgs {
     LengthArg(usize),
     BollingerBandArgs(usize, f64), // length, n-standard deviations
     BBWPArgs(usize, usize, usize), // bbwp-length, lookback, sma-length
+    LengthLookbackArgs(usize,usize), // Length, lookback
 }
 
 const ERR_MSG: &str = "Invalid indicator arguments.";
@@ -50,6 +51,20 @@ impl IndicatorArgs {
     pub fn extract_bbwp_res(&self) -> Result<(usize, usize, usize)> {
         match self {
             IndicatorArgs::BBWPArgs(a, b, c) => Ok((*a, *b, *c)),
+            _ => return Err(anyhow!(ERR_MSG)),
+        }
+    }
+
+    pub fn extract_len_lookback_opt(&self) -> Option<(usize, usize)> {
+        match self {
+            IndicatorArgs::LengthLookbackArgs(a, b) => Some((*a, *b)),
+            _ => return None,
+        }
+    }
+
+    pub fn extract_len_lookback_res(&self) -> Result<(usize, usize)> {
+        match self {
+            IndicatorArgs::LengthLookbackArgs(a, b) => Ok((*a, *b)),
             _ => return Err(anyhow!(ERR_MSG)),
         }
     }

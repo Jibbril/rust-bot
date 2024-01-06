@@ -121,6 +121,8 @@ impl TimeSeries {
         // New is subsequent candle so timeseries integrity ok
         if diff >= step - delta && diff < step + delta { return Ok(())}
 
+        println!("GAP at: {}", new_candle);
+
         // TODO: Add proper logic to fetch candle data below instead of just filling 
         // with previous value
 
