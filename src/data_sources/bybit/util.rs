@@ -1,5 +1,5 @@
-use anyhow::{anyhow, Result};
 use crate::models::interval::Interval;
+use anyhow::{anyhow, Result};
 
 #[allow(dead_code)]
 pub fn interval_to_str(interval: &Interval) -> Result<String> {

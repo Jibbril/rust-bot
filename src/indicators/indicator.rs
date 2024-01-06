@@ -1,6 +1,6 @@
 use super::{
     atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivots,
-    ema::EMA, indicator_type::IndicatorType, rsi::RSI, sma::SMA,
+    ema::EMA, indicator_type::IndicatorType, pmar::PMAR, pmarp::PMARP, rsi::RSI, sma::SMA,
 };
 use crate::models::timeseries::TimeSeries;
 
@@ -15,6 +15,8 @@ pub enum Indicator {
     BBW(Option<BBW>),
     BBWP(Option<BBWP>),
     DynamicPivot(Option<DynamicPivots>),
+    PMAR(Option<PMAR>),
+    PMARP(Option<PMARP>),
 }
 
 impl Indicator {
@@ -61,7 +63,6 @@ impl Indicator {
         }
     }
 
-    #[allow(dead_code)]
     pub fn as_ema(&self) -> Option<EMA> {
         if let Indicator::EMA(ema) = self {
             ema.clone()
@@ -103,7 +104,6 @@ impl Indicator {
         }
     }
 
-    #[allow(dead_code)] // TODO: Remove once used
     pub fn as_bbw(&self) -> Option<BBW> {
         if let Indicator::BBW(bbw) = self {
             bbw.clone()
@@ -112,10 +112,25 @@ impl Indicator {
         }
     }
 
-    #[allow(dead_code)] // TODO: Remove once used
     pub fn as_bbwp(&self) -> Option<BBWP> {
         if let Indicator::BBWP(bbwp) = self {
             bbwp.clone()
+        } else {
+            None
+        }
+    }
+
+    pub fn as_pmar(&self) -> Option<PMAR> {
+        if let Indicator::PMAR(pmar) = self {
+            pmar.clone()
+        } else {
+            None
+        }
+    }
+
+    pub fn as_pmarp(&self) -> Option<PMARP> {
+        if let Indicator::PMARP(pmarp) = self {
+            pmarp.clone()
         } else {
             None
         }

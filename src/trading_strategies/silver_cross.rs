@@ -73,10 +73,10 @@ impl TradingStrategy for SilverCross {
 
         for (i, candle) in ts.candles.iter().enumerate().skip(1) {
             let prev_candle = &ts.candles[i - 1];
-            let prev_short = prev_candle.get_indicator(&key_short)?.as_sma();
-            let prev_long = prev_candle.get_indicator(&key_long)?.as_sma();
-            let current_short = candle.get_indicator(&key_short)?.as_sma();
-            let current_long = candle.get_indicator(&key_long)?.as_sma();
+            let prev_short = prev_candle.clone_indicator(&key_short)?.as_sma();
+            let prev_long = prev_candle.clone_indicator(&key_long)?.as_sma();
+            let current_short = candle.clone_indicator(&key_short)?.as_sma();
+            let current_long = candle.clone_indicator(&key_long)?.as_sma();
 
             if let (Some(prev_short), Some(prev_long), Some(current_short), Some(current_long)) =
                 (prev_short, prev_long, current_short, current_long)

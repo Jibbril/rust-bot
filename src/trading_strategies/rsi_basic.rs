@@ -80,8 +80,8 @@ impl TradingStrategy for RsiBasic {
         for (i, candle) in ts.candles.iter().enumerate().skip(1) {
             let prev_candle = &ts.candles[i - 1];
 
-            let prev_rsi = prev_candle.get_indicator(&key)?.as_rsi();
-            let current_rsi = candle.get_indicator(&key)?.as_rsi();
+            let prev_rsi = prev_candle.clone_indicator(&key)?.as_rsi();
+            let current_rsi = candle.clone_indicator(&key)?.as_rsi();
 
             if let (Some(prev), Some(current)) = (prev_rsi, current_rsi) {
                 let orientation = self.get_orientation(&prev, &current);
@@ -140,8 +140,8 @@ impl TradingStrategy for RsiBasic {
         let prev = candles.get(candles.len() - 2)?;
 
         let key = IndicatorType::RSI(self.len);
-        let prev_rsi = prev.get_indicator(&key).ok()?.as_rsi()?;
-        let current_rsi = current.get_indicator(&key).ok()?.as_rsi()?;
+        let prev_rsi = prev.clone_indicator(&key).ok()?.as_rsi()?;
+        let current_rsi = current.clone_indicator(&key).ok()?.as_rsi()?;
 
         let orientation = self.get_orientation(&prev_rsi, &current_rsi)?;
 

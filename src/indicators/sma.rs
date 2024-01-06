@@ -167,7 +167,7 @@ mod tests {
     #[test]
     fn sma_populate_last_candle() {
         let mut candles = Candle::dummy_data(10, "positive", 100.0);
-        let candle = candles.pop().unwrap(); 
+        let candle = candles.pop().unwrap();
 
         let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
         let _ = SMA::populate_candles(&mut ts);

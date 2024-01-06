@@ -150,7 +150,7 @@ impl Candle {
         }
     }
 
-    pub fn get_indicator(&self, key: &IndicatorType) -> Result<Indicator> {
+    pub fn clone_indicator(&self, key: &IndicatorType) -> Result<Indicator> {
         self.indicators
             .get(key)
             .context(format!("Unable to find indicator with type: {:#?}", key))
