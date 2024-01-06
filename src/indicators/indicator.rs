@@ -1,6 +1,6 @@
 use super::{
     atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivots,
-    ema::EMA, indicator_type::IndicatorType, rsi::RSI, sma::SMA, pmar::PMAR, pmarp::PMARP,
+    ema::EMA, indicator_type::IndicatorType, pmar::PMAR, pmarp::PMARP, rsi::RSI, sma::SMA,
 };
 use crate::models::timeseries::TimeSeries;
 
@@ -16,7 +16,7 @@ pub enum Indicator {
     BBWP(Option<BBWP>),
     DynamicPivot(Option<DynamicPivots>),
     PMAR(Option<PMAR>),
-    PMARP(Option<PMARP>)
+    PMARP(Option<PMARP>),
 }
 
 impl Indicator {

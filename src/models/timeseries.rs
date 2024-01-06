@@ -14,7 +14,7 @@ use crate::{
     models::message_payloads::candle_added_payload::CandleAddedPayload,
 };
 use actix::{Actor, Addr, Context, Handler};
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use chrono::{DateTime, Utc};
 use std::{collections::HashSet, ops::Add};
 
@@ -110,7 +110,9 @@ impl TimeSeries {
 
     fn validate_timeseries_integrity(&mut self, new_candle: DateTime<Utc>) -> Result<()> {
         // No need for validation if timeseries is empty
-        if self.candles.len() == 0 { return Ok(()) };
+        if self.candles.len() == 0 {
+            return Ok(());
+        };
 
         let last_candle = self.candles.last().expect("Expected more than 0 candles");
         let diff = new_candle.signed_duration_since(last_candle.timestamp);
@@ -119,24 +121,28 @@ impl TimeSeries {
         let delta = self.interval.max_diff();
 
         // New is subsequent candle so timeseries integrity ok
-        if diff >= step - delta && diff < step + delta { return Ok(())}
+        if diff >= step - delta && diff < step + delta {
+            return Ok(());
+        }
 
         println!("GAP at: {}", new_candle);
 
-        // TODO: Add proper logic to fetch candle data below instead of just filling 
+        // TODO: Add proper logic to fetch candle data below instead of just filling
         // with previous value
 
         let new_timestamp = new_candle.clone().add(-step);
 
         if new_timestamp < last_candle.timestamp {
-            return Err(anyhow!("Added candle has timestamp earlier in time than current last candle."));
+            return Err(anyhow!(
+                "Added candle has timestamp earlier in time than current last candle."
+            ));
         }
 
         let next = Candle::from_val(new_timestamp, last_candle.close, 0.0);
         self.add_candle(next)?;
 
         Ok(())
-    } 
+    }
 
     pub fn add_candle(&mut self, candle: Candle) -> Result<()> {
         self.validate_timeseries_integrity(candle.timestamp)?;

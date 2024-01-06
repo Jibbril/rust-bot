@@ -9,8 +9,8 @@ mod utils;
 
 use crate::{
     indicators::{
-        atr::ATR, bbwp::BBWP, is_indicator::IsIndicator,
-        populates_candles::PopulatesCandles, rsi::RSI, pmarp::PMARP,
+        atr::ATR, bbwp::BBWP, is_indicator::IsIndicator, pmarp::PMARP,
+        populates_candles::PopulatesCandles, rsi::RSI,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
@@ -67,8 +67,8 @@ pub async fn run_dummy() -> Result<()> {
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let (len,lookback) = PMARP::default_args().extract_len_lookback_res()?;
-    let indicator_type = IndicatorType::PMARP(len,lookback);
+    let (len, lookback) = PMARP::default_args().extract_len_lookback_res()?;
+    let indicator_type = IndicatorType::PMARP(len, lookback);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;

@@ -1,13 +1,18 @@
-use anyhow::{Result, Context, anyhow};
-use crate::{models::{timeseries::TimeSeries, candle::Candle}, utils::math::sma};
-use super::{populates_candles::PopulatesCandles, indicator_args::IndicatorArgs, is_indicator::IsIndicator, indicator_type::IndicatorType, indicator::Indicator, pmar::PMAR};
-
+use super::{
+    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+    is_indicator::IsIndicator, pmar::PMAR, populates_candles::PopulatesCandles,
+};
+use crate::{
+    models::{candle::Candle, timeseries::TimeSeries},
+    utils::math::sma,
+};
+use anyhow::{anyhow, Context, Result};
 
 /// # Price Moving Average Ratio Percentile (PMARPP)
 ///
 /// Indicator based on Caretaker's Tradingview PMARPP indicator found
 /// [here](https://www.tradingview.com/script/QK6EciNv-Price-Moving-Average-Ratio-Percentile/).
-/// It measures the percentile of the current PMARP value as compared to the 
+/// It measures the percentile of the current PMARP value as compared to the
 /// last n PMARP values.
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct PMARP {
@@ -21,11 +26,11 @@ impl PopulatesCandles for PMARP {
     fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
         Self::populate_candles_args(ts, Self::default_args())
     }
-    
+
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (len, lookback) = args.extract_len_lookback_res()?;
         let sma_len = len; // TODO: Change argument type so this is provided
-        let indicator_type = IndicatorType::PMARP(len,lookback);
+        let indicator_type = IndicatorType::PMARP(len, lookback);
 
         for i in 0..ts.candles.len() {
             let end = i + 1;
@@ -100,8 +105,8 @@ impl PopulatesCandles for PMARP {
             0
         };
 
-        let mut new_pmarp = Self::calculate(&ts.candles[start..end])
-            .context("Unable to calculate PMARP")?;
+        let mut new_pmarp =
+            Self::calculate(&ts.candles[start..end]).context("Unable to calculate PMARP")?;
 
         ts.candles
             .last_mut()
@@ -131,16 +136,18 @@ impl PopulatesCandles for PMARP {
     }
 }
 
-
 impl IsIndicator for PMARP {
     fn default_args() -> IndicatorArgs {
-        IndicatorArgs::LengthLookbackArgs(20,350)
+        IndicatorArgs::LengthLookbackArgs(20, 350)
     }
 
-    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized {
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
         let args = Self::default_args();
         let mut pmars = Self::get_pmars(segment, args).ok()?;
-        let (len,lookback) = args.extract_len_lookback_opt()?;
+        let (len, lookback) = args.extract_len_lookback_opt()?;
         let new_pmarp = pmars.pop()??;
 
         let count = pmars
@@ -162,11 +169,11 @@ impl IsIndicator for PMARP {
 impl PMARP {
     #[allow(dead_code)]
     pub fn new(value: f64, len: usize, lookback: usize) -> Self {
-        Self { 
-            value, 
-            len, 
+        Self {
+            value,
+            len,
             ma: None,
-            lookback
+            lookback,
         }
     }
 
@@ -189,7 +196,7 @@ impl PMARP {
         let mut temp_ts = TimeSeries::dummy();
         temp_ts.set_candles(&temp_segment);
 
-        let (len,_) = args.extract_len_lookback_res()?;
+        let (len, _) = args.extract_len_lookback_res()?;
         let len_arg = IndicatorArgs::LengthArg(len);
         PMAR::populate_candles_args(&mut temp_ts, len_arg)?;
 
@@ -207,7 +214,14 @@ impl PMARP {
 
 #[cfg(test)]
 mod tests {
-    use crate::{indicators::{is_indicator::IsIndicator, pmarp::PMARP, indicator_type::IndicatorType, populates_candles::PopulatesCandles}, models::{candle::Candle, interval::Interval, timeseries::TimeSeries}, utils::data::dummy_data::PRICE_CHANGES};
+    use crate::{
+        indicators::{
+            indicator_type::IndicatorType, is_indicator::IsIndicator, pmarp::PMARP,
+            populates_candles::PopulatesCandles,
+        },
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        utils::data::dummy_data::PRICE_CHANGES,
+    };
 
     const FINAL_VALUE: f64 = 0.3314285714285714;
 
@@ -228,7 +242,6 @@ mod tests {
         assert!(pmarp.is_none());
     }
 
-
     #[test]
     fn calculate_pmarp_single() {
         let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
@@ -246,8 +259,8 @@ mod tests {
 
         let _ = PMARP::populate_candles(&mut ts);
 
-        let (len,lookback) = PMARP::default_args().extract_len_lookback_opt().unwrap();
-        let indicator_type = IndicatorType::PMARP(len,lookback);
+        let (len, lookback) = PMARP::default_args().extract_len_lookback_opt().unwrap();
+        let indicator_type = IndicatorType::PMARP(len, lookback);
 
         for (i, candle) in ts.candles.iter().enumerate() {
             let indicator = candle.indicators.get(&indicator_type).unwrap();
@@ -273,14 +286,14 @@ mod tests {
     #[test]
     fn pmarp_populate_last_candle() {
         let mut candles = Candle::dummy_from_increments(&PRICE_CHANGES);
-        let candle = candles.pop().unwrap(); 
+        let candle = candles.pop().unwrap();
 
         let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
         let _ = PMARP::populate_candles(&mut ts);
         let _ = ts.add_candle(candle);
 
-        let (len,lookback) = PMARP::default_args().extract_len_lookback_opt().unwrap();
-        let indicator_type = IndicatorType::PMARP(len,lookback);
+        let (len, lookback) = PMARP::default_args().extract_len_lookback_opt().unwrap();
+        let indicator_type = IndicatorType::PMARP(len, lookback);
 
         for (i, candle) in ts.candles.iter().enumerate() {
             let indicator = candle.indicators.get(&indicator_type).unwrap();

@@ -10,7 +10,9 @@ pub fn std(xs: &[f64], x_bar: f64) -> f64 {
 pub fn sma(segment: &[f64]) -> f64 {
     let len = segment.len();
 
-    if len == 0 { return 0.0; }
+    if len == 0 {
+        return 0.0;
+    }
 
     segment.iter().sum::<f64>() / (len as f64)
 }
@@ -24,4 +26,3 @@ pub fn ema_rolling(prev_ema: f64, price: f64, len: f64) -> f64 {
     let smoothing = 2.0 / (len + 1.0);
     (price * smoothing) + (prev_ema * (1.0 - smoothing))
 }
-

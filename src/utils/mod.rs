@@ -1,5 +1,5 @@
-pub mod math;
 pub mod data;
+pub mod math;
 
 use crate::models::setups::setup::Setup;
 use anyhow::{anyhow, Context, Result};

@@ -175,7 +175,7 @@ mod tests {
     // #[test]
     // fn test_setup_result() {
     //     // Create TimeSeries
-    //     // TODO: Test below fails since adding checks for timeseries 
+    //     // TODO: Test below fails since adding checks for timeseries
     //     // date validity (date gets reset each time we call the dummy_data
     //     // function. Figure out why.
     //     let mut candles = Candle::dummy_data(7, "positive", 100.0);

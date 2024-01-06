@@ -3,9 +3,9 @@ use anyhow::{anyhow, Result};
 #[derive(Debug, Clone, Copy)]
 pub enum IndicatorArgs {
     LengthArg(usize),
-    BollingerBandArgs(usize, f64), // length, n-standard deviations
-    BBWPArgs(usize, usize, usize), // bbwp-length, lookback, sma-length
-    LengthLookbackArgs(usize,usize), // Length, lookback
+    BollingerBandArgs(usize, f64),    // length, n-standard deviations
+    BBWPArgs(usize, usize, usize),    // bbwp-length, lookback, sma-length
+    LengthLookbackArgs(usize, usize), // Length, lookback
 }
 
 const ERR_MSG: &str = "Invalid indicator arguments.";

@@ -109,8 +109,8 @@ impl PopulatesCandles for BBWP {
             0
         };
 
-        let mut new_bbwp = Self::calculate(&ts.candles[start..end])
-            .context("Unable to calculate BBWP")?;
+        let mut new_bbwp =
+            Self::calculate(&ts.candles[start..end]).context("Unable to calculate BBWP")?;
 
         ts.candles
             .last_mut()
