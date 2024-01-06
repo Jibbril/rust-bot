@@ -118,7 +118,7 @@ impl TradingStrategy for SilverCross {
         Ok(setups)
     }
 
-    fn max_length(&self) -> usize {
+    fn min_length(&self) -> usize {
         self.long_len
     }
 

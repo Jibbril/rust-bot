@@ -122,7 +122,7 @@ impl TradingStrategy for RsiBasic {
         vec![IndicatorType::RSI(self.len)]
     }
 
-    fn max_length(&self) -> usize {
+    fn min_length(&self) -> usize {
         self.len
     }
 

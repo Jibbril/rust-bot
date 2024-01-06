@@ -103,7 +103,7 @@ pub async fn run_strategy() -> Result<()> {
 
     // Initialize timeseries and indicators
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, long_strategy.max_length() + 300, &net)
+        .get_historical_data("BTCUSDT", &interval, long_strategy.min_length() + 300, &net)
         .await?;
     // ts.save_to_local(&source).await?;
     // let ts = source.load_local_data(symbol, &interval).await?;
