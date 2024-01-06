@@ -157,3 +157,102 @@ impl PMAR {
         (values.len() == segment.len()).then_some(sma(&values))
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::{indicators::{pmar::PMAR, is_indicator::IsIndicator, indicator_type::IndicatorType, populates_candles::PopulatesCandles}, models::{candle::Candle, interval::Interval, timeseries::TimeSeries}, utils::data::dummy_data::PRICE_CHANGES};
+
+    const FINAL_VALUE: f64 = 1.0150163271810746;
+
+    #[test]
+    fn calculate_pmar() {
+        let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+        let pmar = PMAR::calculate(&candles[1..4]);
+        assert!(pmar.is_some());
+
+        let pmar = pmar.unwrap();
+        assert_eq!(pmar.value, 1.0012744552973925);
+    }
+
+    #[test]
+    fn sma_no_candles() {
+        let candles: Vec<Candle> = Vec::new();
+        let sma = PMAR::calculate(&candles);
+        assert!(sma.is_none());
+    }
+
+
+    #[test]
+    fn calculate_pmar_single() {
+        let candles = Candle::dummy_data(1, "positive", 100.0);
+        let sma = PMAR::calculate(&candles);
+        assert!(sma.is_some());
+
+        let sma = sma.unwrap();
+        assert_eq!(sma.value, 1.0);
+    }
+
+    #[test]
+    fn sma_populate_candles() {
+        let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+
+        let _ = PMAR::populate_candles(&mut ts);
+
+        let len = PMAR::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::PMAR(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let pmar = indicator.as_pmar();
+            if i < len - 1 {
+                assert!(pmar.is_none());
+            } else {
+                assert!(pmar.is_some());
+            }
+        }
+
+        let last_candle = ts.candles.last().unwrap();
+        let last_pmar = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_pmar()
+            .unwrap();
+        assert_eq!(last_pmar.value, FINAL_VALUE);
+    }
+
+    #[test]
+    fn sma_populate_last_candle() {
+        let mut candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+        let candle = candles.pop().unwrap(); 
+
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let _ = PMAR::populate_candles(&mut ts);
+        let _ = ts.add_candle(candle);
+
+        let len = PMAR::default_args().extract_len_opt().unwrap();
+        let indicator_type = IndicatorType::PMAR(len);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let pmar = indicator.as_pmar();
+            if i < len - 1 {
+                assert!(pmar.is_none());
+            } else {
+                assert!(pmar.is_some());
+            }
+        }
+
+        let last_candle = ts.candles.last().unwrap();
+        let last_pmar = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_pmar()
+            .unwrap();
+
+        assert_eq!(last_pmar.value, FINAL_VALUE);
+    }
+}
