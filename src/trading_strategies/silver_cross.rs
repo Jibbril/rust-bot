@@ -28,20 +28,11 @@ pub struct SilverCross {
 
 impl SilverCross {
     #[allow(dead_code)] // TODO: Remove once used
-    pub fn new(orientation: StrategyOrientation, short_len: usize, long_len: usize) -> Self {
+    pub fn new_args(orientation: StrategyOrientation, short_len: usize, long_len: usize) -> Self {
         SilverCross {
             orientation,
             short_len,
             long_len,
-        }
-    }
-
-    #[allow(dead_code)] // TODO: Remove once used
-    pub fn new_default() -> Self {
-        SilverCross {
-            orientation: StrategyOrientation::Long,
-            short_len: 21,
-            long_len: 55,
         }
     }
 
@@ -66,6 +57,15 @@ impl SilverCross {
 }
 
 impl TradingStrategy for SilverCross {
+    #[allow(dead_code)] // TODO: Remove once used
+    fn new() -> Self {
+        SilverCross {
+            orientation: StrategyOrientation::Long,
+            short_len: 21,
+            long_len: 55,
+        }
+    }
+
     fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         let mut setups: Vec<Setup> = Vec::new();
         let key_short = IndicatorType::SMA(self.short_len);

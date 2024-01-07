@@ -34,7 +34,7 @@ pub struct RsiBasic {
 
 impl RsiBasic {
     #[allow(dead_code)] // TODO: Remove once used
-    pub fn new(
+    pub fn new_args(
         len: usize,
         upper_band: f64,
         lower_band: f64,
@@ -45,15 +45,6 @@ impl RsiBasic {
             upper_band,
             lower_band,
             orientation,
-        }
-    }
-
-    pub fn new_default() -> Self {
-        RsiBasic {
-            len: 14,
-            upper_band: 70.0,
-            lower_band: 30.0,
-            orientation: StrategyOrientation::Long,
         }
     }
 
@@ -72,6 +63,15 @@ impl RsiBasic {
 }
 
 impl TradingStrategy for RsiBasic {
+    fn new() -> Self {
+        RsiBasic {
+            len: 14,
+            upper_band: 70.0,
+            lower_band: 30.0,
+            orientation: StrategyOrientation::Long,
+        }
+    }
+
     fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         let len = self.len;
         let key = IndicatorType::RSI(len);

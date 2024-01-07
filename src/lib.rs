@@ -94,9 +94,9 @@ pub async fn run_single_indicator() -> Result<()> {
 
 pub async fn run_strategy() -> Result<()> {
     let short_strategy: Box<dyn TradingStrategy> =
-        Box::new(RsiBasic::new(14, 45.0, 55.0, StrategyOrientation::Short));
+        Box::new(RsiBasic::new_args(14, 45.0, 55.0, StrategyOrientation::Short));
     let long_strategy: Box<dyn TradingStrategy> =
-        Box::new(RsiBasic::new(14, 45.0, 55.0, StrategyOrientation::Long));
+        Box::new(RsiBasic::new_args(14, 45.0, 55.0, StrategyOrientation::Long));
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
@@ -170,7 +170,7 @@ pub async fn run_local() -> Result<()> {
 }
 
 pub async fn run_setup_finder() -> Result<()> {
-    let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_default());
+    let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new());
     let ts = TimeSeries::dummy();
     let ts = ts.start();
 
@@ -202,7 +202,7 @@ pub async fn run_manual_setups() -> Result<()> {
     let mut ts = TimeSeries::new("BTCUSDT".to_string(), Interval::Day1, vec![]);
     RSI::populate_candles(&mut ts)?;
 
-    let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_default());
+    let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new());
     let ts = ts.start();
 
     let sf = SetupFinder::new(strategy, ts.clone());
@@ -255,7 +255,7 @@ pub async fn _run() -> Result<()> {
     println!("Candles:{:#?}", ts.candles);
 
     // Implement Strategy to analyze TimeSeries
-    let rsi_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_default());
+    let rsi_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new());
 
     let rsi_setups = rsi_strategy.find_setups(&ts)?;
 
