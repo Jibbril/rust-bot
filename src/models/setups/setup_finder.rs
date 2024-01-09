@@ -66,9 +66,9 @@ impl Handler<CandleAddedPayload> for SetupFinder {
             let resolution_strategy = ResolutionStrategy::ATR(atr);
 
             let setup = sb
-                .ticker(candle_response.symbol)
-                .interval(candle_response.interval)
-                .resolution_strategy(resolution_strategy)
+                .ticker(&candle_response.symbol)
+                .interval(&candle_response.interval)
+                .resolution_strategy(&resolution_strategy)
                 .build();
 
             let setup = match setup {

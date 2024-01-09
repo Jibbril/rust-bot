@@ -131,7 +131,7 @@ impl TradingStrategy for RsiBasic {
         self.len
     }
 
-    fn check_last_for_setup(&self, candles: &Vec<Candle>) -> Option<SetupBuilder> {
+    fn check_last_for_setup(&self, candles: &[Candle]) -> Option<SetupBuilder> {
         if candles.len() < 2 {
             return None;
         }
@@ -146,8 +146,8 @@ impl TradingStrategy for RsiBasic {
         let orientation = self.get_orientation(&prev_rsi, &current_rsi)?;
 
         let sb = SetupBuilder::new()
-            .candle(current.clone())
-            .orientation(orientation);
+            .candle(&current)
+            .orientation(&orientation);
 
         Some(sb)
     }

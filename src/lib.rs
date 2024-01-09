@@ -35,6 +35,7 @@ use models::{
     traits::trading_strategy::TradingStrategy,
 };
 use tokio::time::{sleep, Duration};
+use trading_strategies::jb_1::JB1;
 use utils::data::dummy_data::PRICE_CHANGES;
 
 pub async fn run_dummy() -> Result<()> {
@@ -93,6 +94,48 @@ pub async fn run_single_indicator() -> Result<()> {
 }
 
 pub async fn run_strategy() -> Result<()> {
+    let strategy: Box<dyn TradingStrategy> =
+        Box::new(JB1::new());
+    let interval = Interval::Minute1;
+    let source = DataSource::Bybit;
+    let net = NetVersion::Mainnet;
+
+    // Initialize timeseries and indicators
+    let mut ts = source
+        .get_historical_data("BTCUSDT", &interval, strategy.min_length() + 300, &net)
+        .await?;
+    // ts.save_to_local(&source).await?;
+    // let ts = source.load_local_data(symbol, &interval).await?;
+
+    for indicator_type in strategy.required_indicators() {
+        ts.add_indicator(indicator_type)?;
+    }
+
+    let ts_addr = ts.start();
+
+    // Create setup finder and subscribe to timeseries
+    let setup_finder = SetupFinder::new(strategy, ts_addr.clone());
+
+    let sf_addr = setup_finder.start();
+
+    let payload = TSSubscribePayload {
+        observer: sf_addr.clone(),
+    };
+
+    ts_addr.do_send(payload);
+
+    // Start websocket client
+    let mut wsclient = WebsocketClient::new(source, interval, net);
+    wsclient.add_observer(ts_addr);
+    wsclient.start();
+
+    loop {
+        sleep(Duration::from_secs(1)).await;
+    }
+}
+
+
+pub async fn run_double_strategies() -> Result<()> {
     let short_strategy: Box<dyn TradingStrategy> =
         Box::new(RsiBasic::new_args(14, 45.0, 55.0, StrategyOrientation::Short));
     let long_strategy: Box<dyn TradingStrategy> =
@@ -231,45 +274,39 @@ pub async fn run_manual_setups() -> Result<()> {
     Ok(())
 }
 
-pub async fn _run() -> Result<()> {
+pub async fn run_strategy_testing() -> Result<()> {
     // Get TimeSeries data
     let source = DataSource::Bybit;
-    let interval = Interval::Day1;
+    let interval = Interval::Hour1;
     let net = NetVersion::Mainnet;
     let mut ts = source
         .get_historical_data("BTCUSDT", &interval, 1000, &net)
         .await?;
 
     // Calculate indicators for TimeSeries
-    // SMA::populate_candles(&mut ts.candles)?;
-    // SMA::populate_candles(&mut ts.candles)?;
-    // SMA::populate_candles(&mut ts.candles)?;
-    // BollingerBands::populate_candles(&mut ts.candles)?;
-    // DynamicPivot::populate_candles(&mut ts.candles)?;
-    // BBW::populate_candles(&mut ts)?;
-    // EMA::populate_candles(&mut ts)?;
-    BBWP::populate_candles(&mut ts)?;
-    RSI::populate_candles(&mut ts)?;
-    ATR::populate_candles(&mut ts)?;
 
-    println!("Candles:{:#?}", ts.candles);
 
     // Implement Strategy to analyze TimeSeries
-    let rsi_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new());
+    let strategy: Box<dyn TradingStrategy> = Box::new(JB1::new());
 
-    let rsi_setups = rsi_strategy.find_setups(&ts)?;
+    for indicator in strategy.required_indicators() {
+        indicator.populate_candles(&mut ts)?;
+    }
 
-    save_setups(&rsi_setups, "rsi-setups.csv")?;
+    let setups = strategy.find_setups(&ts)?;
+
+    let filename = format!("{}-setups.csv", strategy);
+    save_setups(&setups, &filename)?;
 
     // Send email notifications
     if false {
-        NotificationCenter::notify(&rsi_setups[0], &rsi_strategy).await?;
+        NotificationCenter::notify(&setups[0], &strategy).await?;
     }
 
-    // Test result of taking setups
-    let _ = test_setups(&rsi_setups, &ts.candles);
+    // Test results of taking setups
+    let result = test_setups(&setups, &ts.candles);
 
-    // println!("RSI results:{:#?}", rsi_results);
+    println!("Test Results: {:#?}",result);
 
     Ok(())
 }

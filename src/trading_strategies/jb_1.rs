@@ -23,6 +23,9 @@ use crate::{
 /// ## Directionality
 /// - Long
 ///
+/// ## Interval
+/// - 1 Hour
+///
 /// ## Entry conditions
 /// - 21 EMA > 55 EMA
 /// - PMARP < 10
@@ -34,7 +37,7 @@ use crate::{
 /// ## Stop Loss
 /// - 4.5% drawdown
 #[derive(Debug, Clone)]
-struct JB1 {
+pub struct JB1 {
     pmarp_len: usize,
     pmarp_lookback: usize,
     rsi_len: usize,
@@ -55,8 +58,20 @@ impl TradingStrategy for JB1 {
         }
     }
 
-    fn find_setups(&self, _ts: &TimeSeries) -> Result<Vec<Setup>> {
-        todo!()
+    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
+        let mut setups = vec![];
+
+        for window in ts.candles.windows(6) {
+            if let Some(sb) = self.check_last_for_setup(&window) {
+                let setup = sb
+                    .ticker(&ts.ticker)
+                    .interval(&ts.interval)
+                    .build()?;
+                setups.push(setup);
+            }
+        }
+
+        Ok(setups)
     }
 
     fn min_length(&self) -> usize {
@@ -75,7 +90,7 @@ impl TradingStrategy for JB1 {
         ]
     }
 
-    fn check_last_for_setup(&self, candles: &Vec<Candle>) -> Option<SetupBuilder> {
+    fn check_last_for_setup(&self, candles: &[Candle]) -> Option<SetupBuilder> {
         if candles.len() < self.rsi_ma_len + 1 {
             return None;
         }
@@ -108,9 +123,9 @@ impl TradingStrategy for JB1 {
 
             Some(
                 SetupBuilder::new()
-                    .candle(current.clone())
-                    .orientation(StrategyOrientation::Long)
-                    .resolution_strategy(resolution_strategy),
+                    .candle(&current)
+                    .orientation(&StrategyOrientation::Long)
+                    .resolution_strategy(&resolution_strategy),
             )
         } else {
             None

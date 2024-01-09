@@ -1,4 +1,5 @@
 ## Todos
+- [ ] Implement new resolution strategy based on exact values being passed.
 - [ ] Missing candles in the websocket implementation is causing indicators to populate incorrectly. We need to look into the add_candle method in timeseries and setup some connection to the historical data implementation such that when the added candle is not the logical next step we fetch historical data and patch any potential holes in the series.
 - [ ] From [this](https://www.youtube.com/watch?v=OinAn0dY33E) video at around 5:55 Krown says that the 96% PMAR(P) value might be a good target for taking profit. Investigate this and maybe implement as a resolutionstrategy.
 - [ ] Check the add_candle method inside the TimeSeries class

@@ -30,28 +30,28 @@ impl SetupBuilder {
         }
     }
 
-    pub fn candle(mut self, candle: Candle) -> Self {
-        self.candle = Some(candle);
+    pub fn candle(mut self, candle: &Candle) -> Self {
+        self.candle = Some(candle.clone());
         self
     }
 
-    pub fn orientation(mut self, orientation: StrategyOrientation) -> Self {
-        self.orientation = Some(orientation);
+    pub fn orientation(mut self, orientation: &StrategyOrientation) -> Self {
+        self.orientation = Some(orientation.clone());
         self
     }
 
-    pub fn ticker(mut self, ticker: String) -> Self {
-        self.ticker = Some(ticker);
+    pub fn ticker(mut self, ticker: &str) -> Self {
+        self.ticker= Some(ticker.to_string());
         self
     }
 
-    pub fn interval(mut self, interval: Interval) -> Self {
-        self.interval = Some(interval);
+    pub fn interval(mut self, interval: &Interval) -> Self {
+        self.interval = Some(interval.clone());
         self
     }
 
-    pub fn resolution_strategy(mut self, resolution_strategy: ResolutionStrategy) -> Self {
-        self.resolution_strategy = Some(resolution_strategy);
+    pub fn resolution_strategy(mut self, resolution_strategy: &ResolutionStrategy) -> Self {
+        self.resolution_strategy = Some(resolution_strategy.clone());
         self
     }
 
