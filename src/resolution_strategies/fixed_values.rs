@@ -1,6 +1,6 @@
 use anyhow::{Result, anyhow};
 use serde::{Serialize, Deserialize};
-use crate::{models::{strategy_orientation::StrategyOrientation, candle::Candle}, indicators::indicator_type::IndicatorType};
+use crate::{models::{strategy_orientation::StrategyOrientation, candle::Candle, traits::requires_indicators::RequiresIndicators}, indicators::indicator_type::IndicatorType};
 use super::is_resolution_strategy::IsResolutionStrategy;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,7 +43,9 @@ impl IsResolutionStrategy for FixedValuesResolution {
             StrategyOrientation::Short => candle.low < self.low,
         })
     }
+}
 
+impl RequiresIndicators for FixedValuesResolution {
     fn required_indicators(&self) -> Vec<IndicatorType> {
         vec![]
     }
