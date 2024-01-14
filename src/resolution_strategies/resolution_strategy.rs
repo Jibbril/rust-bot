@@ -1,13 +1,14 @@
-use crate::models::{candle::Candle, strategy_orientation::StrategyOrientation};
+use crate::{models::{candle::Candle, strategy_orientation::StrategyOrientation}, indicators::indicator_type::IndicatorType};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use super::{dynamic_pivot::DynamicPivotResolution, is_resolution_strategy::IsResolutionStrategy, fixed_values::FixedValuesResolution};
+use super::{dynamic_pivot::DynamicPivotResolution, is_resolution_strategy::IsResolutionStrategy, fixed_values::FixedValuesResolution, pmarp_vs_percentage::PmarpVsPercentageResolution};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ResolutionStrategy {
     DynamicPivot(DynamicPivotResolution),
     FixedValues(FixedValuesResolution),
+    PmarpVsPercentage(PmarpVsPercentageResolution)
 }
 
 impl IsResolutionStrategy for ResolutionStrategy {
@@ -15,6 +16,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
         match self {
             ResolutionStrategy::DynamicPivot(dp) => dp.n_candles_stop_loss(),
             ResolutionStrategy::FixedValues(fv) => fv.n_candles_stop_loss(),
+            ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.n_candles_stop_loss(),
         }       
     }
 
@@ -22,6 +24,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
         match self {
             ResolutionStrategy::DynamicPivot(dp) => dp.n_candles_take_profit(),
             ResolutionStrategy::FixedValues(fv) => fv.n_candles_take_profit(),
+            ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.n_candles_take_profit(),
         }       
     }
 
@@ -29,6 +32,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
         match self {
             ResolutionStrategy::DynamicPivot(dp) => dp.stop_loss_reached(orientation, candles),
             ResolutionStrategy::FixedValues(fv) => fv.stop_loss_reached(orientation, candles),
+            ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.stop_loss_reached(orientation, candles),
         }       
     }
 
@@ -36,7 +40,16 @@ impl IsResolutionStrategy for ResolutionStrategy {
         match self {
             ResolutionStrategy::DynamicPivot(dp) => dp.take_profit_reached(orientation, candles),
             ResolutionStrategy::FixedValues(fv) => fv.take_profit_reached(orientation, candles),
+            ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.take_profit_reached(orientation, candles),
         }       
+    }
+
+    fn required_indicators(&self) -> Vec<IndicatorType> {
+        match self {
+            ResolutionStrategy::DynamicPivot(dp) => dp.required_indicators(),
+            ResolutionStrategy::FixedValues(fv) => fv.required_indicators(),
+            ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.required_indicators(),
+        }
     }
 }
 
@@ -45,6 +58,7 @@ impl Display for ResolutionStrategy {
         match self {
             Self::DynamicPivot(dp) => write!(f, "DynamicPivot({})", dp.len),
             Self::FixedValues(fv) => write!(f, "FixedValues({},{})", fv.high, fv.low),
+            Self::PmarpVsPercentage(pvp) => write!(f, "PmarpVsPercentage({},{})", pvp.initial_value, pvp.pmarp_threshhold),
         }
     }
 }

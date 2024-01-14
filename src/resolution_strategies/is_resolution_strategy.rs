@@ -1,5 +1,5 @@
 use anyhow::Result;
-use crate::models::{strategy_orientation::StrategyOrientation, candle::Candle};
+use crate::{models::{strategy_orientation::StrategyOrientation, candle::Candle}, indicators::indicator_type::IndicatorType};
 
 pub trait IsResolutionStrategy {
     /// Number of candles needed to check whether stop-loss has been reached
@@ -13,4 +13,7 @@ pub trait IsResolutionStrategy {
 
     /// Check whether take-profit has been reached for the last candle
     fn take_profit_reached(&self, orientation: &StrategyOrientation, candles: &[Candle]) -> Result<bool>;
+
+    /// Required indicators for succesful use of resolution strategy
+    fn required_indicators(&self) -> Vec<IndicatorType>;
 }

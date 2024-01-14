@@ -75,6 +75,10 @@ impl IsResolutionStrategy for DynamicPivotResolution {
             }
         }
     }
+
+    fn required_indicators(&self) -> Vec<IndicatorType> {
+        vec![IndicatorType::DynamicPivot(self.len)]
+    }
 }
 
 impl DynamicPivotResolution {
