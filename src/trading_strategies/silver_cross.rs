@@ -6,11 +6,7 @@ use crate::{
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
         traits::trading_strategy::TradingStrategy,
-    },
-    resolution_strategies::{
-        atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
-        ResolutionStrategy,
-    },
+    }, resolution_strategies::{fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy},
 };
 use anyhow::Result;
 use std::fmt::{Display, Formatter};
@@ -44,12 +40,12 @@ impl SilverCross {
         current_long: &SMA,
     ) -> Option<StrategyOrientation> {
         let long_condition = prev_short < prev_long && current_short >= current_long;
-        let short_condition = prev_short > prev_long && current_short <= current_long;
+        let _short_condition = prev_short > prev_long && current_short <= current_long;
 
         if long_condition {
             Some(StrategyOrientation::Long)
-        } else if short_condition {
-            Some(StrategyOrientation::Short)
+        // } else if short_condition {
+        //     Some(StrategyOrientation::Short)
         } else {
             None
         }
@@ -85,22 +81,10 @@ impl TradingStrategy for SilverCross {
                     self.get_orientation(&prev_short, &prev_long, &current_short, &current_long);
 
                 if let Some(orientation) = orientation {
-                    let resolution_strategy =
-                        ResolutionStrategy::ATR(AtrResolution::new(14, 1.0, 1.5));
-
-                    let len = 14;
-                    let take_profit = resolution_strategy.calculate_take_profit(
-                        &ts.candles,
-                        i,
-                        &orientation,
-                        len,
-                    )?;
-                    let stop_loss = resolution_strategy.calculate_stop_loss(
-                        &ts.candles,
-                        i,
-                        &orientation,
-                        len,
-                    )?;
+                    let take_profit = candle.close * 1.05;
+                    let stop_loss = candle.close * 0.95;
+                    let fv = FixedValuesResolution::new(take_profit, stop_loss);
+                    let resolution_strategy = ResolutionStrategy::FixedValues(fv);
 
                     setups.push(Setup {
                         ticker: ts.ticker.clone(),

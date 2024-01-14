@@ -45,4 +45,10 @@ impl IsResolutionStrategy for FixedValuesResolution {
     }
 }
 
+impl FixedValuesResolution {
+    pub fn new(high: f64, low: f64) -> Self {
+        Self { high, low }
+    }
+}
+
 
