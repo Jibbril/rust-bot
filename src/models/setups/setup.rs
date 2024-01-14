@@ -1,7 +1,7 @@
 use super::csv_setup_row::CsvSetupRow;
 use crate::{
     models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation},
-    resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
+    resolution_strategies::{resolution_strategy::ResolutionStrategy, dynamic_pivot::DynamicPivotResolution},
 };
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +20,7 @@ impl Setup {
     #[allow(dead_code)] // TODO: Remove once used
     pub fn dummy() -> Setup {
         let candle = Candle::dummy_data(1, "", 100.0).pop().unwrap();
-        let resolution_strategy = ResolutionStrategy::ATR(AtrResolution::new(14, 1.0, 1.0));
+        let resolution_strategy = ResolutionStrategy::DynamicPivot(DynamicPivotResolution::new());
         Setup {
             ticker: "DUMMY".to_string(),
             candle,

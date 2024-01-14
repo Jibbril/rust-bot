@@ -7,8 +7,7 @@ use crate::{
         timeseries::TimeSeries,
         traits::trading_strategy::TradingStrategy,
     },
-    notifications::notification_center::NotificationCenter,
-    resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
+    notifications::notification_center::NotificationCenter, resolution_strategies::{resolution_strategy::ResolutionStrategy, dynamic_pivot::DynamicPivotResolution},
 };
 use actix::{fut::wrap_future, Actor, Addr, AsyncContext, Context, Handler};
 
@@ -62,8 +61,8 @@ impl Handler<CandleAddedPayload> for SetupFinder {
             }
             let sb = sb.unwrap();
 
-            let atr = AtrResolution::new(14, 2.0, 1.0);
-            let resolution_strategy = ResolutionStrategy::ATR(atr);
+            let dp = DynamicPivotResolution::new();
+            let resolution_strategy = ResolutionStrategy::DynamicPivot(dp);
 
             let setup = sb
                 .ticker(&candle_response.symbol)

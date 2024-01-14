@@ -1,3 +1,4 @@
+use anyhow::Result;
 use crate::models::{strategy_orientation::StrategyOrientation, candle::Candle};
 
 pub trait IsResolutionStrategy {

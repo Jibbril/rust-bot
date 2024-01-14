@@ -1,8 +1,5 @@
 use super::setup::Setup;
-use crate::{
-    models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation},
-    resolution_strategies::ResolutionStrategy,
-};
+use crate::{models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation}, resolution_strategies::resolution_strategy::ResolutionStrategy};
 use anyhow::{anyhow, Result};
 
 #[derive(Debug, Clone)]

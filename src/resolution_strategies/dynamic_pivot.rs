@@ -1,9 +1,9 @@
-use super::CalculatesStopLosses;
+use super::is_resolution_strategy::IsResolutionStrategy;
 use crate::{
     indicators::indicator_type::IndicatorType,
     models::{candle::Candle, strategy_orientation::StrategyOrientation},
 };
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Result, Context};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -11,52 +11,74 @@ pub struct DynamicPivotResolution {
     pub len: usize,
 }
 
-impl CalculatesStopLosses for DynamicPivotResolution {
-    fn calculate_stop_loss(
-        &self,
-        candles: &Vec<Candle>,
-        i: usize,
-        orientation: &StrategyOrientation,
-        len: usize,
-    ) -> Result<f64> {
-        let mut j = i;
+impl IsResolutionStrategy for DynamicPivotResolution {
+    fn n_candles_stop_loss(&self) -> usize {
+        self.len + 1
+    }
 
-        if i == 0 {
-            return Err(anyhow!(
-                "Unable to calculate stop_loss for first candle in series"
-            ));
+    fn n_candles_take_profit(&self) -> usize {
+        self.len + 1
+    }
+
+    fn stop_loss_reached(&self, orientation: &StrategyOrientation, candles: &[Candle]) -> Result<bool> {
+        let len = candles.len();
+
+        if len < self.len + 1 { 
+            let msg = "Not enough enough candles to determine if stop loss reached.";
+            return Err(anyhow!(msg));
         }
 
-        loop {
-            let indicator = candles[j].clone_indicator(&IndicatorType::DynamicPivot(len))?;
-
-            if let Some(pivot) = indicator.as_dynamic_pivots() {
-                return match orientation {
-                    StrategyOrientation::Long => {
-                        Ok(pivot.low.expect("Unable to find previous low"))
-                    }
-                    StrategyOrientation::Short => {
-                        Ok(pivot.high.expect("Unable to find previous high"))
-                    }
-                };
-            } else {
-                j -= 1;
+        let ind_type = IndicatorType::DynamicPivot(self.len);
+        let pivots = candles[len - (self.len + 1)]
+            .indicators
+            .get(&ind_type)
+            .context(format!("Unable to find DynamicPivots indicator of length {}", self.len))?
+            .as_dynamic_pivots()
+            .context("Unable to convert to Indicator::DynamicPivots")?;
+       
+        match orientation {
+            StrategyOrientation::Long => {
+                let bound = pivots.low.context("No pivot provided for comparison")?;
+                Ok(candles[len-1].close < bound)
             }
-
-            if j == 0 {
-                break;
+            StrategyOrientation::Short => {
+                let bound = pivots.high.context("No pivot provided for comparison")?;
+                Ok(candles[len-1].close > bound)
             }
         }
+    }
 
-        Err(anyhow!(
-            "Unable to find DynamicPivot indicator in TimeSeries."
-        ))
+    fn take_profit_reached(&self, orientation: &StrategyOrientation, candles: &[Candle]) -> Result<bool> {
+        let len = candles.len();
+
+        if len < self.len + 1 { 
+            let msg = "Not enough enough candles to determine if take-profit reached.";
+            return Err(anyhow!(msg));
+        }
+
+        let ind_type = IndicatorType::DynamicPivot(self.len);
+        let pivots = candles[len - (self.len + 1)]
+            .indicators
+            .get(&ind_type)
+            .context(format!("Unable to find DynamicPivots indicator of length {}", self.len))?
+            .as_dynamic_pivots()
+            .context("Unable to convert to Indicator::DynamicPivots")?;
+       
+        match orientation {
+            StrategyOrientation::Long => {
+                let bound = pivots.high.context("No pivot provided for comparison")?;
+                Ok(candles[len-1].high > bound)
+            }
+            StrategyOrientation::Short => {
+                let bound = pivots.low.context("No pivot provided for comparison")?;
+                Ok(candles[len-1].low < bound)
+            }
+        }
     }
 }
 
 impl DynamicPivotResolution {
-    #[allow(dead_code)]
-    pub fn new(len: usize) -> Self {
-        Self { len }
+    pub fn new() -> Self {
+        Self { len: 15 }
     }
 }
