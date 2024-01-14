@@ -5,7 +5,7 @@ use crate::{
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::trading_strategy::TradingStrategy,
+        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators},
     }, resolution_strategies::{fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy},
 };
 use anyhow::Result;
@@ -106,13 +106,6 @@ impl TradingStrategy for SilverCross {
         self.long_len
     }
 
-    fn required_indicators(&self) -> Vec<IndicatorType> {
-        vec![
-            IndicatorType::SMA(self.short_len),
-            IndicatorType::SMA(self.long_len),
-        ]
-    }
-
     fn candles_needed_for_setup(&self) -> usize {
         // TODO: Add real value
         self.long_len
@@ -124,6 +117,15 @@ impl TradingStrategy for SilverCross {
 
     fn clone_box(&self) -> Box<dyn TradingStrategy> {
         Box::new(self.clone())
+    }
+}
+
+impl RequiresIndicators for SilverCross {
+    fn required_indicators(&self) -> Vec<IndicatorType> {
+        vec![
+            IndicatorType::SMA(self.short_len),
+            IndicatorType::SMA(self.long_len),
+        ]
     }
 }
 

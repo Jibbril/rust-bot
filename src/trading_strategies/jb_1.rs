@@ -7,7 +7,7 @@ use crate::{
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::trading_strategy::TradingStrategy,
+        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators},
     },
     utils::math::sma, resolution_strategies::{dynamic_pivot::DynamicPivotResolution, resolution_strategy::ResolutionStrategy},
 };
@@ -78,15 +78,6 @@ impl TradingStrategy for JB1 {
         // start populating (initial values are on very low lookback so not
         // fully reliable).
         self.pmarp_lookback + 150
-    }
-
-    fn required_indicators(&self) -> Vec<IndicatorType> {
-        vec![
-            IndicatorType::EMA(self.short_ema_len),
-            IndicatorType::EMA(self.long_ema_len),
-            IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback),
-            IndicatorType::RSI(self.rsi_len),
-        ]
     }
 
     fn check_last_for_setup(&self, candles: &[Candle]) -> Option<SetupBuilder> {
@@ -180,6 +171,17 @@ impl JB1 {
                     .and_then(|i| i.as_rsi().map(|rsi| rsi.value))
             })
             .collect()
+    }
+}
+
+impl RequiresIndicators for JB1 {
+    fn required_indicators(&self) -> Vec<IndicatorType> {
+        vec![
+            IndicatorType::EMA(self.short_ema_len),
+            IndicatorType::EMA(self.long_ema_len),
+            IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback),
+            IndicatorType::RSI(self.rsi_len),
+        ]
     }
 }
 

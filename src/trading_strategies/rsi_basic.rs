@@ -5,7 +5,7 @@ use crate::{
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::trading_strategy::TradingStrategy,
+        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators},
     }, resolution_strategies::{fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy},
 };
 use anyhow::Result;
@@ -104,10 +104,6 @@ impl TradingStrategy for RsiBasic {
         Ok(setups)
     }
 
-    fn required_indicators(&self) -> Vec<IndicatorType> {
-        vec![IndicatorType::RSI(self.len)]
-    }
-
     fn min_length(&self) -> usize {
         self.len
     }
@@ -140,6 +136,12 @@ impl TradingStrategy for RsiBasic {
 
     fn clone_box(&self) -> Box<dyn TradingStrategy> {
         Box::new(self.clone())
+    }
+}
+
+impl RequiresIndicators for RsiBasic {
+    fn required_indicators(&self) -> Vec<IndicatorType> {
+        vec![IndicatorType::RSI(self.len)]
     }
 }
 
