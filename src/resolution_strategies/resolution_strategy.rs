@@ -1,4 +1,4 @@
-use crate::{models::{candle::Candle, strategy_orientation::StrategyOrientation}, indicators::indicator_type::IndicatorType};
+use crate::{models::{candle::Candle, strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators}, indicators::indicator_type::IndicatorType};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
@@ -43,7 +43,9 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.take_profit_reached(orientation, candles),
         }       
     }
+}
 
+impl RequiresIndicators for ResolutionStrategy {
     fn required_indicators(&self) -> Vec<IndicatorType> {
         match self {
             ResolutionStrategy::DynamicPivot(dp) => dp.required_indicators(),

@@ -1,7 +1,7 @@
 use super::is_resolution_strategy::IsResolutionStrategy;
 use crate::{
     indicators::indicator_type::IndicatorType,
-    models::{candle::Candle, strategy_orientation::StrategyOrientation},
+    models::{candle::Candle, strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators},
 };
 use anyhow::{anyhow, Result, Context};
 use serde::{Deserialize, Serialize};
@@ -75,7 +75,9 @@ impl IsResolutionStrategy for DynamicPivotResolution {
             }
         }
     }
+}
 
+impl RequiresIndicators for DynamicPivotResolution {
     fn required_indicators(&self) -> Vec<IndicatorType> {
         vec![IndicatorType::DynamicPivot(self.len)]
     }
