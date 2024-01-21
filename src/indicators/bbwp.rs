@@ -176,6 +176,12 @@ impl IsIndicator for BBWP {
             sma: None,
         })
     }
+
+    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
+    where 
+        Self: Sized {
+        todo!()
+    }
 }
 
 impl BBWP {

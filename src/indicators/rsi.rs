@@ -119,6 +119,12 @@ impl IsIndicator for RSI {
 
         Self::calculate_rsi(rs, len, (avg_gain, avg_loss))
     }
+
+    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
+    where 
+        Self: Sized {
+        todo!()
+    }
 }
 
 impl RSI {

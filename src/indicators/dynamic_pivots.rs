@@ -125,6 +125,12 @@ impl IsIndicator for DynamicPivots {
 
         Some(pivots)
     }
+
+    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
+    where 
+        Self: Sized {
+        todo!()
+    }
 }
 
 impl DynamicPivots {

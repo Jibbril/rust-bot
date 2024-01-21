@@ -121,6 +121,12 @@ impl IsIndicator for EMA {
 
         Some(EMA { len, value: ema })
     }
+
+    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
+    where 
+        Self: Sized {
+        todo!()
+    }
 }
 
 impl EMA {

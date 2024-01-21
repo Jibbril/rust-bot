@@ -109,6 +109,12 @@ impl IsIndicator for BollingerBands {
             len: segment.len(),
         })
     }
+
+    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
+    where 
+        Self: Sized {
+        todo!()
+    }
 }
 
 #[cfg(test)]

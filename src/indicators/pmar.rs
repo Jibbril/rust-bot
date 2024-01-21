@@ -149,6 +149,12 @@ impl IsIndicator for PMAR {
 
         Some(PMAR::new(pmar, segment_len))
     }
+
+    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
+    where 
+        Self: Sized {
+        todo!()
+    }
 }
 
 impl PMAR {
