@@ -2,13 +2,14 @@ use crate::{models::{candle::Candle, strategy_orientation::StrategyOrientation, 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use super::{dynamic_pivot::DynamicPivotResolution, is_resolution_strategy::IsResolutionStrategy, fixed_values::FixedValuesResolution, pmarp_vs_percentage::PmarpVsPercentageResolution};
+use super::{dynamic_pivot::DynamicPivotResolution, is_resolution_strategy::IsResolutionStrategy, fixed_values::FixedValuesResolution, pmarp_vs_percentage::PmarpVsPercentageResolution, pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ResolutionStrategy {
     DynamicPivot(DynamicPivotResolution),
     FixedValues(FixedValuesResolution),
-    PmarpVsPercentage(PmarpVsPercentageResolution)
+    PmarpVsPercentage(PmarpVsPercentageResolution),   
+    PmarpOrBbwpVsPercentage(PmarpOrBbwpVsPercentageResolution)
 }
 
 impl IsResolutionStrategy for ResolutionStrategy {
@@ -17,6 +18,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::DynamicPivot(dp) => dp.n_candles_stop_loss(),
             ResolutionStrategy::FixedValues(fv) => fv.n_candles_stop_loss(),
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.n_candles_stop_loss(),
+            ResolutionStrategy::PmarpOrBbwpVsPercentage(pbvp) => pbvp.n_candles_stop_loss(),
         }       
     }
 
@@ -25,6 +27,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::DynamicPivot(dp) => dp.n_candles_take_profit(),
             ResolutionStrategy::FixedValues(fv) => fv.n_candles_take_profit(),
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.n_candles_take_profit(),
+            ResolutionStrategy::PmarpOrBbwpVsPercentage(pvp) => pvp.n_candles_take_profit(),
         }       
     }
 
@@ -33,6 +36,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::DynamicPivot(dp) => dp.stop_loss_reached(orientation, candles),
             ResolutionStrategy::FixedValues(fv) => fv.stop_loss_reached(orientation, candles),
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.stop_loss_reached(orientation, candles),
+            ResolutionStrategy::PmarpOrBbwpVsPercentage(pvp) => pvp.stop_loss_reached(orientation, candles),
         }       
     }
 
@@ -41,6 +45,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::DynamicPivot(dp) => dp.take_profit_reached(orientation, candles),
             ResolutionStrategy::FixedValues(fv) => fv.take_profit_reached(orientation, candles),
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.take_profit_reached(orientation, candles),
+            ResolutionStrategy::PmarpOrBbwpVsPercentage(pvp) => pvp.take_profit_reached(orientation, candles),
         }       
     }
 
@@ -49,6 +54,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::DynamicPivot(dp) => dp.set_initial_values(setup),
             ResolutionStrategy::FixedValues(fv) => fv.set_initial_values(setup),
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.set_initial_values(setup),
+            ResolutionStrategy::PmarpOrBbwpVsPercentage(pvp) => pvp.set_initial_values(setup),
         }       
     }
 }
@@ -59,6 +65,7 @@ impl RequiresIndicators for ResolutionStrategy {
             ResolutionStrategy::DynamicPivot(dp) => dp.required_indicators(),
             ResolutionStrategy::FixedValues(fv) => fv.required_indicators(),
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.required_indicators(),
+            ResolutionStrategy::PmarpOrBbwpVsPercentage(pvp) => pvp.required_indicators(),
         }
     }
 }
@@ -74,6 +81,13 @@ impl Display for ResolutionStrategy {
                     None => -1.0,
                 };
                 write!(f, "PmarpVsPercentage({},{})", init_value, pvp.pmarp_threshhold)
+            },
+            Self::PmarpOrBbwpVsPercentage(pvp) => {
+                let init_value = match pvp.initial_value {
+                    Some(v) => v,
+                    None => -1.0,
+                };
+                write!(f, "PmarpOrBbwpVsPercentage({},{},{})", init_value, pvp.pmarp_threshold, pvp.bbwp_threshold)
             },
         }
     }

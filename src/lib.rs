@@ -14,7 +14,7 @@ use crate::{
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
-    trading_strategies::rsi_basic::RsiBasic,
+    trading_strategies::{rsi_basic::RsiBasic, jb_2::JB2},
     utils::save_setups,
 };
 use actix::Actor;
@@ -291,7 +291,7 @@ pub async fn run_strategy_tester() -> Result<()> {
 
     // Calculate indicators for TimeSeries
     // Implement Strategy to analyze TimeSeries
-    let strategy: Box<dyn TradingStrategy> = Box::new(JB1::new());
+    let strategy: Box<dyn TradingStrategy> = Box::new(JB2::new());
 
     for indicator in strategy.required_indicators() {
         indicator.populate_candles(&mut ts)?;

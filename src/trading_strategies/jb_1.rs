@@ -9,7 +9,7 @@ use crate::{
         timeseries::TimeSeries,
         traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators},
     },
-    utils::math::sma, resolution_strategies::{dynamic_pivot::DynamicPivotResolution, resolution_strategy::ResolutionStrategy, pmarp_vs_percentage::PmarpVsPercentageResolution},
+    utils::math::sma, resolution_strategies::{resolution_strategy::ResolutionStrategy, pmarp_vs_percentage::PmarpVsPercentageResolution},
 };
 
 /// # JB 1
@@ -106,10 +106,7 @@ impl TradingStrategy for JB1 {
         let rsi_is_positive = curr_rsi_sma > prev_rsi_sma;
 
         if short_ema_is_higher && pmarp_is_low && rsi_is_positive {
-            // TODO: Set resolution to 4.5% drawdown once that resolution
-            // strategy is implemented.
-            let dp = DynamicPivotResolution::new();
-            let resolution_strategy = ResolutionStrategy::DynamicPivot(dp);
+            let resolution_strategy = self.default_resolution_strategy();
 
             Some(
                 SetupBuilder::new()
