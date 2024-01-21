@@ -20,7 +20,7 @@ impl PopulatesCandles for RSI {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::RSI(len);
 
         let mut prev: Option<RSI> = None;
@@ -53,7 +53,7 @@ impl PopulatesCandles for RSI {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::RSI(len);
         let ctx_err = "Unable to get last candle";
         let candle_len = ts.candles.len();
@@ -219,7 +219,7 @@ mod tests {
 
         let _ = RSI::populate_candles(&mut ts);
 
-        let len = RSI::default_args().extract_len_opt().unwrap();
+        let len = RSI::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::RSI(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {
@@ -253,7 +253,7 @@ mod tests {
 
         let _ = ts.add_candle(candle);
 
-        let len = RSI::default_args().extract_len_opt().unwrap();
+        let len = RSI::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::RSI(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {

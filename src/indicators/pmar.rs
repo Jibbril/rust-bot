@@ -35,7 +35,7 @@ impl PopulatesCandles for PMAR {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::PMAR(len);
 
         for i in 0..ts.candles.len() {
@@ -78,7 +78,7 @@ impl PopulatesCandles for PMAR {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let end = ts.candles.len();
         let ctx_err = "Failed to get last candle";
         let indicator_type = IndicatorType::PMAR(len);
@@ -218,7 +218,7 @@ mod tests {
 
         let _ = PMAR::populate_candles(&mut ts);
 
-        let len = PMAR::default_args().extract_len_opt().unwrap();
+        let len = PMAR::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::PMAR(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {
@@ -250,7 +250,7 @@ mod tests {
         let _ = PMAR::populate_candles(&mut ts);
         let _ = ts.add_candle(candle);
 
-        let len = PMAR::default_args().extract_len_opt().unwrap();
+        let len = PMAR::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::PMAR(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {

@@ -25,7 +25,7 @@ impl PopulatesCandles for BollingerBands {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len, _) = args.extract_bb_res()?;
+        let (len, _) = args.bb_res()?;
         let indicator_type = IndicatorType::BollingerBands(len);
 
         for i in 0..ts.candles.len() {
@@ -51,7 +51,7 @@ impl PopulatesCandles for BollingerBands {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len, _) = args.extract_bb_res()?;
+        let (len, _) = args.bb_res()?;
         let ctx_err = "Unable to get last candle";
         let indicator_type = IndicatorType::BollingerBands(len);
         let end = ts.candles.len();
@@ -92,7 +92,7 @@ impl IsIndicator for BollingerBands {
             return None;
         }
 
-        let (_, std_n) = Self::default_args().extract_bb_opt()?;
+        let (_, std_n) = Self::default_args().bb_opt()?;
         let values: Vec<f64> = segment.iter().map(|c| c.close).collect();
 
         let sma = sma(&values);
@@ -146,7 +146,7 @@ mod tests {
 
         let _ = BollingerBands::populate_candles(&mut ts);
 
-        let (len, _) = BollingerBands::default_args().extract_bb_opt().unwrap();
+        let (len, _) = BollingerBands::default_args().bb_opt().unwrap();
         let indicator_type = IndicatorType::BollingerBands(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {
@@ -179,7 +179,7 @@ mod tests {
 
         let _ = ts.add_candle(candle);
 
-        let (len, _) = BollingerBands::default_args().extract_bb_opt().unwrap();
+        let (len, _) = BollingerBands::default_args().bb_opt().unwrap();
         let indicator_type = IndicatorType::BollingerBands(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {

@@ -21,7 +21,7 @@ impl PopulatesCandles for DynamicPivots {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::DynamicPivot(len);
         let min_len = 2 * len + 1;
 
@@ -53,7 +53,7 @@ impl PopulatesCandles for DynamicPivots {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let ctx_err = "Unable to get last candle";
         let indicator_type = IndicatorType::DynamicPivot(len);
         let candle_len = ts.candles.len();

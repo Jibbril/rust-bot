@@ -18,7 +18,7 @@ impl PopulatesCandles for ATR {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::ATR(len);
 
         let mut prev: Option<ATR> = None;
@@ -51,7 +51,7 @@ impl PopulatesCandles for ATR {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::ATR(len);
         let prev = Indicator::get_second_last(ts, &indicator_type)
             .and_then(|indicator| indicator.as_atr());
@@ -120,6 +120,17 @@ impl IsIndicator for ATR {
         IndicatorArgs::LengthArg(14)
     }
 
+    // fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> where Self: Sized {
+    //     let arg_len = args.len_opt()?;
+    //     let candle_len = segment.len();
+    //
+    //     if arg_len > candle_len {
+    //         return None;
+    //     }
+    //     
+    //     Self::calculate(&segment[candle_len-arg_len..candle_len])
+    // }
+
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
         Self: Sized,
@@ -175,7 +186,7 @@ mod tests {
 
         let _ = ATR::populate_candles(&mut ts);
 
-        let len = ATR::default_args().extract_len_opt().unwrap();
+        let len = ATR::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::ATR(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {
@@ -207,7 +218,7 @@ mod tests {
         let _ = ATR::populate_candles(&mut ts);
 
         let _ = ts.add_candle(candle);
-        let len = ATR::default_args().extract_len_opt().unwrap();
+        let len = ATR::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::ATR(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {

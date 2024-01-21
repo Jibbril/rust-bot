@@ -21,7 +21,7 @@ impl PopulatesCandles for EMA {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::EMA(len);
 
         let mut prev_ema: Option<EMA> = None;
@@ -54,7 +54,7 @@ impl PopulatesCandles for EMA {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::EMA(len);
         let end = ts.candles.len();
         let ctx_err = "Unable to get last candle";
@@ -167,7 +167,7 @@ mod tests {
 
         let _ = EMA::populate_candles(&mut ts);
 
-        let len = EMA::default_args().extract_len_opt().unwrap();
+        let len = EMA::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::EMA(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {
@@ -200,7 +200,7 @@ mod tests {
         let _ = EMA::populate_candles(&mut ts);
         let _ = ts.add_candle(candle);
 
-        let len = EMA::default_args().extract_len_opt().unwrap();
+        let len = EMA::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::EMA(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {

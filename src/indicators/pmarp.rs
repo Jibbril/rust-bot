@@ -28,7 +28,7 @@ impl PopulatesCandles for PMARP {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len, lookback) = args.extract_len_lookback_res()?;
+        let (len, lookback) = args.len_lookback_res()?;
         let sma_len = len; // TODO: Change argument type so this is provided
         let indicator_type = IndicatorType::PMARP(len, lookback);
 
@@ -78,7 +78,7 @@ impl PopulatesCandles for PMARP {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len, lookback) = args.extract_len_lookback_res()?;
+        let (len, lookback) = args.len_lookback_res()?;
         let sma_len = len; // TODO: Change argument type so this is provided
         let ctx_err = "Unable to get last candle";
         let indicator_type = IndicatorType::PMARP(len, lookback);
@@ -147,7 +147,7 @@ impl IsIndicator for PMARP {
     {
         let args = Self::default_args();
         let mut pmars = Self::get_pmars(segment, args).ok()?;
-        let (len, lookback) = args.extract_len_lookback_opt()?;
+        let (len, lookback) = args.len_lookback_opt()?;
         let new_pmarp = pmars.pop()??;
 
         let count = pmars
@@ -196,7 +196,7 @@ impl PMARP {
         let mut temp_ts = TimeSeries::dummy();
         temp_ts.set_candles(&temp_segment);
 
-        let (len, _) = args.extract_len_lookback_res()?;
+        let (len, _) = args.len_lookback_res()?;
         let len_arg = IndicatorArgs::LengthArg(len);
         PMAR::populate_candles_args(&mut temp_ts, len_arg)?;
 
@@ -259,7 +259,7 @@ mod tests {
 
         let _ = PMARP::populate_candles(&mut ts);
 
-        let (len, lookback) = PMARP::default_args().extract_len_lookback_opt().unwrap();
+        let (len, lookback) = PMARP::default_args().len_lookback_opt().unwrap();
         let indicator_type = IndicatorType::PMARP(len, lookback);
 
         for (i, candle) in ts.candles.iter().enumerate() {
@@ -292,7 +292,7 @@ mod tests {
         let _ = PMARP::populate_candles(&mut ts);
         let _ = ts.add_candle(candle);
 
-        let (len, lookback) = PMARP::default_args().extract_len_lookback_opt().unwrap();
+        let (len, lookback) = PMARP::default_args().len_lookback_opt().unwrap();
         let indicator_type = IndicatorType::PMARP(len, lookback);
 
         for (i, candle) in ts.candles.iter().enumerate() {

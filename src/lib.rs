@@ -54,7 +54,7 @@ pub async fn run_dummy() -> Result<()> {
         0.4722222222222222,
     ];
 
-    let (len, lookback, _) = BBWP::default_args().extract_bbwp_opt().unwrap();
+    let (len, lookback, _) = BBWP::default_args().bbwp_opt().unwrap();
     for (i, val) in correct_values.iter().enumerate() {
         let bbwp = segment[i]
             .clone_indicator(&IndicatorType::BBWP(len, lookback))
@@ -68,7 +68,7 @@ pub async fn run_dummy() -> Result<()> {
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let (len, lookback) = PMARP::default_args().extract_len_lookback_res()?;
+    let (len, lookback) = PMARP::default_args().len_lookback_res()?;
     let indicator_type = IndicatorType::PMARP(len, lookback);
 
     let interval = Interval::Minute1;
@@ -297,7 +297,7 @@ pub async fn run_strategy_tester() -> Result<()> {
         indicator.populate_candles(&mut ts)?;
     }
 
-    let result = StrategyTester::test_strategy(&strategy, &ts.candles)?;
+    let result = StrategyTester::test_strategy(&strategy, &ts.candles[300..])?;
 
     println!("{:#?}",result);
 

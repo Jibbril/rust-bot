@@ -18,7 +18,7 @@ impl PopulatesCandles for BBW {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len, _) = args.extract_bb_res()?;
+        let (len, _) = args.bb_res()?;
         let indicator_type = IndicatorType::BBW(len);
 
         for i in 0..ts.candles.len() {
@@ -44,7 +44,7 @@ impl PopulatesCandles for BBW {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len, _) = args.extract_bb_res()?;
+        let (len, _) = args.bb_res()?;
         let ctx_err = "Unable to get last candle";
         let indicator_type = IndicatorType::BBW(len);
         let end = ts.candles.len();
@@ -122,7 +122,7 @@ mod tests {
 
         let _ = BBW::populate_candles(&mut ts);
 
-        let (len, _) = BBW::default_args().extract_bb_opt().unwrap();
+        let (len, _) = BBW::default_args().bb_opt().unwrap();
         let indicator_type = IndicatorType::BBW(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {
@@ -154,7 +154,7 @@ mod tests {
         let _ = BBW::populate_candles(&mut ts);
 
         let _ = ts.add_candle(candle);
-        let (len, _) = BBW::default_args().extract_bb_opt().unwrap();
+        let (len, _) = BBW::default_args().bb_opt().unwrap();
         let indicator_type = IndicatorType::BBW(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {
