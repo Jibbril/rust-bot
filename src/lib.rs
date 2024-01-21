@@ -14,7 +14,6 @@ use crate::{
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
-    strategy_testing::test_setups,
     trading_strategies::rsi_basic::RsiBasic,
     utils::save_setups,
 };
@@ -34,6 +33,7 @@ use models::{
     timeseries::TimeSeries,
     traits::trading_strategy::TradingStrategy,
 };
+use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
 use trading_strategies::jb_1::JB1;
 use utils::data::dummy_data::PRICE_CHANGES;
@@ -94,8 +94,7 @@ pub async fn run_single_indicator() -> Result<()> {
 }
 
 pub async fn run_strategy() -> Result<()> {
-    let strategy: Box<dyn TradingStrategy> =
-        Box::new(JB1::new());
+    let strategy: Box<dyn TradingStrategy> = Box::new(JB1::new());
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
@@ -134,12 +133,19 @@ pub async fn run_strategy() -> Result<()> {
     }
 }
 
-
 pub async fn run_double_strategies() -> Result<()> {
-    let short_strategy: Box<dyn TradingStrategy> =
-        Box::new(RsiBasic::new_args(14, 45.0, 55.0, StrategyOrientation::Short));
-    let long_strategy: Box<dyn TradingStrategy> =
-        Box::new(RsiBasic::new_args(14, 45.0, 55.0, StrategyOrientation::Long));
+    let short_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_args(
+        14,
+        45.0,
+        55.0,
+        StrategyOrientation::Short,
+    ));
+    let long_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_args(
+        14,
+        45.0,
+        55.0,
+        StrategyOrientation::Long,
+    ));
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
@@ -274,7 +280,31 @@ pub async fn run_manual_setups() -> Result<()> {
     Ok(())
 }
 
-pub async fn run_strategy_testing() -> Result<()> {
+pub async fn run_strategy_tester() -> Result<()> {
+    // Get TimeSeries data
+    let source = DataSource::Bybit;
+    let interval = Interval::Hour1;
+    let net = NetVersion::Mainnet;
+    let mut ts = source
+        .get_historical_data("BTCUSDT", &interval, 10000, &net)
+        .await?;
+
+    // Calculate indicators for TimeSeries
+    // Implement Strategy to analyze TimeSeries
+    let strategy: Box<dyn TradingStrategy> = Box::new(JB1::new());
+
+    for indicator in strategy.required_indicators() {
+        indicator.populate_candles(&mut ts)?;
+    }
+
+    let result = StrategyTester::test_strategy(&strategy, &ts.candles)?;
+
+    println!("{:#?}",result);
+
+    Ok(())
+}
+
+pub async fn _run_strategy_testing() -> Result<()> {
     // Get TimeSeries data
     let source = DataSource::Bybit;
     let interval = Interval::Hour1;
@@ -284,7 +314,6 @@ pub async fn run_strategy_testing() -> Result<()> {
         .await?;
 
     // Calculate indicators for TimeSeries
-
 
     // Implement Strategy to analyze TimeSeries
     let strategy: Box<dyn TradingStrategy> = Box::new(JB1::new());
@@ -304,9 +333,7 @@ pub async fn run_strategy_testing() -> Result<()> {
     }
 
     // Test results of taking setups
-    let result = test_setups(&setups, &ts.candles);
-
-    println!("Test Results: {:#?}",result);
+    // let result = test_setups(&setups, &ts.candles);
 
     Ok(())
 }

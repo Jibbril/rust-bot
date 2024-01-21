@@ -1,6 +1,6 @@
 use anyhow::{Result, anyhow, Context};
 use serde::{Serialize, Deserialize};
-use crate::{models::{strategy_orientation::StrategyOrientation, candle::Candle, traits::requires_indicators::RequiresIndicators}, indicators::indicator_type::IndicatorType};
+use crate::{models::{strategy_orientation::StrategyOrientation, candle::Candle, traits::requires_indicators::RequiresIndicators, setups::setup::Setup}, indicators::indicator_type::IndicatorType};
 use super::is_resolution_strategy::IsResolutionStrategy;
 
 /// # PmarpVsPercentageResolution
@@ -12,12 +12,12 @@ use super::is_resolution_strategy::IsResolutionStrategy;
 /// - Long
 ///
 /// ## Suggested values
-/// - pmarp_threshold = 67
+/// - pmarp_threshold = 68
 /// - % drawdown = 4.5%
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PmarpVsPercentageResolution {
     pub pmarp_threshhold: f64,
-    pub initial_value: f64,
+    pub initial_value: Option<f64>,
     pub drawdown_threshold: f64,
     pub pmarp_len: usize,
     pub pmarp_lookback: usize,
@@ -43,8 +43,9 @@ impl IsResolutionStrategy for PmarpVsPercentageResolution {
 
         match orientation {
             StrategyOrientation::Long => {
+                let init_value = self.initial_value.context("Expected initial value")?;
                 Ok(
-                    (1.0 - &candles[len-1].close / self.initial_value) * 100.0 > self.drawdown_threshold
+                    (1.0 - &candles[len-1].close / init_value) * 100.0 > self.drawdown_threshold
                 )
             },
             StrategyOrientation::Short => Err(anyhow!(ERR_MESSAGE))
@@ -67,6 +68,12 @@ impl IsResolutionStrategy for PmarpVsPercentageResolution {
             StrategyOrientation::Long => Ok(pmarp.value > self.pmarp_threshhold),
             StrategyOrientation::Short => Err(anyhow!(ERR_MESSAGE))
         }
+    }
+
+    fn set_initial_values(&mut self, setup: &Setup) -> Result<()> {
+        self.initial_value = Some(setup.candle.close);
+
+        Ok(())
     }
 }
 

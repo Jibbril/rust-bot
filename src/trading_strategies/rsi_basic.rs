@@ -137,6 +137,14 @@ impl TradingStrategy for RsiBasic {
     fn clone_box(&self) -> Box<dyn TradingStrategy> {
         Box::new(self.clone())
     }
+
+    fn default_resolution_strategy(&self) -> ResolutionStrategy {
+        todo!()
+    }
+
+    fn orientation(&self) -> StrategyOrientation {
+        todo!()
+    }
 }
 
 impl RequiresIndicators for RsiBasic {

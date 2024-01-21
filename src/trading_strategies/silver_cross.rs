@@ -62,6 +62,11 @@ impl TradingStrategy for SilverCross {
         }
     }
 
+    fn candles_needed_for_setup(&self) -> usize {
+        // TODO: Add real value
+        self.long_len
+    }
+
     fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         let mut setups: Vec<Setup> = Vec::new();
         let key_short = IndicatorType::SMA(self.short_len);
@@ -106,17 +111,20 @@ impl TradingStrategy for SilverCross {
         self.long_len
     }
 
-    fn candles_needed_for_setup(&self) -> usize {
-        // TODO: Add real value
-        self.long_len
-    }
-
     fn check_last_for_setup(&self, _candles: &[Candle]) -> Option<SetupBuilder> {
         todo!()
     }
 
     fn clone_box(&self) -> Box<dyn TradingStrategy> {
         Box::new(self.clone())
+    }
+
+    fn default_resolution_strategy(&self) -> ResolutionStrategy {
+        todo!()
+    }
+
+    fn orientation(&self) -> StrategyOrientation {
+        todo!()
     }
 }
 

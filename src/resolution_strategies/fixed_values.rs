@@ -1,6 +1,6 @@
 use anyhow::{Result, anyhow};
 use serde::{Serialize, Deserialize};
-use crate::{models::{strategy_orientation::StrategyOrientation, candle::Candle, traits::requires_indicators::RequiresIndicators}, indicators::indicator_type::IndicatorType};
+use crate::{models::{strategy_orientation::StrategyOrientation, candle::Candle, traits::requires_indicators::RequiresIndicators, setups::setup::Setup}, indicators::indicator_type::IndicatorType};
 use super::is_resolution_strategy::IsResolutionStrategy;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,6 +42,10 @@ impl IsResolutionStrategy for FixedValuesResolution {
             StrategyOrientation::Long => candle.high > self.high,
             StrategyOrientation::Short => candle.low < self.low,
         })
+    }
+
+    fn set_initial_values(&mut self, _setup: &Setup) -> Result<()> {
+        Err(anyhow!("Fixed resolution does not support setting initial values from setup."))
     }
 }
 

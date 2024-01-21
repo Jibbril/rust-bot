@@ -1,7 +1,7 @@
 use super::is_resolution_strategy::IsResolutionStrategy;
 use crate::{
     indicators::indicator_type::IndicatorType,
-    models::{candle::Candle, strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators},
+    models::{candle::Candle, strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators, setups::setup::Setup},
 };
 use anyhow::{anyhow, Result, Context};
 use serde::{Deserialize, Serialize};
@@ -24,7 +24,7 @@ impl IsResolutionStrategy for DynamicPivotResolution {
         let len = candles.len();
 
         if len < self.len + 1 { 
-            let msg = "Not enough enough candles to determine if stop loss reached.";
+            let msg = "Not enough candles to determine if stop loss reached.";
             return Err(anyhow!(msg));
         }
 
@@ -74,6 +74,10 @@ impl IsResolutionStrategy for DynamicPivotResolution {
                 Ok(candles[len-1].low < bound)
             }
         }
+    }
+
+    fn set_initial_values(&mut self, _setup: &Setup) -> Result<()> {
+        Ok(())
     }
 }
 

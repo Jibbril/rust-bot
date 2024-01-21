@@ -1,8 +1,8 @@
-use crate::models::{
+use crate::{models::{
         candle::Candle,
         setups::{setup::Setup, setup_builder::SetupBuilder},
-        timeseries::TimeSeries,
-    };
+        timeseries::TimeSeries, strategy_orientation::StrategyOrientation,
+    }, resolution_strategies::resolution_strategy::ResolutionStrategy};
 use anyhow::Result;
 use std::fmt::{Debug, Display};
 use super::requires_indicators::RequiresIndicators;
@@ -32,4 +32,11 @@ pub trait TradingStrategy: Display + Debug + RequiresIndicators {
 
     /// Returns a boxed clone of the current TradingStrategy
     fn clone_box(&self) -> Box<dyn TradingStrategy>;
+
+    /// Returns the default resolution strategy associated with this Trading 
+    /// strategy.
+    fn default_resolution_strategy(&self) -> ResolutionStrategy;
+
+    /// Returns the StrategyOrientation for this TradingStrategy
+    fn orientation(&self) -> StrategyOrientation;
 }

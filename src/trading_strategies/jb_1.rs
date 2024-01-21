@@ -9,7 +9,7 @@ use crate::{
         timeseries::TimeSeries,
         traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators},
     },
-    utils::math::sma, resolution_strategies::{dynamic_pivot::DynamicPivotResolution, resolution_strategy::ResolutionStrategy},
+    utils::math::sma, resolution_strategies::{dynamic_pivot::DynamicPivotResolution, resolution_strategy::ResolutionStrategy, pmarp_vs_percentage::PmarpVsPercentageResolution},
 };
 
 /// # JB 1
@@ -60,7 +60,7 @@ impl TradingStrategy for JB1 {
     fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         let mut setups = vec![];
 
-        for window in ts.candles.windows(6) {
+        for window in ts.candles.windows(self.candles_needed_for_setup()) {
             if let Some(sb) = self.check_last_for_setup(&window) {
                 let setup = sb
                     .ticker(&ts.ticker)
@@ -129,6 +129,22 @@ impl TradingStrategy for JB1 {
     fn candles_needed_for_setup(&self) -> usize {
         // We need to create the two last rsi moving averages
         self.rsi_ma_len + 1
+    }
+
+    fn default_resolution_strategy(&self) -> ResolutionStrategy {
+        let p = PmarpVsPercentageResolution {
+            pmarp_threshhold: 68.0,
+            initial_value: None,
+            drawdown_threshold: 4.5,
+            pmarp_len: 20,
+            pmarp_lookback: 350,
+        };
+
+        ResolutionStrategy::PmarpVsPercentage(p)
+    }
+
+    fn orientation(&self) -> StrategyOrientation {
+        StrategyOrientation::Long
     }
 }
 

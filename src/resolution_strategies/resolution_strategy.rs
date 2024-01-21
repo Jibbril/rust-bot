@@ -1,4 +1,4 @@
-use crate::{models::{candle::Candle, strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators}, indicators::indicator_type::IndicatorType};
+use crate::{models::{candle::Candle, strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators, setups::setup::Setup}, indicators::indicator_type::IndicatorType};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
@@ -43,6 +43,14 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.take_profit_reached(orientation, candles),
         }       
     }
+
+    fn set_initial_values(&mut self, setup: &Setup) -> Result<()> {
+        match self {
+            ResolutionStrategy::DynamicPivot(dp) => dp.set_initial_values(setup),
+            ResolutionStrategy::FixedValues(fv) => fv.set_initial_values(setup),
+            ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.set_initial_values(setup),
+        }       
+    }
 }
 
 impl RequiresIndicators for ResolutionStrategy {
@@ -60,7 +68,13 @@ impl Display for ResolutionStrategy {
         match self {
             Self::DynamicPivot(dp) => write!(f, "DynamicPivot({})", dp.len),
             Self::FixedValues(fv) => write!(f, "FixedValues({},{})", fv.high, fv.low),
-            Self::PmarpVsPercentage(pvp) => write!(f, "PmarpVsPercentage({},{})", pvp.initial_value, pvp.pmarp_threshhold),
+            Self::PmarpVsPercentage(pvp) => {
+                let init_value = match pvp.initial_value {
+                    Some(v) => v,
+                    None => -1.0,
+                };
+                write!(f, "PmarpVsPercentage({},{})", init_value, pvp.pmarp_threshhold)
+            },
         }
     }
 }

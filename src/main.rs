@@ -11,7 +11,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // rust_bot::run_strategy().await?;
     // rust_bot::run_historical().await?;
     // rust_bot::run_local().await?;
-    rust_bot::run_strategy_testing().await?;
+    // rust_bot::run_strategy_testing().await?;
+    rust_bot::run_strategy_tester().await?;
 
     Ok(())
 }
