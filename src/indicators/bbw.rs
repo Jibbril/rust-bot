@@ -26,7 +26,7 @@ impl PopulatesCandles for BBW {
             let bbw = if end < len {
                 None
             } else {
-                Self::calculate(&ts.candles[end - len..end])
+                Self::calculate_args(&ts.candles[end - len..end], &args)
             };
 
             ts.candles[i]
@@ -59,7 +59,7 @@ impl PopulatesCandles for BBW {
                 .indicators
                 .insert(indicator_type, Indicator::BBW(None));
         } else {
-            let new_bbw = Self::calculate(&ts.candles[end - len..end]);
+            let new_bbw = Self::calculate_args(&ts.candles[end - len..end], &args);
 
             ts.candles
                 .last_mut()
@@ -88,10 +88,15 @@ impl IsIndicator for BBW {
         })
     }
 
-    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
     where 
         Self: Sized {
-        todo!()
+        let bb = BollingerBands::calculate_args(segment, args)?;
+
+        Some(BBW {
+            value: (bb.upper - bb.lower) / bb.sma,
+            len: segment.len(),
+        })
     }
 }
 
@@ -115,9 +120,27 @@ mod tests {
     }
 
     #[test]
+    fn bbw_calculate_args() {
+        let candles = Candle::dummy_data(20, "positive", 100.0);
+        let args = BBW::default_args();
+        let bbw = BBW::calculate_args(&candles,&args);
+        assert!(bbw.is_some());
+        let bbw = bbw.unwrap();
+        assert_eq!(bbw.value, 1.1543570308487054);
+    }
+
+    #[test]
     fn bbw_no_candles() {
         let candles = Vec::new();
         let sma = BBW::calculate(&candles);
+        assert!(sma.is_none());
+    }
+
+    #[test]
+    fn bbw_no_candles_args() {
+        let candles = Vec::new();
+        let args = BBW::default_args();
+        let sma = BBW::calculate_args(&candles, &args);
         assert!(sma.is_none());
     }
 
