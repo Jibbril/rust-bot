@@ -1,10 +1,8 @@
 use anyhow::{anyhow, Context, Result};
-
 use crate::{
     models::{candle::Candle, timeseries::TimeSeries},
     utils::math::{sma, std},
 };
-
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
     is_indicator::IsIndicator, populates_candles::PopulatesCandles,
@@ -33,7 +31,7 @@ impl PopulatesCandles for BollingerBands {
             let bb = if end < len {
                 None
             } else {
-                Self::calculate(&ts.candles[end - len..end])
+                Self::calculate_args(&ts.candles[end - len..end], &args)
             };
 
             ts.candles[i]
@@ -66,7 +64,7 @@ impl PopulatesCandles for BollingerBands {
                 .indicators
                 .insert(indicator_type, Indicator::BollingerBands(None));
         } else {
-            let new_bb = Self::calculate(&ts.candles[end - len..end]);
+            let new_bb = Self::calculate_args(&ts.candles[end - len..end], &args);
 
             ts.candles
                 .last_mut()
@@ -84,15 +82,37 @@ impl IsIndicator for BollingerBands {
         IndicatorArgs::BollingerBandArgs(20, 2.0)
     }
 
-    fn calculate(segment: &[Candle]) -> Option<Self>
-    where
-        Self: Sized,
-    {
+    /// Segment should have the same number of candles as the desired length of 
+    /// BollingerBands wanted.
+    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized, {
         if segment.len() == 0 {
             return None;
         }
 
         let (_, std_n) = Self::default_args().bb_opt()?;
+        let args = IndicatorArgs::BollingerBandArgs(segment.len(), std_n);
+
+        Self::calculate_bb(segment, &args)
+    }
+
+
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
+    where 
+        Self: Sized {
+        let (arg_len, _) = args.bb_opt()?;
+        let candle_len = segment.len();
+
+        if candle_len < arg_len {
+            return None
+        } 
+
+        Self::calculate_bb(&segment[candle_len-arg_len..candle_len], args)
+    }
+}
+
+impl BollingerBands {
+    fn calculate_bb(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> where Self: Sized {
+        let (_,std_n) = args.bb_opt()?;
         let values: Vec<f64> = segment.iter().map(|c| c.close).collect();
 
         let sma = sma(&values);
@@ -109,12 +129,6 @@ impl IsIndicator for BollingerBands {
             len: segment.len(),
         })
     }
-
-    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
-    where 
-        Self: Sized {
-        todo!()
-    }
 }
 
 #[cfg(test)]
@@ -129,9 +143,20 @@ mod tests {
     };
 
     #[test]
-    fn calculate_bollinger_bands() {
+    fn bb_calculate() {
         let candles = Candle::dummy_data(20, "positive", 100.0);
         let bb = BollingerBands::calculate(&candles);
+        assert!(bb.is_some());
+        let bb = bb.unwrap();
+        println!("BB: {}", bb.upper);
+        assert!(bb.upper - 323.32159566199 < 0.0001)
+    }
+
+    #[test]
+    fn bb_calculate_args() {
+        let candles = Candle::dummy_data(20, "positive", 100.0);
+        let args = BollingerBands::default_args();
+        let bb = BollingerBands::calculate_args(&candles, &args);
         assert!(bb.is_some());
         let bb = bb.unwrap();
         println!("BB: {}", bb.upper);

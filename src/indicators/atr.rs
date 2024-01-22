@@ -120,6 +120,7 @@ impl IsIndicator for ATR {
         IndicatorArgs::LengthArg(14)
     }
 
+    /// Segment should be one candle longer than the length of ATR wanted.
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
         Self: Sized,
