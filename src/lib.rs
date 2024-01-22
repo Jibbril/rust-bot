@@ -9,7 +9,7 @@ mod utils;
 
 use crate::{
     indicators::{
-        atr::ATR, bbwp::BBWP, is_indicator::IsIndicator, pmarp::PMARP,
+        atr::ATR, is_indicator::IsIndicator, pmarp::PMARP,
         populates_candles::PopulatesCandles, rsi::RSI,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
@@ -36,33 +36,36 @@ use models::{
 use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
 use trading_strategies::jb_1::JB1;
-use utils::data::dummy_data::PRICE_CHANGES;
 
 pub async fn run_dummy() -> Result<()> {
-    let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
-
+    let mut candles = Candle::dummy_data(15, "positive", 100.0);
+    let candle = candles.pop().unwrap();
     let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+    let _ = ATR::populate_candles(&mut ts);
 
-    let _ = BBWP::populate_candles(&mut ts);
+    let _ = ts.add_candle(candle);
+    let len = ATR::default_args().len_opt().unwrap();
+    let indicator_type = IndicatorType::ATR(len);
 
-    let segment = &ts.candles[ts.candles.len() - 5..];
-    let correct_values = [
-        0.5238095238095238,
-        0.5515873015873016,
-        0.5436507936507936,
-        0.5079365079365079,
-        0.4722222222222222,
-    ];
-
-    let (len, lookback, _) = BBWP::default_args().bbwp_opt().unwrap();
-    for (i, val) in correct_values.iter().enumerate() {
-        let bbwp = segment[i]
-            .clone_indicator(&IndicatorType::BBWP(len, lookback))
-            .unwrap()
-            .as_bbwp()
-            .unwrap();
-        assert_eq!(*val, bbwp.value)
+    for (i, candle) in ts.candles.iter().enumerate() {
+        let indicator = candle.indicators.get(&indicator_type).unwrap();
+        let atr = indicator.as_atr();
+        if i < len {
+            assert!(atr.is_none());
+        } else {
+            assert!(atr.is_some());
+        }
     }
+
+    let last_candle = ts.candles.last().unwrap();
+    let last_atr = last_candle
+        .indicators
+        .get(&indicator_type)
+        .unwrap()
+        .as_atr()
+        .unwrap();
+
+    assert_eq!(last_atr.value, 10.0);
 
     Ok(())
 }
