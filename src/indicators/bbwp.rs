@@ -26,6 +26,10 @@ pub struct BBWP {
 const BBW_STD_N: f64 = 1.0;
 
 impl PopulatesCandles for BBWP {
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
+    }
+
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (len, lookback, sma_len) = args.bbwp_res()?;
         let indicator_type = IndicatorType::BBWP(len, lookback);
@@ -41,7 +45,7 @@ impl PopulatesCandles for BBWP {
                     0
                 };
 
-                Self::calculate(&ts.candles[start..end])
+                Self::calculate_args(&ts.candles[start..end], &args)
             };
 
             ts.candles[i]
@@ -72,10 +76,6 @@ impl PopulatesCandles for BBWP {
         ts.indicators.insert(indicator_type);
 
         Ok(())
-    }
-
-    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
-        Self::populate_candles_args(ts, Self::default_args())
     }
 
     fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
@@ -109,8 +109,8 @@ impl PopulatesCandles for BBWP {
             0
         };
 
-        let mut new_bbwp =
-            Self::calculate(&ts.candles[start..end]).context("Unable to calculate BBWP")?;
+        let mut new_bbwp = Self::calculate_args(&ts.candles[start..end], &args)
+            .context("Unable to calculate BBWP")?;
 
         ts.candles
             .last_mut()
@@ -151,11 +151,19 @@ impl IsIndicator for BBWP {
     /// Note: Due to api based on segment length, the segment needs "len"
     /// number of extra candles. This is due to the get_bbws function resulting
     /// in the "len" first being empty values.
-    fn calculate(segment: &[Candle]) -> Option<Self>
-    where
-        Self: Sized,
-    {
-        let args = Self::default_args();
+    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized, {
+        Self::calculate_bbwp(segment, &Self::default_args())
+    }
+
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
+    where 
+        Self: Sized {
+        Self::calculate_bbwp(segment, args)
+    }
+}
+
+impl BBWP {
+    fn calculate_bbwp(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> {
         let bbws = Self::get_bbws(segment, args).ok()?;
         let (len, lookback, _) = args.bbwp_opt()?;
         let new_bbw = bbws.last()?.as_ref()?;
@@ -177,14 +185,6 @@ impl IsIndicator for BBWP {
         })
     }
 
-    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
-    where 
-        Self: Sized {
-        todo!()
-    }
-}
-
-impl BBWP {
     fn bbwp_sma(segment: &[Candle], indicator_type: &IndicatorType) -> Option<f64> {
         let values: Vec<f64> = segment
             .iter()
@@ -195,7 +195,7 @@ impl BBWP {
         (values.len() == segment.len()).then_some(sma(&values))
     }
 
-    fn get_bbws(segment: &[Candle], args: IndicatorArgs) -> Result<Vec<Option<BBW>>> {
+    fn get_bbws(segment: &[Candle], args: &IndicatorArgs) -> Result<Vec<Option<BBW>>> {
         // TODO: Refactor populates candles trait to include methods accepting
         // just candles instead of only TimeSeries to not need temporary
         // TimeSeries below.
@@ -241,7 +241,7 @@ mod tests {
     ];
 
     #[test]
-    fn calculate_bbwp() {
+    fn bbwp_calculate() {
         let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
 
         let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
@@ -265,6 +265,14 @@ mod tests {
     fn bbwp_no_candles() {
         let candles = Vec::new();
         let sma = BBWP::calculate(&candles);
+        assert!(sma.is_none());
+    }
+
+    #[test]
+    fn bbwp_no_candles_args() {
+        let candles = Vec::new();
+        let args = BBWP::default_args();
+        let sma = BBWP::calculate_args(&candles, &args);
         assert!(sma.is_none());
     }
 

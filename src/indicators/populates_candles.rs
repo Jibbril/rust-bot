@@ -3,8 +3,8 @@ use crate::models::timeseries::TimeSeries;
 use anyhow::Result;
 
 pub trait PopulatesCandles {
-    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()>;
     fn populate_candles(ts: &mut TimeSeries) -> Result<()>;
+    fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()>;
     fn populate_last_candle(ts: &mut TimeSeries) -> Result<()>;
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()>;
 }

@@ -77,6 +77,8 @@ impl IsIndicator for BBW {
         IndicatorArgs::BollingerBandArgs(20, 2.0)
     }
 
+    /// Segment should have the same number of candles as the desired length of 
+    /// BBW wanted.
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
         Self: Sized,
