@@ -31,7 +31,7 @@ impl PopulatesCandles for EMA {
                 None
             } else if end == len || prev_ema.is_none() {
                 let start = end - len;
-                Self::calculate(&ts.candles[start..end + 1])
+                Self::calculate_args(&ts.candles[start..end + 1], &args)
             } else {
                 let prev = prev_ema.unwrap().value;
                 let current = ts.candles[end].close;
@@ -81,7 +81,7 @@ impl PopulatesCandles for EMA {
         let new_ema = if prev.is_none() {
             let start = end - len;
             let end = end - 1;
-            Self::calculate(&ts.candles[start..end])
+            Self::calculate_args(&ts.candles[start..end], &args)
         } else {
             let prev = prev.unwrap();
             let current = ts.candles.last().unwrap().close;
@@ -122,10 +122,17 @@ impl IsIndicator for EMA {
         Some(EMA { len, value: ema })
     }
 
-    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
     where 
         Self: Sized {
-        todo!()
+        let len = args.len_opt()?;
+        let candle_len = segment.len();
+
+        if candle_len < len + 1 {
+            return None;
+        }
+
+        Self::calculate(&segment[candle_len-len-1..candle_len])
     }
 }
 
@@ -144,15 +151,26 @@ mod tests {
     use crate::{
         indicators::{
             indicator_type::IndicatorType, is_indicator::IsIndicator,
-            populates_candles::PopulatesCandles,
+            populates_candles::PopulatesCandles, indicator_args::IndicatorArgs,
         },
         models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
     };
 
     #[test]
-    fn calculate_ema() {
+    fn ema_calculate() {
         let candles = Candle::dummy_data(8, "positive", 100.0);
         let ema = EMA::calculate(&candles);
+        assert!(ema.is_some());
+
+        let ema = ema.unwrap();
+        assert_eq!(ema.value, 150.0);
+    }
+
+    #[test]
+    fn ema_calculate_args() {
+        let candles = Candle::dummy_data(8, "positive", 100.0);
+        let args = IndicatorArgs::LengthArg(7);
+        let ema = EMA::calculate_args(&candles, &args);
         assert!(ema.is_some());
 
         let ema = ema.unwrap();
@@ -163,6 +181,14 @@ mod tests {
     fn ema_no_candles() {
         let candles: Vec<Candle> = Vec::new();
         let ema = EMA::calculate(&candles);
+        assert!(ema.is_none());
+    }
+
+    #[test]
+    fn ema_no_candles_args() {
+        let candles: Vec<Candle> = Vec::new();
+        let args = EMA::default_args();
+        let ema = EMA::calculate_args(&candles, &args);
         assert!(ema.is_none());
     }
 

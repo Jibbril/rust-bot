@@ -30,7 +30,7 @@ impl PopulatesCandles for DynamicPivots {
             let pivot = if end < min_len {
                 None
             } else {
-                Self::calculate(&ts.candles[end - min_len..end])
+                Self::calculate_args(&ts.candles[end - min_len..end], &args)
             };
 
             // Since the dynamic pivots are populated for the "len/2"-nth
@@ -73,7 +73,7 @@ impl PopulatesCandles for DynamicPivots {
             return Ok(());
         }
 
-        let new_pivot = Self::calculate(&ts.candles[candle_len - min_len..candle_len]);
+        let new_pivot = Self::calculate_args(&ts.candles[candle_len - min_len..candle_len], &args);
 
         ts.candles
             .get_mut(candle_len - (len + 1))
