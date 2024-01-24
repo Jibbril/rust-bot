@@ -126,10 +126,17 @@ impl IsIndicator for DynamicPivots {
         Some(pivots)
     }
 
-    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
     where 
         Self: Sized {
-        todo!()
+        let len = args.len_opt()?;
+        let segment_len = segment.len();
+
+        if segment_len < 2 * len + 1 {
+            return None;
+        }
+
+        Self::calculate(&segment[segment_len-2*len-1..segment_len])
     }
 }
 
