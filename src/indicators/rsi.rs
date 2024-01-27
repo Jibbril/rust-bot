@@ -30,7 +30,7 @@ impl PopulatesCandles for RSI {
                 None
             } else if i == len || prev.is_none() {
                 let start = i - len;
-                Self::calculate(&ts.candles[start..i + 1])
+                Self::calculate_args(&ts.candles[start..i + 1], &args)
             } else {
                 let candles = (&ts.candles[i - 1], &ts.candles[i]);
                 let prev = prev.unwrap();
@@ -79,7 +79,7 @@ impl PopulatesCandles for RSI {
         let new_rsi = if prev_rsi.is_none() {
             let start = candle_len - len;
             let end = candle_len - 1;
-            Self::calculate(&ts.candles[start..end])
+            Self::calculate_args(&ts.candles[start..end], &args)
         } else {
             let candles = (&ts.candles[candle_len - 2], &ts.candles[candle_len - 1]);
             Self::calculate_rolling(candles, prev_rsi.unwrap(), len)
@@ -100,6 +100,7 @@ impl IsIndicator for RSI {
         IndicatorArgs::LengthArg(14)
     }
 
+    /// Segment should be the length + 1 for the RSI wanted.
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
         Self: Sized,
@@ -120,10 +121,15 @@ impl IsIndicator for RSI {
         Self::calculate_rsi(rs, len, (avg_gain, avg_loss))
     }
 
-    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
-    where 
-        Self: Sized {
-        todo!()
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> where Self: Sized {
+        let len = args.len_opt()?;
+        let candle_len = segment.len();
+
+        if candle_len < len + 1 {
+            return None;
+        }
+
+        Self::calculate(&segment[candle_len-len-1..candle_len])
     }
 }
 
@@ -196,15 +202,26 @@ mod tests {
     use crate::{
         indicators::{
             indicator_type::IndicatorType, is_indicator::IsIndicator,
-            populates_candles::PopulatesCandles, rsi::RSI,
+            populates_candles::PopulatesCandles, rsi::RSI, indicator_args::IndicatorArgs,
         },
         models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
     };
 
     #[test]
-    fn rsi_calculation() {
+    fn rsi_calculate() {
         let candles = Candle::dummy_data(14, "alternating", 100.0);
         let rsi = RSI::calculate(&candles);
+
+        assert!(rsi.is_some());
+        let rsi = rsi.unwrap();
+        assert!(rsi.value >= 0.0 && rsi.value <= 100.0)
+    }
+
+    #[test]
+    fn rsi_calculate_args() {
+        let candles = Candle::dummy_data(14, "alternating", 100.0);
+        let args = IndicatorArgs::LengthArg(13);
+        let rsi = RSI::calculate_args(&candles, &args);
 
         assert!(rsi.is_some());
         let rsi = rsi.unwrap();
@@ -217,6 +234,15 @@ mod tests {
         let rsi = RSI::calculate(&candles);
         assert!(rsi.is_none());
     }
+
+    #[test]
+    fn rsi_no_candles_args() {
+        let candles: Vec<Candle> = Vec::new();
+        let args = RSI::default_args();
+        let rsi = RSI::calculate_args(&candles, &args);
+        assert!(rsi.is_none());
+    }
+
 
     #[test]
     fn rsi_populate_candles() {

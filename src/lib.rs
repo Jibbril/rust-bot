@@ -10,7 +10,7 @@ mod utils;
 use crate::{
     indicators::{
         atr::ATR, is_indicator::IsIndicator, pmarp::PMARP,
-        populates_candles::PopulatesCandles, rsi::RSI, pmar::PMAR,
+        populates_candles::PopulatesCandles, rsi::RSI,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,

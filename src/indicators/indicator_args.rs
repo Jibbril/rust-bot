@@ -59,6 +59,7 @@ impl IndicatorArgs {
         }
     }
 
+    #[allow(dead_code)]
     pub fn len_lookback_opt(&self) -> Option<(usize, usize)> {
         match self {
             IndicatorArgs::LengthLookbackArgs(a, b) => Some((*a, *b)),

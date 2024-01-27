@@ -129,7 +129,7 @@ impl IsIndicator for PMAR {
         IndicatorArgs::PMARArgs(20, MAType::SMA)
     }
 
-    /// Segment should be the same length as the EMA wanted.
+    /// Segment should be the same length as the PMAR wanted.
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
         Self: Sized,
