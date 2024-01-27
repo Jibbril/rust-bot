@@ -43,7 +43,7 @@ impl PopulatesCandles for PMARP {
                     0
                 };
 
-                Self::calculate(&ts.candles[start..end])
+                Self::calculate_args(&ts.candles[start..end], &args)
             };
 
             ts.candles[i]
@@ -105,8 +105,8 @@ impl PopulatesCandles for PMARP {
             0
         };
 
-        let mut new_pmarp =
-            Self::calculate(&ts.candles[start..end]).context("Unable to calculate PMARP")?;
+        let mut new_pmarp = Self::calculate_args(&ts.candles[start..end], &args)
+                .context("Unable to calculate PMARP")?;
 
         ts.candles
             .last_mut()
@@ -145,10 +145,15 @@ impl IsIndicator for PMARP {
     where
         Self: Sized,
     {
-        let args = Self::default_args();
+        Self::calculate_args(segment, &Self::default_args())
+    }
+
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
+    where 
+        Self: Sized {
         let mut pmars = Self::get_pmars(segment, args).ok()?;
-        let (len, lookback,_) = args.pmarp_opt()?;
         let new_pmar = pmars.pop()??;
+        let (len, lookback,_) = args.pmarp_opt()?;
 
         let count = pmars
             .iter()
@@ -163,12 +168,6 @@ impl IsIndicator for PMARP {
             value: pmarp,
             ma: None,
         })
-    }
-
-    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
-    where 
-        Self: Sized {
-        todo!()
     }
 }
 
@@ -193,7 +192,7 @@ impl PMARP {
         (values.len() == segment.len()).then_some(sma(&values))
     }
 
-    fn get_pmars(segment: &[Candle], args: IndicatorArgs) -> Result<Vec<Option<PMAR>>> {
+    fn get_pmars(segment: &[Candle], args: &IndicatorArgs) -> Result<Vec<Option<PMAR>>> {
         // TODO: Refactor populates candles trait to include methods accepting
         // just candles instead of only TimeSeries to not need temporary
         // TimeSeries below.
@@ -232,9 +231,20 @@ mod tests {
     const FINAL_VALUE: f64 = 0.3314285714285714;
 
     #[test]
-    fn calculate_pmarp() {
+    fn pmarp_calculate() {
         let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
         let pmarp = PMARP::calculate(&candles);
+        assert!(pmarp.is_some());
+
+        let pmarp = pmarp.unwrap();
+        assert_eq!(pmarp.value, 0.3314285714285714);
+    }
+
+    #[test]
+    fn pmarp_calculate_args() {
+        let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+        let args = PMARP::default_args();
+        let pmarp = PMARP::calculate_args(&candles, &args);
         assert!(pmarp.is_some());
 
         let pmarp = pmarp.unwrap();
@@ -249,9 +259,28 @@ mod tests {
     }
 
     #[test]
+    fn pmarp_no_candles_args() {
+        let candles: Vec<Candle> = Vec::new();
+        let args = PMARP::default_args();
+        let pmarp = PMARP::calculate_args(&candles, &args);
+        assert!(pmarp.is_none());
+    }
+
+    #[test]
     fn calculate_pmarp_single() {
         let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
         let sma = PMARP::calculate(&candles);
+        assert!(sma.is_some());
+
+        let sma = sma.unwrap();
+        assert_eq!(sma.value, 0.3314285714285714);
+    }
+
+    #[test]
+    fn calculate_args_pmarp_single() {
+        let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+        let args = PMARP::default_args();
+        let sma = PMARP::calculate_args(&candles, &args);
         assert!(sma.is_some());
 
         let sma = sma.unwrap();
