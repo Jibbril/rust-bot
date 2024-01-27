@@ -29,7 +29,7 @@ impl PopulatesCandles for SMA {
                 None
             } else {
                 let start = end - len;
-                Self::calculate(&ts.candles[start..end])
+                Self::calculate_args(&ts.candles[start..end], &args)
             };
 
             ts.candles[i]
@@ -62,7 +62,7 @@ impl PopulatesCandles for SMA {
                 .indicators
                 .insert(indicator_type, Indicator::SMA(None));
         } else {
-            let new_sma = Self::calculate(&ts.candles[end - len..end]);
+            let new_sma = Self::calculate_args(&ts.candles[end - len..end], &args);
 
             ts.candles
                 .last_mut()
@@ -80,10 +80,8 @@ impl IsIndicator for SMA {
         IndicatorArgs::LengthArg(8)
     }
 
-    fn calculate(segment: &[Candle]) -> Option<Self>
-    where
-        Self: Sized,
-    {
+    /// Segment should be the same length as the of SMA wanted.
+    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized, {
         let len = segment.len();
         if len == 0 {
             return None;
@@ -97,10 +95,17 @@ impl IsIndicator for SMA {
         })
     }
 
-    fn calculate_args(_segment: &[Candle], _args: &IndicatorArgs) -> Option<Self> 
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
     where 
         Self: Sized {
-        todo!()
+        let len = args.len_opt()?;
+        let candle_len = segment.len();
+
+        if candle_len < len {
+            return None;
+        }
+
+        Self::calculate(&segment[candle_len-len..candle_len])
     }
 }
 
@@ -110,15 +115,25 @@ mod tests {
     use crate::{
         indicators::{
             indicator_type::IndicatorType, is_indicator::IsIndicator,
-            populates_candles::PopulatesCandles,
+            populates_candles::PopulatesCandles, indicator_args::IndicatorArgs,
         },
         models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
     };
 
     #[test]
-    fn calculate_sma() {
+    fn sma_calculate() {
         let candles = Candle::dummy_data(4, "positive", 100.0);
         let sma = SMA::calculate(&candles[1..4]);
+        assert!(sma.is_some());
+        let sma = sma.unwrap();
+        assert_eq!(sma.value, 130.0);
+    }
+
+    #[test]
+    fn sma_calculate_args() {
+        let candles = Candle::dummy_data(4, "positive", 100.0);
+        let args = IndicatorArgs::LengthArg(3);
+        let sma = SMA::calculate_args(&candles[1..4], &args);
         assert!(sma.is_some());
         let sma = sma.unwrap();
         assert_eq!(sma.value, 130.0);
@@ -128,6 +143,16 @@ mod tests {
     fn calculate_sma_single() {
         let candles = Candle::dummy_data(1, "positive", 100.0);
         let sma = SMA::calculate(&candles);
+        assert!(sma.is_some());
+        let sma = sma.unwrap();
+        assert_eq!(sma.value, 110.0);
+    }
+
+    #[test]
+    fn calculate_args_sma_single() {
+        let candles = Candle::dummy_data(1, "positive", 100.0);
+        let args = IndicatorArgs::LengthArg(1);
+        let sma = SMA::calculate_args(&candles, &args);
         assert!(sma.is_some());
         let sma = sma.unwrap();
         assert_eq!(sma.value, 110.0);
@@ -167,6 +192,14 @@ mod tests {
     fn sma_no_candles() {
         let candles: Vec<Candle> = Vec::new();
         let sma = SMA::calculate(&candles);
+        assert!(sma.is_none());
+    }
+
+    #[test]
+    fn sma_no_candles_args() {
+        let candles: Vec<Candle> = Vec::new();
+        let args = SMA::default_args();
+        let sma = SMA::calculate_args(&candles, &args);
         assert!(sma.is_none());
     }
 
