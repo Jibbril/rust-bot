@@ -7,7 +7,7 @@ use crate::{
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators},
+        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, ma_type::MAType,
     },
     utils::math::sma, resolution_strategies::{resolution_strategy::ResolutionStrategy, pmarp_vs_percentage::PmarpVsPercentageResolution},
 };
@@ -35,10 +35,12 @@ use crate::{
 ///
 /// ## Stop Loss
 /// - 4.5% drawdown
+///
 #[derive(Debug, Clone)]
 pub struct JB1 {
     pmarp_len: usize,
     pmarp_lookback: usize,
+    pmarp_ma_type: MAType,
     rsi_len: usize,
     rsi_ma_len: usize,
     short_ema_len: usize,
@@ -50,6 +52,7 @@ impl TradingStrategy for JB1 {
         Self {
             pmarp_len: 20,
             pmarp_lookback: 350,
+            pmarp_ma_type: MAType::VWMA,
             rsi_len: 7,
             rsi_ma_len: 4,
             short_ema_len: 21,
@@ -96,7 +99,7 @@ impl TradingStrategy for JB1 {
             .as_ema()?;
         let pmarp = current
             .indicators
-            .get(&IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback))?
+            .get(&IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type))?
             .as_pmarp()?;
 
         let (curr_rsi_sma, prev_rsi_sma) = self.calculate_rsi_smas(candles)?;
@@ -130,6 +133,7 @@ impl TradingStrategy for JB1 {
 
     fn default_resolution_strategy(&self) -> ResolutionStrategy {
         let p = PmarpVsPercentageResolution {
+            pmarp_ma_type: MAType::VWMA,
             pmarp_threshhold: 68.0,
             initial_value: None,
             drawdown_threshold: 4.5,
@@ -189,12 +193,19 @@ impl JB1 {
 
 impl RequiresIndicators for JB1 {
     fn required_indicators(&self) -> Vec<IndicatorType> {
-        vec![
+        let mut v = vec![
             IndicatorType::EMA(self.short_ema_len),
             IndicatorType::EMA(self.long_ema_len),
-            IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback),
+            IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type),
             IndicatorType::RSI(self.rsi_len),
-        ]
+        ];
+
+        // PMARP may need EMA of same length.
+        if self.pmarp_len != self.short_ema_len && self.pmarp_len != self.long_ema_len {
+            v.push(IndicatorType::EMA(self.pmarp_len));
+        };
+
+        v
     }
 }
 

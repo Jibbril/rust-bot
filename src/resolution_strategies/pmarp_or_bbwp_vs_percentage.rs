@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
-use crate::{indicators::indicator_type::IndicatorType, models::{traits::requires_indicators::RequiresIndicators, strategy_orientation::StrategyOrientation, setups::setup::Setup, candle::Candle}};
+use crate::{indicators::indicator_type::IndicatorType, models::{traits::requires_indicators::RequiresIndicators, strategy_orientation::StrategyOrientation, setups::setup::Setup, candle::Candle, ma_type::MAType}};
 use super::is_resolution_strategy::IsResolutionStrategy;
 
 /// # PmarpOrBbwpVsPercentageResolution
@@ -23,6 +23,7 @@ pub struct PmarpOrBbwpVsPercentageResolution {
     pub pmarp_threshold: f64,
     pub pmarp_len: usize,
     pub pmarp_lookback: usize,
+    pub pmarp_ma_type: MAType,
     pub bbwp_threshold: f64,
     pub bbwp_len: usize,
     pub bbwp_lookback: usize,
@@ -64,7 +65,7 @@ impl IsResolutionStrategy for PmarpOrBbwpVsPercentageResolution {
             return Err(anyhow!("No candle passed for pmarp or bbwp vs % resolution."))
         }
 
-        let ind_type = IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback);
+        let ind_type = IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type);
         let pmarp = candles[len-1].indicators.get(&ind_type)
             .context("Unable to get pmarp for pmarp vs % resolution.")?
             .as_pmarp()
@@ -94,7 +95,7 @@ impl IsResolutionStrategy for PmarpOrBbwpVsPercentageResolution {
 impl RequiresIndicators for PmarpOrBbwpVsPercentageResolution {
     fn required_indicators(&self) -> Vec<IndicatorType> {
         vec![
-             IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback),
+             IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type),
             IndicatorType::BBWP(self.bbwp_len, self.bbwp_lookback)
         ]
     }

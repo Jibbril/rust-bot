@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 use anyhow::Result;
-use crate::{models::{traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, setups::{setup::Setup, setup_builder::SetupBuilder}, timeseries::TimeSeries, strategy_orientation::StrategyOrientation, candle::Candle}, indicators::indicator_type::IndicatorType, resolution_strategies::{resolution_strategy::ResolutionStrategy, pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution}};
+use crate::{models::{traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, setups::{setup::Setup, setup_builder::SetupBuilder}, timeseries::TimeSeries, strategy_orientation::StrategyOrientation, candle::Candle, ma_type::MAType}, indicators::indicator_type::IndicatorType, resolution_strategies::{resolution_strategy::ResolutionStrategy, pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution}};
 
 /// # JB 2
 ///
@@ -33,6 +33,7 @@ use crate::{models::{traits::{trading_strategy::TradingStrategy, requires_indica
 pub struct JB2 {
     pmarp_len: usize,
     pmarp_lookback: usize,
+    pmarp_ma_type: MAType,
     bbwp_len: usize,
     bbwp_lookback: usize,
 }
@@ -42,6 +43,7 @@ impl TradingStrategy for JB2 {
         Self {
             pmarp_len: 21,
             pmarp_lookback: 100,
+            pmarp_ma_type: MAType::EMA,
             bbwp_len: 13,
             bbwp_lookback: 252,
         }
@@ -82,7 +84,7 @@ impl TradingStrategy for JB2 {
 
         let pmarp = current
             .indicators
-            .get(&IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback))?
+            .get(&IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type))?
             .as_pmarp()?;
 
         let bbwp_type = IndicatorType::BBWP(self.bbwp_len,self.bbwp_lookback);
@@ -119,6 +121,7 @@ impl TradingStrategy for JB2 {
             pmarp_threshold: 65.0,
             pmarp_len: self.pmarp_len,
             pmarp_lookback: self.pmarp_lookback,
+            pmarp_ma_type: self.pmarp_ma_type,
             bbwp_threshold: 80.0,
             bbwp_len: self.bbwp_len,
             bbwp_lookback: self.bbwp_lookback,
@@ -136,7 +139,10 @@ impl TradingStrategy for JB2 {
 impl RequiresIndicators for JB2 {
     fn required_indicators(&self) -> Vec<IndicatorType> {
         vec![
-            IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback),
+            // PMARP is EMA based, add here to ensure existence everywhere this 
+            // strategy is used and reduce number of calculations.
+            IndicatorType::EMA(self.pmarp_len),
+            IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type),
             IndicatorType::BBWP(self.bbwp_len, self.bbwp_lookback)
         ]
     }

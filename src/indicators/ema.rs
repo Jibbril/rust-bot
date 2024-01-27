@@ -103,6 +103,7 @@ impl IsIndicator for EMA {
         IndicatorArgs::LengthArg(8)
     }
 
+    /// Segment should be one candle longer than the length of EMA wanted.
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
         Self: Sized,

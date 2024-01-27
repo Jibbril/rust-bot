@@ -1,11 +1,15 @@
 use anyhow::{anyhow, Result};
+use crate::models::ma_type::MAType;
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub enum IndicatorArgs {
     LengthArg(usize),
-    BollingerBandArgs(usize, f64),    // length, n-standard deviations
-    BBWPArgs(usize, usize, usize),    // bbwp-length, lookback, sma-length
-    LengthLookbackArgs(usize, usize), // Length, lookback
+    BollingerBandArgs(usize, f64),      // length, n-standard deviations
+    BBWPArgs(usize, usize, usize),      // bbwp-length, lookback, sma-length
+    LengthLookbackArgs(usize, usize),   // Length, lookback
+    PMARArgs(usize,MAType),             // Length, moving average type
+    PMARPArgs(usize,usize,MAType)       // Lenght, lookback, moving average type
 }
 
 const ERR_MSG: &str = "Invalid indicator arguments.";
@@ -62,9 +66,42 @@ impl IndicatorArgs {
         }
     }
 
+    #[allow(dead_code)]
     pub fn len_lookback_res(&self) -> Result<(usize, usize)> {
         match self {
             IndicatorArgs::LengthLookbackArgs(a, b) => Ok((*a, *b)),
+            _ => return Err(anyhow!(ERR_MSG)),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn pmar_opt(&self) -> Option<(usize, MAType)> {
+        match self {
+            IndicatorArgs::PMARArgs(a, b) => Some((*a, *b)),
+            _ => return None,
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn pmar_res(&self) -> Result<(usize, MAType)> {
+        match self {
+            IndicatorArgs::PMARArgs(a, b) => Ok((*a, *b)),
+            _ => return Err(anyhow!(ERR_MSG)),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn pmarp_opt(&self) -> Option<(usize,usize, MAType)> {
+        match self {
+            IndicatorArgs::PMARPArgs(a, b, c) => Some((*a, *b, *c)),
+            _ => return None,
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn pmarp_res(&self) -> Result<(usize, usize, MAType)> {
+        match self {
+            IndicatorArgs::PMARPArgs(a, b, c) => Ok((*a, *b, *c)),
             _ => return Err(anyhow!(ERR_MSG)),
         }
     }

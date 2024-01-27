@@ -10,12 +10,12 @@ mod utils;
 use crate::{
     indicators::{
         atr::ATR, is_indicator::IsIndicator, pmarp::PMARP,
-        populates_candles::PopulatesCandles, rsi::RSI,
+        populates_candles::PopulatesCandles, rsi::RSI, pmar::PMAR,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
     trading_strategies::{rsi_basic::RsiBasic, jb_2::JB2},
-    utils::save_setups,
+    utils::{save_setups, data::dummy_data::PRICE_CHANGES},
 };
 use actix::Actor;
 use anyhow::Result;
@@ -38,41 +38,19 @@ use tokio::time::{sleep, Duration};
 use trading_strategies::jb_1::JB1;
 
 pub async fn run_dummy() -> Result<()> {
-    let mut candles = Candle::dummy_data(15, "positive", 100.0);
-    let candle = candles.pop().unwrap();
-    let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
-    let _ = ATR::populate_candles(&mut ts);
+    let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+    let pmarp = PMARP::calculate(&candles);
+    assert!(pmarp.is_some());
 
-    let _ = ts.add_candle(candle);
-    let len = ATR::default_args().len_opt().unwrap();
-    let indicator_type = IndicatorType::ATR(len);
-
-    for (i, candle) in ts.candles.iter().enumerate() {
-        let indicator = candle.indicators.get(&indicator_type).unwrap();
-        let atr = indicator.as_atr();
-        if i < len {
-            assert!(atr.is_none());
-        } else {
-            assert!(atr.is_some());
-        }
-    }
-
-    let last_candle = ts.candles.last().unwrap();
-    let last_atr = last_candle
-        .indicators
-        .get(&indicator_type)
-        .unwrap()
-        .as_atr()
-        .unwrap();
-
-    assert_eq!(last_atr.value, 10.0);
+    let pmarp = pmarp.unwrap();
+    assert_eq!(pmarp.value, 0.3314285714285714);
 
     Ok(())
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let (len, lookback) = PMARP::default_args().len_lookback_res()?;
-    let indicator_type = IndicatorType::PMARP(len, lookback);
+    let (len, lookback, ma_type) = PMARP::default_args().pmarp_res()?;
+    let indicator_type = IndicatorType::PMARP(len, lookback, ma_type);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;

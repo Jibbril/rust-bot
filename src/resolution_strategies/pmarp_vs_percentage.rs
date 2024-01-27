@@ -1,6 +1,6 @@
 use anyhow::{Result, anyhow, Context};
 use serde::{Serialize, Deserialize};
-use crate::{models::{strategy_orientation::StrategyOrientation, candle::Candle, traits::requires_indicators::RequiresIndicators, setups::setup::Setup}, indicators::indicator_type::IndicatorType};
+use crate::{models::{strategy_orientation::StrategyOrientation, candle::Candle, traits::requires_indicators::RequiresIndicators, setups::setup::Setup, ma_type::MAType}, indicators::indicator_type::IndicatorType};
 use super::is_resolution_strategy::IsResolutionStrategy;
 
 /// # PmarpVsPercentageResolution
@@ -21,6 +21,7 @@ pub struct PmarpVsPercentageResolution {
     pub drawdown_threshold: f64,
     pub pmarp_len: usize,
     pub pmarp_lookback: usize,
+    pub pmarp_ma_type: MAType
 }
 
 const ERR_MESSAGE: &str = "pmarp vs % resolution does not support short orientation.";
@@ -58,7 +59,7 @@ impl IsResolutionStrategy for PmarpVsPercentageResolution {
             return Err(anyhow!("No candle passed for pmarp vs % resolution."))
         }
 
-        let ind_type = IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback);
+        let ind_type = IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type);
         let pmarp = candles[len-1].indicators.get(&ind_type)
             .context("Unable to get pmarp for pmarp vs % resolution.")?
             .as_pmarp()
@@ -79,6 +80,6 @@ impl IsResolutionStrategy for PmarpVsPercentageResolution {
 
 impl RequiresIndicators for PmarpVsPercentageResolution {
     fn required_indicators(&self) -> Vec<IndicatorType> {
-        vec![IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback)]
+        vec![IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type)]
     }
 }
