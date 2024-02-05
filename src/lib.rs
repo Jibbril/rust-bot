@@ -264,7 +264,7 @@ pub async fn run_manual_setups() -> Result<()> {
 pub async fn run_strategy_tester() -> Result<()> {
     // Get TimeSeries data
     let source = DataSource::Bybit;
-    let interval = Interval::Hour1;
+    let interval = Interval::Minute15;
     let net = NetVersion::Mainnet;
     let mut ts = source
         .get_historical_data("BTCUSDT", &interval, 10000, &net)

@@ -92,8 +92,8 @@ impl TradingStrategy for JB2 {
         let prev_bbwp = previous.indicators.get(&bbwp_type)?.as_bbwp()?;
 
         let bbwp_ma_sloped_down = current_bbwp.sma < prev_bbwp.sma;
-        let bbwp_low_enough = current_bbwp.value < 50.0;
-        let pmarp_low_enough = pmarp.value < 20.0;
+        let bbwp_low_enough = current_bbwp.value < 0.5;
+        let pmarp_low_enough = pmarp.value < 0.2;
 
 
         if bbwp_ma_sloped_down && bbwp_low_enough && pmarp_low_enough {
@@ -118,11 +118,11 @@ impl TradingStrategy for JB2 {
         let p = PmarpOrBbwpVsPercentageResolution {
             initial_value: None,
             drawdown_threshold: 3.0,
-            pmarp_threshold: 65.0,
+            pmarp_threshold: 0.65,
             pmarp_len: self.pmarp_len,
             pmarp_lookback: self.pmarp_lookback,
             pmarp_ma_type: self.pmarp_ma_type,
-            bbwp_threshold: 80.0,
+            bbwp_threshold: 0.80,
             bbwp_len: self.bbwp_len,
             bbwp_lookback: self.bbwp_lookback,
             bbwp_sma_len: 5,

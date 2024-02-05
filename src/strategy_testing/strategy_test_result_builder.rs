@@ -4,7 +4,6 @@ use super::strategy_test_result::StrategyTestResult;
 const INITIAL_ACCOUNT_SIZE: f64 = 100_000.0;
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)] // TODO: Remove once used
 pub struct StrategyTestResultBuilder {
     pub n_setups: usize,
     pub n_wins: usize,
@@ -17,7 +16,6 @@ pub struct StrategyTestResultBuilder {
 }
 
 impl StrategyTestResultBuilder {
-    #[allow(dead_code)]
     pub fn new() -> Self {
         Self {
             n_setups: 0,
@@ -31,32 +29,22 @@ impl StrategyTestResultBuilder {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn add_win(&mut self, increase: f64, n_bars: usize) {
-        self.n_wins += 1;
-        self.n_setups += 1;
-        self.wins.push(increase);
-        self.win_bars.push(n_bars);
-        self.account_size += self.account_size * increase;
-    }
-
-    #[allow(dead_code)]
-    pub fn add_loss(&mut self, drawdown: f64, n_bars: usize) {
-        self.n_losses += 1;
+    pub fn add_outcome(&mut self, outcome: f64, n_bars: usize) {
         self.n_setups += 1;
 
-        let drawdown = if drawdown <= 0.0 {
-            drawdown
+        if outcome > 0.0 {
+            self.n_wins += 1;
+            self.wins.push(outcome);
+            self.win_bars.push(n_bars);
         } else {
-            -drawdown
-        };
+            self.n_losses += 1;
+            self.losses.push(outcome);
+            self.loss_bars.push(n_bars);
+        }
 
-        self.losses.push(drawdown);
-        self.loss_bars.push(n_bars);
-        self.account_size += self.account_size * drawdown;
+        self.account_size += self.account_size * outcome;
     }
 
-    #[allow(dead_code)]
     pub fn build(self) -> StrategyTestResult {
         let total_wins = self.wins.iter().sum::<f64>();
         let total_losses = self.losses.iter().sum::<f64>();
@@ -98,9 +86,9 @@ impl StrategyTestResultBuilder {
             initial_account: INITIAL_ACCOUNT_SIZE,
             ending_account: self.account_size,
             wins_std: std(&self.wins, sma(&self.wins)),
-            losses_std: std(&self.losses, sma(&self.losses)), // Placeholder, calculate this
-            win_bars_std: std(&f_win_bars, sma(&f_win_bars)), // Placeholder, calculate this
-            loss_bars_std: std(&f_loss_bars, sma(&f_loss_bars)), // Placeholder, calculate this
+            losses_std: std(&self.losses, sma(&self.losses)), 
+            win_bars_std: std(&f_win_bars, sma(&f_win_bars)), 
+            loss_bars_std: std(&f_loss_bars, sma(&f_loss_bars)), 
         }
     }
 }

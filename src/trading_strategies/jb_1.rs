@@ -105,7 +105,7 @@ impl TradingStrategy for JB1 {
         let (curr_rsi_sma, prev_rsi_sma) = self.calculate_rsi_smas(candles)?;
 
         let short_ema_is_higher = short_ema.value > long_ema.value;
-        let pmarp_is_low = pmarp.value < 10.0;
+        let pmarp_is_low = pmarp.value < 0.1;
         let rsi_is_positive = curr_rsi_sma > prev_rsi_sma;
 
         if short_ema_is_higher && pmarp_is_low && rsi_is_positive {
@@ -134,7 +134,7 @@ impl TradingStrategy for JB1 {
     fn default_resolution_strategy(&self) -> ResolutionStrategy {
         let p = PmarpVsPercentageResolution {
             pmarp_ma_type: MAType::VWMA,
-            pmarp_threshhold: 68.0,
+            pmarp_threshhold: 0.68,
             initial_value: None,
             drawdown_threshold: 4.5,
             pmarp_len: 20,

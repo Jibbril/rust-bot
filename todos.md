@@ -1,4 +1,6 @@
 ## Todos
+- Changing the indicator requirements from whole values to percentages in the strategies seems to have made it actually count wins. But now the strategy has a win rate of 100% which cannot be correct. Investigate why it's no longer getting any losses. 
+- We probably don't need resolutionstrategies as a separate thing. Probably better to just make as an integral part of TradingStrategy
 - [ ] Test the various MATypes for PMAR/PMARP. Testing has only been done on the SMA version as of now. Needs testing on both EMA and VWMA as well.
 - [ ] The strategy testing module does not seem to work, refactor it.
 - [ ] Missing candles in the websocket implementation is causing indicators to populate incorrectly. We need to look into the add_candle method in timeseries and setup some connection to the historical data implementation such that when the added candle is not the logical next step we fetch historical data and patch any potential holes in the series.

@@ -51,8 +51,14 @@ impl PopulatesCandles for PMAR {
                 .indicators
                 .insert(indicator_type, Indicator::PMAR(pmar));
 
-            // Not enough candles to populate pmar sma
-            if end < len {
+            // If ma type is EMA one extra candle is needed to proceed with 
+            // calculations (EMA always needs one extra previous value as 
+            // compared to SMA and VWMA.
+            let needed_len = match ma_type {
+                MAType::EMA => len + 1,
+                _ => len
+            };
+            if end < needed_len {
                 continue;
             }
 

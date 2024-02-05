@@ -1,5 +1,5 @@
 use anyhow::{Result, Context};
-use crate::{models::{traits::trading_strategy::TradingStrategy, candle::Candle, interval::Interval}, resolution_strategies::{resolution_strategy::ResolutionStrategy, is_resolution_strategy::IsResolutionStrategy}, strategy_testing::strategy_test_result_builder::StrategyTestResultBuilder};
+use crate::{models::{traits::trading_strategy::TradingStrategy, candle::Candle, interval::Interval}, resolution_strategies::{resolution_strategy::ResolutionStrategy, is_resolution_strategy::IsResolutionStrategy}, strategy_testing::strategy_test_result_builder::StrategyTestResultBuilder, indicators::indicator_type::IndicatorType};
 use super::strategy_test_result::StrategyTestResult;
 
 #[allow(dead_code)]
@@ -15,6 +15,9 @@ impl StrategyTester {
 
         // Loop over the needed candles to determine a setup and gather results.
         for (i,window) in candles.windows(needed_candles).enumerate() {
+            // Bump index up to compensate for window size
+            let i = i + needed_candles;
+
             if i < needed_candles || i < next_i { continue }
 
             let sb = strat.check_last_for_setup(&window); 
@@ -25,11 +28,12 @@ impl StrategyTester {
             let setup = sb.ticker("TESTING")
                 .interval(&Interval::Day1)
                 .build()?;
-            
+
             // Initialize resolution strategy
             let mut resolution_strategy = strat.default_resolution_strategy();
             resolution_strategy.set_initial_values(&setup)?;
             let mut n_bars = 0;
+
 
             // Loop over upcoming candles to determine outcome of setup
             loop {
@@ -46,8 +50,11 @@ impl StrategyTester {
                 let take_profit_reached = resolution_strategy.take_profit_reached(&orientation, tp_candles)?;
 
                 if take_profit_reached {
+                    // println!("SETUP CANDLE: {:#?}",setup.candle);
+                    // println!("TAKE-PROFIT CANDLE: {:#?}",tp_candles[tp_candles.len()-1]);
                     let increase = tp_candles[tp_candles.len()-1].close / setup.candle.close - 1.0;
-                    result_builder.add_win(increase, n_bars);
+                    result_builder.add_outcome(increase, n_bars);
+
                     break;
                 }
 
@@ -56,8 +63,10 @@ impl StrategyTester {
                 let stop_loss_reached = resolution_strategy.stop_loss_reached(&orientation, sl_candles)?;
 
                 if stop_loss_reached {
+                    // println!("SETUP CANDLE: {:#?}",setup.candle);
+                    // println!("STOP-LOSS CANDLE: {:#?}",sl_candles[sl_candles.len()-1]);
                     let decrease = sl_candles[sl_candles.len()-1].close / setup.candle.close - 1.0;
-                    result_builder.add_loss(decrease, n_bars);
+                    result_builder.add_outcome(decrease, n_bars);
                     break;
                 }
             }
