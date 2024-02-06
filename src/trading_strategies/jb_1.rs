@@ -1,5 +1,6 @@
-use std::fmt::{Display, Formatter};
+use std::{fmt::{Display, Formatter}, collections::HashSet};
 use anyhow::Result;
+use chrono::{Weekday, Datelike};
 use crate::{
     indicators::indicator_type::IndicatorType,
     models::{
@@ -7,7 +8,7 @@ use crate::{
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, ma_type::MAType,
+        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, ma_type::MAType, interval::Interval,
     },
     utils::math::sma, resolution_strategies::{resolution_strategy::ResolutionStrategy, pmarp_vs_percentage::PmarpVsPercentageResolution},
 };
@@ -36,6 +37,9 @@ use crate::{
 /// ## Stop Loss
 /// - 4.5% drawdown
 ///
+/// ## Trading days
+/// - All 
+///
 #[derive(Debug, Clone)]
 pub struct JB1 {
     pmarp_len: usize,
@@ -45,6 +49,7 @@ pub struct JB1 {
     rsi_ma_len: usize,
     short_ema_len: usize,
     long_ema_len: usize,
+    trading_days: HashSet<Weekday>
 }
 
 impl TradingStrategy for JB1 {
@@ -57,6 +62,7 @@ impl TradingStrategy for JB1 {
             rsi_ma_len: 4,
             short_ema_len: 21,
             long_ema_len: 55,
+            trading_days: Self::build_trading_days(),
         }
     }
 
@@ -89,6 +95,12 @@ impl TradingStrategy for JB1 {
         }
 
         let current = candles.last()?;
+
+        let is_active_day = self.trading_days.contains(&current.timestamp.weekday());
+        if !is_active_day {
+            return None;
+        }
+
         let short_ema = current
             .indicators
             .get(&IndicatorType::EMA(self.short_ema_len))?
@@ -147,6 +159,14 @@ impl TradingStrategy for JB1 {
     fn orientation(&self) -> StrategyOrientation {
         StrategyOrientation::Long
     }
+
+    fn interval(&self) -> Interval {
+        Interval::Hour1
+    }
+
+    fn trading_days(&self) -> HashSet<Weekday> {
+        self.trading_days.clone()
+    }
 }
 
 impl JB1 {
@@ -188,6 +208,20 @@ impl JB1 {
                     .and_then(|i| i.as_rsi().map(|rsi| rsi.value))
             })
             .collect()
+    }
+
+    fn build_trading_days() -> HashSet<Weekday> {
+        let mut set = HashSet::new();
+
+        set.insert(Weekday::Mon);
+        set.insert(Weekday::Tue);
+        set.insert(Weekday::Wed);
+        set.insert(Weekday::Thu);
+        set.insert(Weekday::Fri);
+        set.insert(Weekday::Sat);
+        set.insert(Weekday::Sun);
+
+        set
     }
 }
 

@@ -5,11 +5,12 @@ use crate::{
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators},
+        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, interval::Interval,
     }, resolution_strategies::{fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy},
 };
 use anyhow::Result;
-use std::fmt::{Display, Formatter};
+use chrono::Weekday;
+use std::{fmt::{Display, Formatter}, collections::HashSet};
 
 /// # Silver Cross Strategy
 ///
@@ -20,6 +21,7 @@ pub struct SilverCross {
     pub short_len: usize,
     pub long_len: usize,
     pub orientation: StrategyOrientation,
+    pub trading_days: HashSet<Weekday>
 }
 
 impl SilverCross {
@@ -29,6 +31,7 @@ impl SilverCross {
             orientation,
             short_len,
             long_len,
+            trading_days: Self::build_trading_days()
         }
     }
 
@@ -50,6 +53,20 @@ impl SilverCross {
             None
         }
     }
+
+    fn build_trading_days() -> HashSet<Weekday> {
+        let mut set = HashSet::new();
+
+        set.insert(Weekday::Mon);
+        set.insert(Weekday::Tue);
+        set.insert(Weekday::Wed);
+        set.insert(Weekday::Thu);
+        set.insert(Weekday::Fri);
+        set.insert(Weekday::Sat);
+        set.insert(Weekday::Sun);
+
+        set
+    }
 }
 
 impl TradingStrategy for SilverCross {
@@ -59,6 +76,7 @@ impl TradingStrategy for SilverCross {
             orientation: StrategyOrientation::Long,
             short_len: 21,
             long_len: 55,
+            trading_days: Self::build_trading_days()
         }
     }
 
@@ -125,6 +143,14 @@ impl TradingStrategy for SilverCross {
 
     fn orientation(&self) -> StrategyOrientation {
         todo!()
+    }
+
+    fn interval(&self) -> crate::models::interval::Interval {
+        Interval::Minute1
+    }
+
+    fn trading_days(&self) -> HashSet<Weekday> {
+        Self::build_trading_days()
     }
 }
 

@@ -1,10 +1,11 @@
 use crate::{models::{
         candle::Candle,
         setups::{setup::Setup, setup_builder::SetupBuilder},
-        timeseries::TimeSeries, strategy_orientation::StrategyOrientation,
+        timeseries::TimeSeries, strategy_orientation::StrategyOrientation, interval::Interval,
     }, resolution_strategies::resolution_strategy::ResolutionStrategy};
 use anyhow::Result;
-use std::fmt::{Debug, Display};
+use chrono::Weekday;
+use std::{fmt::{Debug, Display}, collections::HashSet};
 use super::requires_indicators::RequiresIndicators;
 
 /// #TradingStrategy
@@ -39,4 +40,10 @@ pub trait TradingStrategy: Display + Debug + RequiresIndicators {
 
     /// Returns the StrategyOrientation for this TradingStrategy
     fn orientation(&self) -> StrategyOrientation;
+
+    /// Returns the Interval to be used with this TradingStrategy
+    fn interval(&self) -> Interval;
+
+    /// Returns the TradingDays to be used with this TradingStrategy
+    fn trading_days(&self) -> HashSet<Weekday>;
 }

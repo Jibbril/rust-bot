@@ -1,6 +1,7 @@
-use std::fmt::{Display, Formatter};
+use std::{fmt::{Display, Formatter}, collections::HashSet};
 use anyhow::Result;
-use crate::{models::{traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, setups::{setup::Setup, setup_builder::SetupBuilder}, timeseries::TimeSeries, strategy_orientation::StrategyOrientation, candle::Candle, ma_type::MAType}, indicators::indicator_type::IndicatorType, resolution_strategies::{resolution_strategy::ResolutionStrategy, pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution}};
+use chrono::{Weekday, Datelike};
+use crate::{models::{traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, setups::{setup::Setup, setup_builder::SetupBuilder}, timeseries::TimeSeries, strategy_orientation::StrategyOrientation, candle::Candle, ma_type::MAType, interval::Interval}, indicators::indicator_type::IndicatorType, resolution_strategies::{resolution_strategy::ResolutionStrategy, pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution}};
 
 /// # JB 2
 ///
@@ -29,6 +30,13 @@ use crate::{models::{traits::{trading_strategy::TradingStrategy, requires_indica
 ///
 /// ## Stop Loss
 /// - 3% drawdown
+///
+/// ## Trading days
+/// - Monday
+/// - Tuesday
+/// - Wednesday
+/// - Friday
+/// - Saturday
 #[derive(Debug, Clone)]
 pub struct JB2 {
     pmarp_len: usize,
@@ -36,6 +44,7 @@ pub struct JB2 {
     pmarp_ma_type: MAType,
     bbwp_len: usize,
     bbwp_lookback: usize,
+    trading_days: HashSet<Weekday>
 }
 
 impl TradingStrategy for JB2 {
@@ -46,6 +55,7 @@ impl TradingStrategy for JB2 {
             pmarp_ma_type: MAType::EMA,
             bbwp_len: 13,
             bbwp_lookback: 252,
+            trading_days: Self::build_trading_days(),
         }
     }
 
@@ -82,6 +92,11 @@ impl TradingStrategy for JB2 {
         let current = &candles[len-1];
         let previous = &candles[len-2];
 
+        let is_active_day = self.trading_days.contains(&current.timestamp.weekday());
+        if !is_active_day {
+            return None;
+        }
+
         let pmarp = current
             .indicators
             .get(&IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type))?
@@ -98,13 +113,12 @@ impl TradingStrategy for JB2 {
 
         if bbwp_ma_sloped_down && bbwp_low_enough && pmarp_low_enough {
             let resolution_strategy = self.default_resolution_strategy();
+            let sb = SetupBuilder::new()
+                .candle(&current)
+                .orientation(&StrategyOrientation::Long)
+                .resolution_strategy(&resolution_strategy);
 
-            Some(
-                SetupBuilder::new()
-                    .candle(&current)
-                    .orientation(&StrategyOrientation::Long)
-                    .resolution_strategy(&resolution_strategy),
-            )
+            Some(sb)
         } else {
             None
         }
@@ -133,6 +147,28 @@ impl TradingStrategy for JB2 {
 
     fn orientation(&self) -> StrategyOrientation {
         StrategyOrientation::Long
+    }
+
+    fn interval(&self) -> Interval {
+        Interval::Minute15
+    }
+
+    fn trading_days(&self) -> HashSet<Weekday> {
+        self.trading_days.clone()
+    }
+}
+
+impl JB2 {
+    fn build_trading_days() -> HashSet<Weekday> {
+        let mut set = HashSet::new();
+
+        set.insert(Weekday::Mon);
+        set.insert(Weekday::Tue);
+        set.insert(Weekday::Wed);
+        set.insert(Weekday::Fri);
+        set.insert(Weekday::Sat);
+
+        set
     }
 }
 

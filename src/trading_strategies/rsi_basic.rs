@@ -5,11 +5,12 @@ use crate::{
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators},
+        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, interval::Interval,
     }, resolution_strategies::{fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy},
 };
 use anyhow::Result;
-use std::fmt::{Display, Formatter};
+use chrono::{Weekday, Datelike};
+use std::{fmt::{Display, Formatter}, collections::HashSet};
 
 /// # RSIBasic
 ///
@@ -26,6 +27,7 @@ pub struct RsiBasic {
     pub upper_band: f64,
     pub lower_band: f64,
     pub orientation: StrategyOrientation,
+    pub trading_days: HashSet<Weekday>
 }
 
 impl RsiBasic {
@@ -41,6 +43,7 @@ impl RsiBasic {
             upper_band,
             lower_band,
             orientation,
+            trading_days: Self::build_trading_days()
         }
     }
 
@@ -56,6 +59,20 @@ impl RsiBasic {
             None
         }
     }
+
+    fn build_trading_days() -> HashSet<Weekday> {
+        let mut set = HashSet::new();
+
+        set.insert(Weekday::Mon);
+        set.insert(Weekday::Tue);
+        set.insert(Weekday::Wed);
+        set.insert(Weekday::Thu);
+        set.insert(Weekday::Fri);
+        set.insert(Weekday::Sat);
+        set.insert(Weekday::Sun);
+
+        set
+    }
 }
 
 impl TradingStrategy for RsiBasic {
@@ -65,7 +82,13 @@ impl TradingStrategy for RsiBasic {
             upper_band: 70.0,
             lower_band: 30.0,
             orientation: StrategyOrientation::Long,
+            trading_days: Self::build_trading_days(),
         }
+    }
+
+    fn candles_needed_for_setup(&self) -> usize {
+        // TODO: Add real value
+        self.len
     }
 
     fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
@@ -108,17 +131,18 @@ impl TradingStrategy for RsiBasic {
         self.len
     }
 
-    fn candles_needed_for_setup(&self) -> usize {
-        // TODO: Add real value
-        self.len
-    }
-
     fn check_last_for_setup(&self, candles: &[Candle]) -> Option<SetupBuilder> {
         if candles.len() < 2 {
             return None;
         }
 
         let current = candles.last()?;
+
+        let is_active_day = self.trading_days.contains(&current.timestamp.weekday());
+        if !is_active_day {
+            return None;
+        }
+
         let prev = candles.get(candles.len() - 2)?;
 
         let key = IndicatorType::RSI(self.len);
@@ -144,6 +168,14 @@ impl TradingStrategy for RsiBasic {
 
     fn orientation(&self) -> StrategyOrientation {
         todo!()
+    }
+
+    fn interval(&self) -> Interval {
+        Interval::Minute1
+    }
+
+    fn trading_days(&self) -> HashSet<Weekday> {
+        self.trading_days.clone()
     }
 }
 
