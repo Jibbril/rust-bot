@@ -16,7 +16,8 @@ use crate::{
 use actix::{Actor, Addr, Context, Handler};
 use anyhow::{anyhow, Result};
 use chrono::{DateTime, Utc};
-use std::{collections::HashSet, ops::Add};
+use indexmap::IndexSet;
+use std::ops::Add;
 
 #[derive(Debug, Clone)]
 pub struct TimeSeries {
@@ -24,7 +25,7 @@ pub struct TimeSeries {
     pub interval: Interval,
     pub max_length: usize,
     pub candles: Vec<Candle>,
-    pub indicators: HashSet<IndicatorType>,
+    pub indicators: IndexSet<IndicatorType>,
     pub observers: Vec<Addr<SetupFinder>>,
 }
 
@@ -98,7 +99,7 @@ impl TimeSeries {
             interval,
             candles,
             max_length: 800, // Default value
-            indicators: HashSet::new(),
+            indicators: IndexSet::new(),
             observers: vec![],
         }
     }

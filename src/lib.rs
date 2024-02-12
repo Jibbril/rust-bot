@@ -12,7 +12,7 @@ use crate::{
         atr::ATR, is_indicator::IsIndicator, pmarp::PMARP,
         populates_candles::PopulatesCandles, rsi::RSI,
     },
-    models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
+    models::{net_version::NetVersion, websockets::wsclient::WebsocketClient, ma_type::MAType},
     notifications::notification_center::NotificationCenter,
     trading_strategies::{rsi_basic::RsiBasic, jb_2::JB2},
     utils::{save_setups, data::dummy_data::PRICE_CHANGES},
@@ -49,7 +49,8 @@ pub async fn run_dummy() -> Result<()> {
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let (len, lookback, ma_type) = PMARP::default_args().pmarp_res()?;
+    let (len, lookback, _) = PMARP::default_args().pmarp_res()?;
+    let ma_type = MAType::VWMA;
     let indicator_type = IndicatorType::PMARP(len, lookback, ma_type);
 
     let interval = Interval::Minute1;
@@ -264,7 +265,8 @@ pub async fn run_manual_setups() -> Result<()> {
 pub async fn run_strategy_tester() -> Result<()> {
     // Get TimeSeries data
     let source = DataSource::Bybit;
-    let interval = Interval::Minute15;
+    let strategy: Box<dyn TradingStrategy> = Box::new(JB2::new());
+    let interval = strategy.interval();
     let net = NetVersion::Mainnet;
     let mut ts = source
         .get_historical_data("BTCUSDT", &interval, 10000, &net)
@@ -272,7 +274,6 @@ pub async fn run_strategy_tester() -> Result<()> {
 
     // Calculate indicators for TimeSeries
     // Implement Strategy to analyze TimeSeries
-    let strategy: Box<dyn TradingStrategy> = Box::new(JB2::new());
 
     for indicator in strategy.required_indicators() {
         indicator.populate_candles(&mut ts)?;

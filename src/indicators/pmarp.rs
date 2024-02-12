@@ -222,9 +222,9 @@ mod tests {
     use crate::{
         indicators::{
             indicator_type::IndicatorType, is_indicator::IsIndicator, pmarp::PMARP,
-            populates_candles::PopulatesCandles,
+            populates_candles::PopulatesCandles, indicator_args::IndicatorArgs,
         },
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        models::{candle::Candle, interval::Interval, timeseries::TimeSeries, ma_type::MAType},
         utils::data::dummy_data::PRICE_CHANGES,
     };
 
@@ -241,9 +241,22 @@ mod tests {
     }
 
     #[test]
-    fn pmarp_calculate_args() {
+    fn pmarp_calculate_args_vwma() {
         let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
-        let args = PMARP::default_args();
+        let (len, lookback, _) = PMARP::default_args().pmarp_opt().unwrap();
+        let args = IndicatorArgs::PMARPArgs(len, lookback, MAType::VWMA);
+        let pmarp = PMARP::calculate_args(&candles, &args);
+        assert!(pmarp.is_some());
+
+        let pmarp = pmarp.unwrap();
+        assert_eq!(pmarp.value, 0.3314285714285714);
+    }
+
+    #[test]
+    fn pmarp_calculate_args_sma() {
+        let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+        let (len, lookback, _) = PMARP::default_args().pmarp_opt().unwrap();
+        let args = IndicatorArgs::PMARPArgs(len, lookback, MAType::SMA);
         let pmarp = PMARP::calculate_args(&candles, &args);
         assert!(pmarp.is_some());
 
@@ -316,6 +329,40 @@ mod tests {
             .unwrap();
 
         assert_eq!(last_pmarp.value, FINAL_VALUE);
+    }
+
+    #[test]
+    fn pmarp_populate_candles_args_vwma() {
+        let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+
+        let (len, lookback, _) = PMARP::default_args().pmarp_opt().unwrap();
+        let ma_type = MAType::VWMA;
+        let args = IndicatorArgs::PMARPArgs(len, lookback, ma_type);
+        let _ = PMARP::populate_candles_args(&mut ts, args);
+
+        let indicator_type = IndicatorType::PMARP(len, lookback, ma_type);
+
+        for (i, candle) in ts.candles.iter().enumerate() {
+            let indicator = candle.indicators.get(&indicator_type).unwrap();
+            let pmarp = indicator.as_pmarp();
+            if i < len - 1 {
+                assert!(pmarp.is_none());
+            } else {
+                assert!(pmarp.is_some());
+            }
+        }
+
+        let last_candle = ts.candles.last().unwrap();
+        let last_pmarp = last_candle
+            .indicators
+            .get(&indicator_type)
+            .unwrap()
+            .as_pmarp()
+            .unwrap();
+
+        assert_eq!(last_pmarp.value, FINAL_VALUE);
+        assert_eq!(last_pmarp.ma, Some(0.22428571428571428));
     }
 
     #[test]

@@ -236,7 +236,7 @@ impl RequiresIndicators for JB1 {
 
         // PMARP may need EMA of same length.
         if self.pmarp_len != self.short_ema_len && self.pmarp_len != self.long_ema_len {
-            v.push(IndicatorType::EMA(self.pmarp_len));
+            v.insert(0, IndicatorType::EMA(self.pmarp_len));
         };
 
         v
