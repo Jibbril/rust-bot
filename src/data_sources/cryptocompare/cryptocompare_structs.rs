@@ -55,6 +55,10 @@ impl ApiResponse for CryptoCompareApiResponse {
             TimeSeries::new(symbol.to_string(), interval.clone(), candles)
         })
     }
+
+    fn to_candles(&mut self, _pop_last: bool) -> Result<Vec<Candle>> {
+        todo!()
+    }
 }
 
 #[allow(dead_code)]

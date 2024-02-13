@@ -268,14 +268,18 @@ pub async fn run_strategy_tester() -> Result<()> {
     let strategy: Box<dyn TradingStrategy> = Box::new(JB2::new());
     let interval = strategy.interval();
     let net = NetVersion::Mainnet;
+
+    println!("Fetching Timeseries data.");
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, 10000, &net)
+        .get_historical_data("BTCUSDT", &interval, 20000, &net)
         .await?;
 
     // Calculate indicators for TimeSeries
     // Implement Strategy to analyze TimeSeries
 
+    println!("Starting indicator calculations.");
     for indicator in strategy.required_indicators() {
+        println!("Populating indicator: {:#?}",indicator);
         indicator.populate_candles(&mut ts)?;
     }
 

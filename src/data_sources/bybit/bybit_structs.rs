@@ -20,6 +20,12 @@ pub struct BybitApiResponse {
 
 impl ApiResponse for BybitApiResponse {
     fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> Result<TimeSeries> {
+        let candles = Self::to_candles(self, true)?;
+
+        Ok(TimeSeries::new(symbol.to_string(), interval.clone(), candles))
+    }
+
+    fn to_candles(&mut self, pop_last: bool) -> Result<Vec<Candle>> {
         let klines = match &self.result.list {
             Some(result) => result,
             None => return Err(anyhow!(self.ret_msg.clone())),
@@ -45,10 +51,12 @@ impl ApiResponse for BybitApiResponse {
         candles.map(|mut candles| {
             candles.sort_by_key(|candle| candle.timestamp);
 
-            // Bybit returns incomplete last candle, remove it.
-            candles.pop();
+            if pop_last && candles.len() > 1 {
+                // Bybit returns incomplete last candle, remove it.
+                candles.pop();
+            }
 
-            TimeSeries::new(symbol.to_string(), interval.clone(), candles)
+            candles
         })
     }
 }

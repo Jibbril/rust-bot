@@ -13,10 +13,16 @@ impl StrategyTester {
         let mut result_builder = StrategyTestResultBuilder::new();
         let mut next_i = 0;
 
+        println!("Starting Strategy test for {}", strat);
+
         // Loop over the needed candles to determine a setup and gather results.
         for (i,window) in candles.windows(needed_candles).enumerate() {
             // Bump index up to compensate for window size
             let i = i + needed_candles;
+
+            if i % 1000 == 0 {
+                println!("Testing Iteration {:#?}",i);
+            }
 
             if i < needed_candles || i < next_i { continue }
 
@@ -28,6 +34,8 @@ impl StrategyTester {
             let setup = sb.ticker("TESTING")
                 .interval(&Interval::Day1)
                 .build()?;
+
+            // println!("Setup found: {:#?}", setup);
 
             // Initialize resolution strategy
             let mut resolution_strategy = strat.default_resolution_strategy();
@@ -51,7 +59,7 @@ impl StrategyTester {
 
                 if take_profit_reached {
                     // println!("SETUP CANDLE: {:#?}",setup.candle);
-                    // println!("TAKE-PROFIT CANDLE: {:#?}",tp_candles[tp_candles.len()-1]);
+                    // println!("Setup take profit reached at candle: {:#?}",tp_candles[tp_candles.len()-1]);
                     let increase = tp_candles[tp_candles.len()-1].close / setup.candle.close - 1.0;
                     result_builder.add_outcome(increase, n_bars);
 
@@ -64,7 +72,7 @@ impl StrategyTester {
 
                 if stop_loss_reached {
                     // println!("SETUP CANDLE: {:#?}",setup.candle);
-                    // println!("STOP-LOSS CANDLE: {:#?}",sl_candles[sl_candles.len()-1]);
+                    // println!("Setup stop loss reached at candle: {:#?}",sl_candles[sl_candles.len()-1]);
                     let decrease = sl_candles[sl_candles.len()-1].close / setup.candle.close - 1.0;
                     result_builder.add_outcome(decrease, n_bars);
                     break;
@@ -76,6 +84,7 @@ impl StrategyTester {
             next_i = i + n_bars;
         }
 
+        println!("Strategy testing complete, results:",);
         Ok(result_builder.build())
     }
 
