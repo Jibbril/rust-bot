@@ -110,7 +110,7 @@ impl TradingStrategy for SilverCross {
                     let resolution_strategy = ResolutionStrategy::FixedValues(fv);
 
                     setups.push(Setup {
-                        ticker: ts.ticker.clone(),
+                        symbol: ts.symbol.clone(),
                         candle: candle.clone(),
                         interval: ts.interval.clone(),
                         orientation,

@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 pub struct Setup {
     pub candle: Candle,
     pub orientation: StrategyOrientation,
-    pub ticker: String,
+    pub symbol: String,
     pub interval: Interval,
     pub resolution_strategy: Option<ResolutionStrategy>,
     pub stop_loss: Option<f64>,
@@ -22,7 +22,7 @@ impl Setup {
         let candle = Candle::dummy_data(1, "", 100.0).pop().unwrap();
         let resolution_strategy = ResolutionStrategy::DynamicPivot(DynamicPivotResolution::new());
         Setup {
-            ticker: "DUMMY".to_string(),
+            symbol: "DUMMY".to_string(),
             candle,
             interval: Interval::Day1,
             orientation: StrategyOrientation::Long,
@@ -39,7 +39,7 @@ impl Setup {
         };
 
         CsvSetupRow {
-            ticker: self.ticker.clone(),
+            ticker: self.symbol.clone(),
             timestamp: self.candle.timestamp,
             interval: self.interval.clone(),
             orientation: self.orientation,

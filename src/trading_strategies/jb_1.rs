@@ -72,7 +72,7 @@ impl TradingStrategy for JB1 {
         for window in ts.candles.windows(self.candles_needed_for_setup()) {
             if let Some(sb) = self.check_last_for_setup(&window) {
                 let setup = sb
-                    .ticker(&ts.ticker)
+                    .ticker(&ts.symbol)
                     .interval(&ts.interval)
                     .build()?;
                 setups.push(setup);

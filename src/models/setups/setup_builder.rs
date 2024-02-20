@@ -67,7 +67,7 @@ impl SetupBuilder {
         let orientation = self
             .orientation
             .ok_or(anyhow!("Orientation is required."))?;
-        let ticker = self.ticker.clone().ok_or(anyhow!("Ticker is required."))?;
+        let symbol = self.ticker.clone().ok_or(anyhow!("Ticker is required."))?;
         let interval = self
             .interval
             .clone()
@@ -76,7 +76,7 @@ impl SetupBuilder {
         Ok(Setup {
             candle,
             orientation,
-            ticker,
+            symbol,
             interval,
             resolution_strategy: self.resolution_strategy.clone(),
             stop_loss: self.stop_loss,

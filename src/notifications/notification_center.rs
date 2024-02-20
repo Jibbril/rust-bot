@@ -64,7 +64,7 @@ impl NotificationCenter {
     Best of luck,
     Rust-Bot"#,
             strategy,
-            setup.ticker,
+            setup.symbol,
             setup.candle.timestamp,
             setup.interval,
             setup.orientation,
