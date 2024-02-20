@@ -154,7 +154,7 @@ mod tests {
             indicator_type::IndicatorType, is_indicator::IsIndicator,
             populates_candles::PopulatesCandles, indicator_args::IndicatorArgs,
         },
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
     };
 
     #[test]
@@ -196,7 +196,11 @@ mod tests {
     #[test]
     fn ema_populate_candles() {
         let candles = Candle::dummy_data(10, "positive", 100.0);
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = EMA::populate_candles(&mut ts);
 
@@ -229,9 +233,13 @@ mod tests {
         let mut candles = Candle::dummy_data(10, "positive", 100.0);
         let candle = candles.pop().unwrap();
 
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
         let _ = EMA::populate_candles(&mut ts);
-        let _ = ts.add_candle(candle);
+        let _ = ts.add_candle(&candle);
 
         let len = EMA::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::EMA(len);

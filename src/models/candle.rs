@@ -53,6 +53,7 @@ impl Candle {
         }
     }
 
+    #[allow(dead_code)]
     pub fn from_val(timestamp: DateTime<Utc>, val: f64, volume: f64) -> Candle {
         Candle {
             timestamp,

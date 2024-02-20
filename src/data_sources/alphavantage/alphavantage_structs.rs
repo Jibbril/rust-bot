@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::{
     data_sources::api_response::ApiResponse,
-    models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+    models::{candle::Candle, interval::Interval, timeseries::TimeSeries, timeseries_builder::TimeSeriesBuilder},
     utils::str_date_to_datetime,
 };
 
@@ -99,7 +99,11 @@ impl ApiResponse for AlphaVantageApiResponse {
         candles.map(|mut candles| {
             candles.sort_by_key(|candle| candle.timestamp);
 
-            TimeSeries::new(symbol.to_string(), interval.clone(), candles)
+            TimeSeriesBuilder::new()
+                .symbol(symbol.to_string())
+                .interval(interval.clone())
+                .candles(candles)
+                .build()
         })
     }
 

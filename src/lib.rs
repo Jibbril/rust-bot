@@ -31,7 +31,7 @@ use models::{
     setups::setup_finder::SetupFinder,
     strategy_orientation::StrategyOrientation,
     timeseries::TimeSeries,
-    traits::trading_strategy::TradingStrategy,
+    traits::trading_strategy::TradingStrategy, timeseries_builder::TimeSeriesBuilder,
 };
 use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
@@ -230,7 +230,10 @@ pub async fn run_setup_finder() -> Result<()> {
 }
 
 pub async fn run_manual_setups() -> Result<()> {
-    let mut ts = TimeSeries::new("BTCUSDT".to_string(), Interval::Day1, vec![]);
+    let mut ts = TimeSeriesBuilder::new()
+        .symbol("BTCUSDT".to_string())
+        .interval(Interval::Day1)
+        .build();
     RSI::populate_candles(&mut ts)?;
 
     let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new());

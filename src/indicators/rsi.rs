@@ -204,7 +204,7 @@ mod tests {
             indicator_type::IndicatorType, is_indicator::IsIndicator,
             populates_candles::PopulatesCandles, rsi::RSI, indicator_args::IndicatorArgs,
         },
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
     };
 
     #[test]
@@ -247,7 +247,11 @@ mod tests {
     #[test]
     fn rsi_populate_candles() {
         let candles = Candle::dummy_data(130, "alternating", 100.0);
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = RSI::populate_candles(&mut ts);
 
@@ -277,13 +281,17 @@ mod tests {
     #[test]
     fn rsi_populate_last_candle() {
         let candles = Candle::dummy_data(150, "alternating", 100.0);
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = RSI::populate_candles(&mut ts);
 
         let candle = Candle::dummy_from_val(200.0);
 
-        let _ = ts.add_candle(candle);
+        let _ = ts.add_candle(&candle);
 
         let len = RSI::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::RSI(len);

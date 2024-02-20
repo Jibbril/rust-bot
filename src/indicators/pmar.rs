@@ -233,7 +233,7 @@ mod tests {
             indicator_type::IndicatorType, is_indicator::IsIndicator, pmar::PMAR,
             populates_candles::PopulatesCandles, indicator_args::IndicatorArgs,
         },
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries, ma_type::MAType},
+        models::{candle::Candle, interval::Interval, ma_type::MAType, timeseries_builder::TimeSeriesBuilder},
         utils::data::dummy_data::PRICE_CHANGES,
     };
 
@@ -288,7 +288,11 @@ mod tests {
     #[test]
     fn pmar_populate_candles() {
         let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = PMAR::populate_candles(&mut ts);
 
@@ -320,9 +324,13 @@ mod tests {
         let mut candles = Candle::dummy_from_increments(&PRICE_CHANGES);
         let candle = candles.pop().unwrap();
 
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
         let _ = PMAR::populate_candles(&mut ts);
-        let _ = ts.add_candle(candle);
+        let _ = ts.add_candle(&candle);
 
         let (len, ma_type) = PMAR::default_args().pmar_opt().unwrap();
         let indicator_type = IndicatorType::PMAR(len, ma_type);

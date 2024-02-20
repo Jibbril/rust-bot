@@ -228,7 +228,7 @@ mod tests {
             indicator_type::IndicatorType, is_indicator::IsIndicator,
             populates_candles::PopulatesCandles,
         },
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
         utils::data::dummy_data::PRICE_CHANGES,
     };
 
@@ -244,7 +244,11 @@ mod tests {
     fn bbwp_calculate() {
         let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
 
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = BBWP::populate_candles(&mut ts);
 
@@ -279,7 +283,11 @@ mod tests {
     #[test]
     fn bbwp_populate_candles() {
         let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = BBWP::populate_candles(&mut ts);
 
@@ -314,9 +322,13 @@ mod tests {
         let mut candles = Candle::dummy_from_increments(&PRICE_CHANGES);
         let candle = candles.pop().unwrap();
 
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
         let _ = BBWP::populate_candles(&mut ts);
-        let _ = ts.add_candle(candle);
+        let _ = ts.add_candle(&candle);
 
         let (len, lookback, _sma_len) = BBWP::default_args().bbwp_opt().unwrap();
         let indicator_type = IndicatorType::BBWP(len, lookback);

@@ -3,13 +3,39 @@ use std::vec;
 use super::{bybit_structs::BybitApiResponse, util::interval_to_str};
 use crate::{
     data_sources::api_response::ApiResponse,
-    models::{interval::Interval, net_version::NetVersion, timeseries::TimeSeries, candle::Candle},
+    models::{interval::Interval, net_version::NetVersion, timeseries::TimeSeries, candle::Candle, timeseries_builder::TimeSeriesBuilder},
 };
 use anyhow::{anyhow, Result, Context};
 use chrono::{Utc, DateTime};
 use reqwest::Client;
 
 const GET_REQUEST_LIMIT: usize = 1000;
+const BYBIT_ERROR: &str = "Bybit request failed.";
+
+#[allow(dead_code)]
+pub async fn get_candles_between(
+    symbol: &str,
+    interval: &Interval,
+    net: &NetVersion,
+    from: &DateTime<Utc>,
+    to: &DateTime<Utc>,
+) -> Result<Vec<Candle>> {
+    let client = Client::new();
+    let url = generate_url(symbol, interval, 1000, net, to, Some(*from))?;
+    let response = client.get(url).send().await?;
+
+    // TODO: TEST THAT THIS WORKS!
+
+    let candles = match response.status() {
+        reqwest::StatusCode::OK => {
+            let mut response: BybitApiResponse = response.json().await?;
+            response.to_candles(true)
+        }
+        _ => Err(anyhow!(BYBIT_ERROR)),
+    }?;
+
+    Ok(candles)
+}
 
 pub async fn get(
     symbol: &str,
@@ -30,7 +56,7 @@ pub async fn get(
             remaining += 1;
         }
 
-        let url = generate_url(symbol, interval, remaining, net, end)?;
+        let url = generate_url(symbol, interval, remaining, net, &end, None)?;
         let response = client.get(url).send().await?;
 
         match response.status() {
@@ -48,7 +74,7 @@ pub async fn get(
 
                 Ok(())
             }
-            _ => Err(anyhow!("Bybit request failed.")),
+            _ => Err(anyhow!(BYBIT_ERROR)),
         }?;
 
 
@@ -59,7 +85,13 @@ pub async fn get(
 
     acc.reverse();
 
-    Ok(TimeSeries::new(symbol.to_string(), interval.clone(), acc))
+    let ts = TimeSeriesBuilder::new()
+        .symbol(symbol.to_string())
+        .interval(interval.clone())
+        .candles(acc)
+        .build();
+
+    Ok(ts)
 }
 
 fn generate_url(
@@ -67,7 +99,8 @@ fn generate_url(
     interval: &Interval, 
     len: usize, 
     net: &NetVersion,
-    end: DateTime<Utc>
+    end: &DateTime<Utc>,
+    start: Option<DateTime<Utc>>
 ) -> Result<String> {
     let interval = interval_to_str(interval)?;
     let base = match net {
@@ -76,8 +109,15 @@ fn generate_url(
     };
     let end = end.timestamp_millis();
 
-    Ok(format!(
+    let mut url = format!(
         "{}/v5/market/kline?category=spot&symbol={}&interval={}&limit={}&end={}",
         base, symbol, interval, len, end.to_string()
-    ))
+    );
+
+    match start {
+        Some(s) => url = format!("{}&start={}", url, s.to_string()),
+        _ => {}
+    }
+
+    Ok(url)
 }

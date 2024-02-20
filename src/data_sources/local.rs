@@ -1,5 +1,5 @@
 use super::datasource::DataSource;
-use crate::models::{candle::Candle, interval::Interval, timeseries::TimeSeries};
+use crate::models::{candle::Candle, interval::Interval, timeseries::TimeSeries, timeseries_builder::TimeSeriesBuilder};
 use anyhow::Result;
 use csv::Reader;
 use std::{
@@ -32,16 +32,19 @@ fn read_local(file: File, symbol: &str, interval: &Interval) -> Result<TimeSerie
         candles.push(candle);
     }
 
-    Ok(TimeSeries::new(
-        symbol.to_string(),
-        interval.clone(),
-        candles,
-    ))
+
+    let ts = TimeSeriesBuilder::new()
+        .symbol(symbol.to_string())
+        .interval(interval.clone())
+        .candles(candles)
+        .build();
+
+    Ok(ts)
 }
 
 #[allow(dead_code)]
 pub async fn write(ts: &TimeSeries, source: &DataSource) -> Result<()> {
-    let path = exchange_path(&ts.interval, &ts.ticker, source);
+    let path = exchange_path(&ts.interval, &ts.symbol, source);
     let path = Path::new(&path);
 
     create_dir_all(&path)?;

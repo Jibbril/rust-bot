@@ -1,5 +1,5 @@
 use crate::{
-    models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+    models::{candle::Candle, interval::Interval, timeseries::TimeSeries, timeseries_builder::TimeSeriesBuilder},
     utils::millis_to_datetime,
 };
 use anyhow::{anyhow, Result};
@@ -69,9 +69,11 @@ fn generate_timeseries(
         return Err(anyhow!("Bitfinex request failed."));
     }
 
-    Ok(TimeSeries::new(
-        symbol.to_string(),
-        interval.clone(),
-        candles,
-    ))
+    let ts = TimeSeriesBuilder::new()
+        .symbol(symbol.to_string())
+        .interval(interval.clone())
+        .candles(candles)
+        .build();
+
+    Ok(ts)
 }

@@ -1,6 +1,6 @@
 use crate::{
     data_sources::api_response::ApiResponse,
-    models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+    models::{candle::Candle, interval::Interval, timeseries::TimeSeries, timeseries_builder::TimeSeriesBuilder},
     utils::millis_to_datetime,
 };
 use anyhow::{anyhow, Result};
@@ -22,7 +22,13 @@ impl ApiResponse for BybitApiResponse {
     fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> Result<TimeSeries> {
         let candles = Self::to_candles(self, true)?;
 
-        Ok(TimeSeries::new(symbol.to_string(), interval.clone(), candles))
+        let ts = TimeSeriesBuilder::new()
+            .symbol(symbol.to_string())
+            .interval(interval.clone())
+            .candles(candles)
+            .build();
+
+        Ok(ts)
     }
 
     fn to_candles(&mut self, pop_last: bool) -> Result<Vec<Candle>> {

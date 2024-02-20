@@ -109,7 +109,7 @@ mod tests {
             bbw::BBW, indicator_type::IndicatorType, is_indicator::IsIndicator,
             populates_candles::PopulatesCandles,
         },
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
     };
 
     #[test]
@@ -149,7 +149,12 @@ mod tests {
     #[test]
     fn bbw_populate_candles() {
         let candles = Candle::dummy_data(25, "positive", 100.0);
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
+        
 
         let _ = BBW::populate_candles(&mut ts);
 
@@ -181,10 +186,14 @@ mod tests {
     fn bbw_populate_last_candle() {
         let mut candles = Candle::dummy_data(25, "positive", 100.0);
         let candle = candles.pop().unwrap();
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
         let _ = BBW::populate_candles(&mut ts);
 
-        let _ = ts.add_candle(candle);
+        let _ = ts.add_candle(&candle);
         let (len, _) = BBW::default_args().bb_opt().unwrap();
         let indicator_type = IndicatorType::BBW(len);
 
