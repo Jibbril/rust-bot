@@ -85,6 +85,7 @@ pub async fn run_strategy() -> Result<()> {
     let mut ts = source
         .get_historical_data("BTCUSDT", &interval, strategy.min_length() + 300, &net)
         .await?;
+
     // ts.save_to_local(&source).await?;
     // let ts = source.load_local_data(symbol, &interval).await?;
 

@@ -6,7 +6,7 @@ use crate::{
     models::{interval::Interval, net_version::NetVersion, timeseries::TimeSeries, candle::Candle, timeseries_builder::TimeSeriesBuilder},
 };
 use anyhow::{anyhow, Result, Context};
-use chrono::{Utc, DateTime};
+use chrono::Utc;
 use reqwest::Client;
 
 const GET_REQUEST_LIMIT: usize = 1000;
@@ -17,11 +17,11 @@ pub async fn get_candles_between(
     symbol: &str,
     interval: &Interval,
     net: &NetVersion,
-    from: &DateTime<Utc>,
-    to: &DateTime<Utc>,
+    from: i64,
+    to: i64,
 ) -> Result<Vec<Candle>> {
     let client = Client::new();
-    let url = generate_url(symbol, interval, 1000, net, to, Some(*from))?;
+    let url = generate_url(symbol, interval, 1000, net, to, Some(from))?;
     let response = client.get(url).send().await?;
 
     // TODO: TEST THAT THIS WORKS!
@@ -56,7 +56,7 @@ pub async fn get(
             remaining += 1;
         }
 
-        let url = generate_url(symbol, interval, remaining, net, &end, None)?;
+        let url = generate_url(symbol, interval, remaining, net, end.timestamp_millis(), None)?;
         let response = client.get(url).send().await?;
 
         match response.status() {
@@ -99,15 +99,14 @@ fn generate_url(
     interval: &Interval, 
     len: usize, 
     net: &NetVersion,
-    end: &DateTime<Utc>,
-    start: Option<DateTime<Utc>>
+    end: i64,
+    start: Option<i64>
 ) -> Result<String> {
     let interval = interval_to_str(interval)?;
     let base = match net {
         NetVersion::Testnet => "https://api-testnet.bybit.com",
         NetVersion::Mainnet => "https://api.bybit.com",
     };
-    let end = end.timestamp_millis();
 
     let mut url = format!(
         "{}/v5/market/kline?category=spot&symbol={}&interval={}&limit={}&end={}",

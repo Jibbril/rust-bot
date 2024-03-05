@@ -4,50 +4,55 @@ use super::{
     message_payloads::{
         latest_candles_payload::LatestCandleResponse,
         request_latest_candles_payload::RequestLatestCandlesPayload,
-        ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
+        ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload, add_candles_payload::AddCandlesPayload,
     },
-    setups::setup_finder::SetupFinder,
+    setups::setup_finder::SetupFinder, net_version::NetVersion, timeseries_builder::TimeSeriesBuilder,
 };
 use crate::{
-    data_sources::{datasource::DataSource, local},
+    data_sources::{datasource::DataSource, local, bybit::rest::get_candles_between},
     indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},
-    models::message_payloads::candle_added_payload::CandleAddedPayload,
+    models::message_payloads::{candle_added_payload::CandleAddedPayload, fill_historical_candles_payload::FillHistoricalCandlesPayload},
 };
-use actix::{Actor, Addr, Context, Handler};
-use anyhow::{anyhow, Result};
+use actix::{Actor, Addr, Handler, Context as ActixContext, AsyncContext, WrapFuture, dev::ContextFutureSpawner};
+use anyhow::Result;
 use chrono::{DateTime, Utc};
 use indexmap::IndexSet;
-use std::ops::Add;
 
 #[derive(Debug, Clone)]
 pub struct TimeSeries {
-    pub ticker: String,
+    pub symbol: String,
     pub interval: Interval,
     pub max_length: usize,
     pub candles: Vec<Candle>,
     pub indicators: IndexSet<IndicatorType>,
     pub observers: Vec<Addr<SetupFinder>>,
+    pub net: NetVersion,
 }
 
 impl Actor for TimeSeries {
-    type Context = Context<Self>;
+    type Context = ActixContext<Self>;
+}
+
+impl Handler<AddCandlesPayload> for TimeSeries {
+    type Result = ();
+
+    fn handle(&mut self, msg: AddCandlesPayload, _ctx: &mut ActixContext<Self>) -> Self::Result {
+        match self.add_candles(&msg.candles) {
+            Ok(_) => (),
+            Err(_e) => {
+                // TODO: Reset/restart TimeSeries/SetupChaser, data possibly 
+                // corrupted.
+                panic!("Unable to add candles to TimeSeries, data integrity threatened!");
+            }
+        }
+    }
 }
 
 impl Handler<WebsocketPayload> for TimeSeries {
     type Result = ();
 
-    fn handle(&mut self, msg: WebsocketPayload, _ctx: &mut Context<Self>) -> Self::Result {
-        if msg.ok {
-            if let Some(candle) = msg.candle {
-                match self.add_candle(candle) {
-                    Ok(_) => (),
-                    Err(e) => {
-                        // TODO: Error handling
-                        println!("Error adding candle: {:#?}", e)
-                    }
-                };
-            }
-        } else {
+    fn handle(&mut self, msg: WebsocketPayload, ctx: &mut ActixContext<Self>) -> Self::Result {
+        if !msg.ok {
             println!(
                 "Error: {}",
                 match msg.message {
@@ -55,7 +60,60 @@ impl Handler<WebsocketPayload> for TimeSeries {
                     None => "Unknown error".to_string(),
                 }
             );
+
+            return;
         }
+
+        let candle = msg.candle.expect("No message passed although WebsocketPayload ok.");
+
+        let integrity_ok = self.validate_timeseries_integrity(candle.timestamp);
+
+        if integrity_ok {
+            // If no historical data is needed, send message straight to add
+            // and populate candles
+            let payload = AddCandlesPayload { candles: vec![candle] };
+            ctx.address().do_send(payload);
+        } else {
+            println!("GAP at: {}", candle.timestamp);
+
+            let interval_addition = self.interval.to_millis();
+
+            let payload = FillHistoricalCandlesPayload {
+                from: self.candles.last()
+                    .expect("Expected at least one candle")
+                    .timestamp
+                    .timestamp_millis() + interval_addition, 
+                to: candle.timestamp
+                    .timestamp_millis() + interval_addition,
+                symbol: self.symbol.clone(),
+                interval: self.interval.clone()
+            };
+
+            ctx.address().do_send(payload);
+        }
+    }
+}
+
+impl Handler<FillHistoricalCandlesPayload> for TimeSeries {
+    type Result = ();
+
+    fn handle(&mut self, msg: FillHistoricalCandlesPayload, ctx: &mut ActixContext<Self>) -> Self::Result {
+        let FillHistoricalCandlesPayload { from, to, symbol, interval } = msg;
+        let address = ctx.address().clone();
+        let net = self.net;
+
+        let fut = async move {
+            let candles = match get_candles_between(&symbol, &interval, &net, from, to).await {
+                Ok(c) => c,
+                _ => panic!("Unable to get candles in between.")
+            };
+
+            let payload = AddCandlesPayload { candles };
+            address.do_send(payload);
+        };
+
+        fut.into_actor(self)
+            .spawn(ctx);
     }
 }
 
@@ -65,7 +123,7 @@ impl Handler<RequestLatestCandlesPayload> for TimeSeries {
     fn handle(
         &mut self,
         msg: RequestLatestCandlesPayload,
-        _ctx: &mut Context<Self>,
+        _ctx: &mut ActixContext<Self>,
     ) -> Self::Result {
         let candles = if self.candles.len() < msg.n {
             // Return what's available
@@ -76,7 +134,7 @@ impl Handler<RequestLatestCandlesPayload> for TimeSeries {
         };
 
         Ok(LatestCandleResponse {
-            symbol: self.ticker.clone(),
+            symbol: self.symbol.clone(),
             interval: self.interval.clone(),
             candles,
         })
@@ -86,78 +144,55 @@ impl Handler<RequestLatestCandlesPayload> for TimeSeries {
 impl Handler<TSSubscribePayload> for TimeSeries {
     type Result = ();
 
-    fn handle(&mut self, msg: TSSubscribePayload, _ctx: &mut Context<Self>) -> Self::Result {
+    fn handle(&mut self, msg: TSSubscribePayload, _ctx: &mut ActixContext<Self>) -> Self::Result {
         let observer = msg.observer;
         self.observers.push(observer);
     }
 }
 
 impl TimeSeries {
-    pub fn new(ticker: String, interval: Interval, candles: Vec<Candle>) -> Self {
-        TimeSeries {
-            ticker,
-            interval,
-            candles,
-            max_length: 800, // Default value
-            indicators: IndexSet::new(),
-            observers: vec![],
-        }
-    }
-
     #[allow(dead_code)]
     pub fn set_max_length(&mut self, max_length: usize) {
         self.max_length = max_length;
     }
 
-    fn validate_timeseries_integrity(&mut self, new_candle: DateTime<Utc>) -> Result<()> {
+    fn validate_timeseries_integrity(&mut self, new_candle: DateTime<Utc>) -> bool {
         // No need for validation if timeseries is empty
         if self.candles.len() == 0 {
-            return Ok(());
+            return true;
         };
 
-        let last_candle = self.candles.last().expect("Expected more than 0 candles");
+        let last_candle = &self.candles[self.candles.len()-1];
         let diff = new_candle.signed_duration_since(last_candle.timestamp);
 
         let step = self.interval.to_duration();
         let delta = self.interval.max_diff();
 
         // New is subsequent candle so timeseries integrity ok
-        if diff >= step - delta && diff < step + delta {
-            return Ok(());
+        return diff >= step - delta && diff < step + delta;
+    }
+
+    fn add_candles(&mut self, candles: &[Candle]) -> Result<()> {
+        for candle in candles.iter() {
+            self.add_candle(&candle)?;
         }
-
-        println!("GAP at: {}", new_candle);
-
-        // TODO: Add proper logic to fetch candle data below instead of just filling
-        // with previous value
-
-        let new_timestamp = new_candle.clone().add(-step);
-
-        if new_timestamp < last_candle.timestamp {
-            return Err(anyhow!(
-                "Added candle has timestamp earlier in time than current last candle."
-            ));
-        }
-
-        let next = Candle::from_val(new_timestamp, last_candle.close, 0.0);
-        self.add_candle(next)?;
 
         Ok(())
     }
 
-    pub fn add_candle(&mut self, candle: Candle) -> Result<()> {
-        self.validate_timeseries_integrity(candle.timestamp)?;
+    pub fn add_candle(&mut self, candle: &Candle) -> Result<()> {
         self.candles.push(candle.clone());
 
         let indicator_types = self.indicators.clone();
+
         for indicator_type in indicator_types {
             indicator_type.populate_last_candle(self)?;
         }
 
-        println!("Added candle: {:#?}", self.candles.last());
+        // println!("Added candle: {:#?}", self.candles.last());
 
         // Notify observers
-        let payload = CandleAddedPayload { candle };
+        let payload = CandleAddedPayload { candle: candle.clone() };
 
         for observer in &self.observers {
             observer.do_send(payload.clone());
@@ -196,7 +231,10 @@ impl TimeSeries {
     }
 
     pub fn dummy() -> Self {
-        Self::new("DUMMY".to_string(), Interval::Day1, Vec::new())
+        TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .build()
     }
 
     #[allow(dead_code)]
