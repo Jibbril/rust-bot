@@ -53,7 +53,7 @@ impl NotificationCenter {
             r#"Trade Notification:
 
         Strategy: {}
-        Ticker: {}
+        Symbol: {}
         Date: {}
         Timeframe: {}
         Orientation: {}

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CsvSetupRow {
-    pub ticker: String,
+    pub symbol: String,
     pub timestamp: DateTime<Utc>,
     pub interval: Interval,
     pub orientation: StrategyOrientation,

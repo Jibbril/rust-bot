@@ -62,7 +62,7 @@ pub async fn write(ts: &TimeSeries, source: &DataSource) -> Result<()> {
     Ok(())
 }
 
-fn exchange_path(interval: &Interval, ticker: &str, source: &DataSource) -> String {
+fn exchange_path(interval: &Interval, symbol: &str, source: &DataSource) -> String {
     let source = match source {
         DataSource::AlphaVantage => "alphavantage",
         DataSource::Bitfinex => "bitfinex",
@@ -84,5 +84,5 @@ fn exchange_path(interval: &Interval, ticker: &str, source: &DataSource) -> Stri
         Interval::Week1 => "week-1",
     };
 
-    format!("data/{}/{}/{}", source, ticker, interval)
+    format!("data/{}/{}/{}", source, symbol, interval)
 }

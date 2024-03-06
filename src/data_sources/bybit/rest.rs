@@ -24,8 +24,6 @@ pub async fn get_candles_between(
     let url = generate_url(symbol, interval, 1000, net, to, Some(from))?;
     let response = client.get(url).send().await?;
 
-    // TODO: TEST THAT THIS WORKS!
-
     let candles = match response.status() {
         reqwest::StatusCode::OK => {
             let mut response: BybitApiResponse = response.json().await?;

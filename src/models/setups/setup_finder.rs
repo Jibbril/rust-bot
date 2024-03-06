@@ -7,7 +7,7 @@ use crate::{
         timeseries::TimeSeries,
         traits::trading_strategy::TradingStrategy,
     },
-    notifications::notification_center::NotificationCenter, resolution_strategies::{resolution_strategy::ResolutionStrategy, dynamic_pivot::DynamicPivotResolution},
+    notifications::notification_center::NotificationCenter,
 };
 use actix::{fut::wrap_future, Actor, Addr, AsyncContext, Context, Handler};
 
@@ -59,13 +59,11 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                 println!("No setup found");
                 return;
             }
+            
             let sb = sb.unwrap();
-
-            let dp = DynamicPivotResolution::new();
-            let resolution_strategy = ResolutionStrategy::DynamicPivot(dp);
-
+            let resolution_strategy = strategy.default_resolution_strategy();
             let setup = sb
-                .ticker(&candle_response.symbol)
+                .symbol(&candle_response.symbol)
                 .interval(&candle_response.interval)
                 .resolution_strategy(&resolution_strategy)
                 .build();

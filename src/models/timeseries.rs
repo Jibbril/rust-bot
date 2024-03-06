@@ -77,7 +77,6 @@ impl Handler<WebsocketPayload> for TimeSeries {
             println!("GAP at: {}", candle.timestamp);
 
             let interval_addition = self.interval.to_millis();
-
             let payload = FillHistoricalCandlesPayload {
                 from: self.candles.last()
                     .expect("Expected at least one candle")
@@ -189,7 +188,7 @@ impl TimeSeries {
             indicator_type.populate_last_candle(self)?;
         }
 
-        // println!("Added candle: {:#?}", self.candles.last());
+        println!("Added candle: {:#?}", self.candles.last());
 
         // Notify observers
         let payload = CandleAddedPayload { candle: candle.clone() };

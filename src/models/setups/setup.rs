@@ -39,7 +39,7 @@ impl Setup {
         };
 
         CsvSetupRow {
-            ticker: self.symbol.clone(),
+            symbol: self.symbol.clone(),
             timestamp: self.candle.timestamp,
             interval: self.interval.clone(),
             orientation: self.orientation,

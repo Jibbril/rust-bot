@@ -1,10 +1,7 @@
 use actix::Addr;
 use indexmap::IndexSet;
-
 use crate::indicators::indicator_type::IndicatorType;
-
-use super::{interval::Interval, candle::Candle, setups::setup_finder::SetupFinder, net_version::NetVersion, timeseries::TimeSeries}; // Assuming you're using the IndexMap crate
-// Use the existing definitions for Interval, Candle, IndicatorType, Addr, SetupFinder, and NetVersion
+use super::{interval::Interval, candle::Candle, setups::setup_finder::SetupFinder, net_version::NetVersion, timeseries::TimeSeries}; 
 
 #[derive(Debug, Clone)]
 pub struct TimeSeriesBuilder {
@@ -19,12 +16,11 @@ pub struct TimeSeriesBuilder {
 
 #[allow(dead_code)]
 impl TimeSeriesBuilder {
-    // Constructor for the builder with default values
     pub fn new() -> Self {
         TimeSeriesBuilder {
             symbol: None,
             interval: None,
-            max_length: 800, // Default value
+            max_length: 800,
             candles: vec![],
             indicators: IndexSet::new(),
             observers: vec![],
@@ -67,10 +63,9 @@ impl TimeSeriesBuilder {
         self
     }
 
-    // Builds the TimeSeries instance
     pub fn build(self) -> TimeSeries {
         TimeSeries {
-            symbol: self.symbol.expect("Ticker is required"),
+            symbol: self.symbol.expect("Symbol is required"),
             interval: self.interval.expect("Interval is required"),
             max_length: self.max_length,
             candles: self.candles,

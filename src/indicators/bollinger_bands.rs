@@ -95,7 +95,6 @@ impl IsIndicator for BollingerBands {
         Self::calculate_bb(segment, &args)
     }
 
-
     fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
     where 
         Self: Sized {

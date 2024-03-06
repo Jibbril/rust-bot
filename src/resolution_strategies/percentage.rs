@@ -22,7 +22,6 @@ impl IsResolutionStrategy for PercentageResolution {
             return Err(anyhow!("No candle provided for percentage resolution."));
         }
 
-
         let candle = &candles[0];
 
         Ok(match orientation {

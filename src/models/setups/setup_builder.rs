@@ -6,7 +6,7 @@ use anyhow::{anyhow, Result};
 pub struct SetupBuilder {
     pub candle: Option<Candle>,
     pub orientation: Option<StrategyOrientation>,
-    pub ticker: Option<String>,
+    pub symbol: Option<String>,
     pub interval: Option<Interval>,
     pub resolution_strategy: Option<ResolutionStrategy>,
     pub stop_loss: Option<f64>,
@@ -19,7 +19,7 @@ impl SetupBuilder {
         SetupBuilder {
             candle: None,
             orientation: None,
-            ticker: None,
+            symbol: None,
             interval: None,
             resolution_strategy: None,
             stop_loss: None,
@@ -37,8 +37,8 @@ impl SetupBuilder {
         self
     }
 
-    pub fn ticker(mut self, ticker: &str) -> Self {
-        self.ticker= Some(ticker.to_string());
+    pub fn symbol(mut self, symbol: &str) -> Self {
+        self.symbol = Some(symbol.to_string());
         self
     }
 
@@ -67,7 +67,7 @@ impl SetupBuilder {
         let orientation = self
             .orientation
             .ok_or(anyhow!("Orientation is required."))?;
-        let symbol = self.ticker.clone().ok_or(anyhow!("Ticker is required."))?;
+        let symbol = self.symbol.clone().ok_or(anyhow!("Symbol is required."))?;
         let interval = self
             .interval
             .clone()
