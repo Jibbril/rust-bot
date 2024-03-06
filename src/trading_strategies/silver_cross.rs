@@ -2,18 +2,22 @@ use crate::{
     indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
         candle::Candle,
+        interval::Interval,
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::trading_strategy::TradingStrategy,
+        traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
     },
     resolution_strategies::{
-        atr_resolution::AtrResolution, CalculatesStopLosses, CalculatesTakeProfits,
-        ResolutionStrategy,
+        fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy,
     },
 };
 use anyhow::Result;
-use std::fmt::{Display, Formatter};
+use chrono::Weekday;
+use std::{
+    collections::HashSet,
+    fmt::{Display, Formatter},
+};
 
 /// # Silver Cross Strategy
 ///
@@ -24,24 +28,17 @@ pub struct SilverCross {
     pub short_len: usize,
     pub long_len: usize,
     pub orientation: StrategyOrientation,
+    pub trading_days: HashSet<Weekday>,
 }
 
 impl SilverCross {
     #[allow(dead_code)] // TODO: Remove once used
-    pub fn new(orientation: StrategyOrientation, short_len: usize, long_len: usize) -> Self {
+    pub fn new_args(orientation: StrategyOrientation, short_len: usize, long_len: usize) -> Self {
         SilverCross {
             orientation,
             short_len,
             long_len,
-        }
-    }
-
-    #[allow(dead_code)] // TODO: Remove once used
-    pub fn new_default() -> Self {
-        SilverCross {
-            orientation: StrategyOrientation::Long,
-            short_len: 21,
-            long_len: 55,
+            trading_days: Self::build_trading_days(),
         }
     }
 
@@ -53,19 +50,48 @@ impl SilverCross {
         current_long: &SMA,
     ) -> Option<StrategyOrientation> {
         let long_condition = prev_short < prev_long && current_short >= current_long;
-        let short_condition = prev_short > prev_long && current_short <= current_long;
+        let _short_condition = prev_short > prev_long && current_short <= current_long;
 
         if long_condition {
             Some(StrategyOrientation::Long)
-        } else if short_condition {
-            Some(StrategyOrientation::Short)
+        // } else if short_condition {
+        //     Some(StrategyOrientation::Short)
         } else {
             None
         }
     }
+
+    fn build_trading_days() -> HashSet<Weekday> {
+        let mut set = HashSet::new();
+
+        set.insert(Weekday::Mon);
+        set.insert(Weekday::Tue);
+        set.insert(Weekday::Wed);
+        set.insert(Weekday::Thu);
+        set.insert(Weekday::Fri);
+        set.insert(Weekday::Sat);
+        set.insert(Weekday::Sun);
+
+        set
+    }
 }
 
 impl TradingStrategy for SilverCross {
+    #[allow(dead_code)] // TODO: Remove once used
+    fn new() -> Self {
+        SilverCross {
+            orientation: StrategyOrientation::Long,
+            short_len: 21,
+            long_len: 55,
+            trading_days: Self::build_trading_days(),
+        }
+    }
+
+    fn candles_needed_for_setup(&self) -> usize {
+        // TODO: Add real value
+        self.long_len
+    }
+
     fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
         let mut setups: Vec<Setup> = Vec::new();
         let key_short = IndicatorType::SMA(self.short_len);
@@ -85,25 +111,13 @@ impl TradingStrategy for SilverCross {
                     self.get_orientation(&prev_short, &prev_long, &current_short, &current_long);
 
                 if let Some(orientation) = orientation {
-                    let resolution_strategy =
-                        ResolutionStrategy::ATR(AtrResolution::new(14, 1.0, 1.5));
-
-                    let len = 14;
-                    let take_profit = resolution_strategy.calculate_take_profit(
-                        &ts.candles,
-                        i,
-                        &orientation,
-                        len,
-                    )?;
-                    let stop_loss = resolution_strategy.calculate_stop_loss(
-                        &ts.candles,
-                        i,
-                        &orientation,
-                        len,
-                    )?;
+                    let take_profit = candle.close * 1.05;
+                    let stop_loss = candle.close * 0.95;
+                    let fv = FixedValuesResolution::new(take_profit, stop_loss);
+                    let resolution_strategy = ResolutionStrategy::FixedValues(fv);
 
                     setups.push(Setup {
-                        ticker: ts.ticker.clone(),
+                        symbol: ts.symbol.clone(),
                         candle: candle.clone(),
                         interval: ts.interval.clone(),
                         orientation,
@@ -118,28 +132,41 @@ impl TradingStrategy for SilverCross {
         Ok(setups)
     }
 
-    fn max_length(&self) -> usize {
+    fn min_length(&self) -> usize {
         self.long_len
     }
 
-    fn required_indicators(&self) -> Vec<IndicatorType> {
-        vec![
-            IndicatorType::SMA(self.short_len),
-            IndicatorType::SMA(self.long_len),
-        ]
-    }
-
-    fn candles_needed_for_setup(&self) -> usize {
-        // TODO: Add real value
-        self.long_len
-    }
-
-    fn check_last_for_setup(&self, _candles: &Vec<Candle>) -> Option<SetupBuilder> {
+    fn check_last_for_setup(&self, _candles: &[Candle]) -> Option<SetupBuilder> {
         todo!()
     }
 
     fn clone_box(&self) -> Box<dyn TradingStrategy> {
         Box::new(self.clone())
+    }
+
+    fn default_resolution_strategy(&self) -> ResolutionStrategy {
+        todo!()
+    }
+
+    fn orientation(&self) -> StrategyOrientation {
+        todo!()
+    }
+
+    fn interval(&self) -> crate::models::interval::Interval {
+        Interval::Minute1
+    }
+
+    fn trading_days(&self) -> HashSet<Weekday> {
+        Self::build_trading_days()
+    }
+}
+
+impl RequiresIndicators for SilverCross {
+    fn required_indicators(&self) -> Vec<IndicatorType> {
+        vec![
+            IndicatorType::SMA(self.short_len),
+            IndicatorType::SMA(self.long_len),
+        ]
     }
 }
 

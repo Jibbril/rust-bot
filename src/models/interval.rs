@@ -50,6 +50,10 @@ impl Interval {
         }
     }
 
+    pub fn to_millis(&self) -> i64 {
+        self.to_duration().num_milliseconds()
+    }
+
     /// Returns the acceptable difference in duration to still consider candles
     /// subsequent in a timeseries.
     pub fn max_diff(&self) -> Duration {

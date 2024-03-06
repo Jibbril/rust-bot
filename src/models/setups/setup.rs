@@ -1,7 +1,9 @@
 use super::csv_setup_row::CsvSetupRow;
 use crate::{
     models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation},
-    resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
+    resolution_strategies::{
+        dynamic_pivot::DynamicPivotResolution, resolution_strategy::ResolutionStrategy,
+    },
 };
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +11,7 @@ use serde::{Deserialize, Serialize};
 pub struct Setup {
     pub candle: Candle,
     pub orientation: StrategyOrientation,
-    pub ticker: String,
+    pub symbol: String,
     pub interval: Interval,
     pub resolution_strategy: Option<ResolutionStrategy>,
     pub stop_loss: Option<f64>,
@@ -20,9 +22,9 @@ impl Setup {
     #[allow(dead_code)] // TODO: Remove once used
     pub fn dummy() -> Setup {
         let candle = Candle::dummy_data(1, "", 100.0).pop().unwrap();
-        let resolution_strategy = ResolutionStrategy::ATR(AtrResolution::new(14, 1.0, 1.0));
+        let resolution_strategy = ResolutionStrategy::DynamicPivot(DynamicPivotResolution::new());
         Setup {
-            ticker: "DUMMY".to_string(),
+            symbol: "DUMMY".to_string(),
             candle,
             interval: Interval::Day1,
             orientation: StrategyOrientation::Long,
@@ -39,7 +41,7 @@ impl Setup {
         };
 
         CsvSetupRow {
-            ticker: self.ticker.clone(),
+            symbol: self.symbol.clone(),
             timestamp: self.candle.timestamp,
             interval: self.interval.clone(),
             orientation: self.orientation,

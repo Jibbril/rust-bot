@@ -1,6 +1,9 @@
 use crate::{
     data_sources::api_response::ApiResponse,
-    models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+    models::{
+        candle::Candle, interval::Interval, timeseries::TimeSeries,
+        timeseries_builder::TimeSeriesBuilder,
+    },
     utils::secs_to_datetime,
 };
 use anyhow::Result;
@@ -52,8 +55,16 @@ impl ApiResponse for CryptoCompareApiResponse {
             // historical data here.
             candles.pop();
 
-            TimeSeries::new(symbol.to_string(), interval.clone(), candles)
+            TimeSeriesBuilder::new()
+                .symbol(symbol.to_string())
+                .interval(interval.clone())
+                .candles(candles)
+                .build()
         })
+    }
+
+    fn to_candles(&mut self, _pop_last: bool) -> Result<Vec<Candle>> {
+        todo!()
     }
 }
 

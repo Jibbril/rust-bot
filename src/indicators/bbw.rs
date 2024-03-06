@@ -18,7 +18,7 @@ impl PopulatesCandles for BBW {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len, _) = args.extract_bb_res()?;
+        let (len, _) = args.bb_res()?;
         let indicator_type = IndicatorType::BBW(len);
 
         for i in 0..ts.candles.len() {
@@ -26,7 +26,7 @@ impl PopulatesCandles for BBW {
             let bbw = if end < len {
                 None
             } else {
-                Self::calculate(&ts.candles[end - len..end])
+                Self::calculate_args(&ts.candles[end - len..end], &args)
             };
 
             ts.candles[i]
@@ -44,7 +44,7 @@ impl PopulatesCandles for BBW {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len, _) = args.extract_bb_res()?;
+        let (len, _) = args.bb_res()?;
         let ctx_err = "Unable to get last candle";
         let indicator_type = IndicatorType::BBW(len);
         let end = ts.candles.len();
@@ -59,7 +59,7 @@ impl PopulatesCandles for BBW {
                 .indicators
                 .insert(indicator_type, Indicator::BBW(None));
         } else {
-            let new_bbw = Self::calculate(&ts.candles[end - len..end]);
+            let new_bbw = Self::calculate_args(&ts.candles[end - len..end], &args);
 
             ts.candles
                 .last_mut()
@@ -77,11 +77,25 @@ impl IsIndicator for BBW {
         IndicatorArgs::BollingerBandArgs(20, 2.0)
     }
 
+    /// Segment should have the same number of candles as the desired length of
+    /// BBW wanted.
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
         Self: Sized,
     {
         let bb = BollingerBands::calculate(segment)?;
+        Some(BBW {
+            value: (bb.upper - bb.lower) / bb.sma,
+            len: segment.len(),
+        })
+    }
+
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        let bb = BollingerBands::calculate_args(segment, args)?;
+
         Some(BBW {
             value: (bb.upper - bb.lower) / bb.sma,
             len: segment.len(),
@@ -96,13 +110,23 @@ mod tests {
             bbw::BBW, indicator_type::IndicatorType, is_indicator::IsIndicator,
             populates_candles::PopulatesCandles,
         },
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
     };
 
     #[test]
     fn bbw_calculate() {
         let candles = Candle::dummy_data(20, "positive", 100.0);
         let bbw = BBW::calculate(&candles);
+        assert!(bbw.is_some());
+        let bbw = bbw.unwrap();
+        assert_eq!(bbw.value, 1.1543570308487054);
+    }
+
+    #[test]
+    fn bbw_calculate_args() {
+        let candles = Candle::dummy_data(20, "positive", 100.0);
+        let args = BBW::default_args();
+        let bbw = BBW::calculate_args(&candles, &args);
         assert!(bbw.is_some());
         let bbw = bbw.unwrap();
         assert_eq!(bbw.value, 1.1543570308487054);
@@ -116,13 +140,25 @@ mod tests {
     }
 
     #[test]
+    fn bbw_no_candles_args() {
+        let candles = Vec::new();
+        let args = BBW::default_args();
+        let sma = BBW::calculate_args(&candles, &args);
+        assert!(sma.is_none());
+    }
+
+    #[test]
     fn bbw_populate_candles() {
         let candles = Candle::dummy_data(25, "positive", 100.0);
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = BBW::populate_candles(&mut ts);
 
-        let (len, _) = BBW::default_args().extract_bb_opt().unwrap();
+        let (len, _) = BBW::default_args().bb_opt().unwrap();
         let indicator_type = IndicatorType::BBW(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {
@@ -150,11 +186,15 @@ mod tests {
     fn bbw_populate_last_candle() {
         let mut candles = Candle::dummy_data(25, "positive", 100.0);
         let candle = candles.pop().unwrap();
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
         let _ = BBW::populate_candles(&mut ts);
 
-        let _ = ts.add_candle(candle);
-        let (len, _) = BBW::default_args().extract_bb_opt().unwrap();
+        let _ = ts.add_candle(&candle);
+        let (len, _) = BBW::default_args().bb_opt().unwrap();
         let indicator_type = IndicatorType::BBW(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {

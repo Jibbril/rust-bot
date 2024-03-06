@@ -26,8 +26,12 @@ pub struct BBWP {
 const BBW_STD_N: f64 = 1.0;
 
 impl PopulatesCandles for BBWP {
+    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
+        Self::populate_candles_args(ts, Self::default_args())
+    }
+
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len, lookback, sma_len) = args.extract_bbwp_res()?;
+        let (len, lookback, sma_len) = args.bbwp_res()?;
         let indicator_type = IndicatorType::BBWP(len, lookback);
 
         for i in 0..ts.candles.len() {
@@ -41,7 +45,7 @@ impl PopulatesCandles for BBWP {
                     0
                 };
 
-                Self::calculate(&ts.candles[start..end])
+                Self::calculate_args(&ts.candles[start..end], &args)
             };
 
             ts.candles[i]
@@ -74,16 +78,12 @@ impl PopulatesCandles for BBWP {
         Ok(())
     }
 
-    fn populate_candles(ts: &mut TimeSeries) -> Result<()> {
-        Self::populate_candles_args(ts, Self::default_args())
-    }
-
     fn populate_last_candle(ts: &mut TimeSeries) -> Result<()> {
         Self::populate_last_candle_args(ts, Self::default_args())
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len, lookback, sma_len) = args.extract_bbwp_res()?;
+        let (len, lookback, sma_len) = args.bbwp_res()?;
         let ctx_err = "Unable to get last candle";
         let indicator_type = IndicatorType::BBWP(len, lookback);
         let end = ts.candles.len();
@@ -109,8 +109,8 @@ impl PopulatesCandles for BBWP {
             0
         };
 
-        let mut new_bbwp =
-            Self::calculate(&ts.candles[start..end]).context("Unable to calculate BBWP")?;
+        let mut new_bbwp = Self::calculate_args(&ts.candles[start..end], &args)
+            .context("Unable to calculate BBWP")?;
 
         ts.candles
             .last_mut()
@@ -155,9 +155,21 @@ impl IsIndicator for BBWP {
     where
         Self: Sized,
     {
-        let args = Self::default_args();
+        Self::calculate_bbwp(segment, &Self::default_args())
+    }
+
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        Self::calculate_bbwp(segment, args)
+    }
+}
+
+impl BBWP {
+    fn calculate_bbwp(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> {
         let bbws = Self::get_bbws(segment, args).ok()?;
-        let (len, lookback, _) = args.extract_bbwp_opt()?;
+        let (len, lookback, _) = args.bbwp_opt()?;
         let new_bbw = bbws.last()?.as_ref()?;
 
         let count = bbws
@@ -176,9 +188,7 @@ impl IsIndicator for BBWP {
             sma: None,
         })
     }
-}
 
-impl BBWP {
     fn bbwp_sma(segment: &[Candle], indicator_type: &IndicatorType) -> Option<f64> {
         let values: Vec<f64> = segment
             .iter()
@@ -189,7 +199,7 @@ impl BBWP {
         (values.len() == segment.len()).then_some(sma(&values))
     }
 
-    fn get_bbws(segment: &[Candle], args: IndicatorArgs) -> Result<Vec<Option<BBW>>> {
+    fn get_bbws(segment: &[Candle], args: &IndicatorArgs) -> Result<Vec<Option<BBW>>> {
         // TODO: Refactor populates candles trait to include methods accepting
         // just candles instead of only TimeSeries to not need temporary
         // TimeSeries below.
@@ -198,7 +208,7 @@ impl BBWP {
         let mut temp_ts = TimeSeries::dummy();
         temp_ts.set_candles(&temp_segment);
 
-        let (len, _, _) = args.extract_bbwp_res()?;
+        let (len, _, _) = args.bbwp_res()?;
         let bbw_args = IndicatorArgs::BollingerBandArgs(len, BBW_STD_N);
         BBW::populate_candles_args(&mut temp_ts, bbw_args)?;
 
@@ -222,7 +232,7 @@ mod tests {
             indicator_type::IndicatorType, is_indicator::IsIndicator,
             populates_candles::PopulatesCandles,
         },
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
         utils::data::dummy_data::PRICE_CHANGES,
     };
 
@@ -235,16 +245,20 @@ mod tests {
     ];
 
     #[test]
-    fn calculate_bbwp() {
+    fn bbwp_calculate() {
         let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
 
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = BBWP::populate_candles(&mut ts);
 
         let segment = &ts.candles[ts.candles.len() - 5..];
 
-        let (len, lookback, _) = BBWP::default_args().extract_bbwp_opt().unwrap();
+        let (len, lookback, _) = BBWP::default_args().bbwp_opt().unwrap();
         for (i, val) in FINAL_VALUES.iter().enumerate() {
             let bbwp = segment[i]
                 .clone_indicator(&IndicatorType::BBWP(len, lookback))
@@ -263,13 +277,25 @@ mod tests {
     }
 
     #[test]
+    fn bbwp_no_candles_args() {
+        let candles = Vec::new();
+        let args = BBWP::default_args();
+        let sma = BBWP::calculate_args(&candles, &args);
+        assert!(sma.is_none());
+    }
+
+    #[test]
     fn bbwp_populate_candles() {
         let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = BBWP::populate_candles(&mut ts);
 
-        let (len, lookback, _sma_len) = BBWP::default_args().extract_bbwp_opt().unwrap();
+        let (len, lookback, _sma_len) = BBWP::default_args().bbwp_opt().unwrap();
         let indicator_type = IndicatorType::BBWP(len, lookback);
 
         for (i, candle) in ts.candles.iter().enumerate() {
@@ -284,7 +310,7 @@ mod tests {
 
         let segment = &ts.candles[ts.candles.len() - 5..];
 
-        let (len, lookback, _) = BBWP::default_args().extract_bbwp_opt().unwrap();
+        let (len, lookback, _) = BBWP::default_args().bbwp_opt().unwrap();
         for (i, val) in FINAL_VALUES.iter().enumerate() {
             let bbwp = segment[i]
                 .clone_indicator(&IndicatorType::BBWP(len, lookback))
@@ -300,11 +326,15 @@ mod tests {
         let mut candles = Candle::dummy_from_increments(&PRICE_CHANGES);
         let candle = candles.pop().unwrap();
 
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
         let _ = BBWP::populate_candles(&mut ts);
-        let _ = ts.add_candle(candle);
+        let _ = ts.add_candle(&candle);
 
-        let (len, lookback, _sma_len) = BBWP::default_args().extract_bbwp_opt().unwrap();
+        let (len, lookback, _sma_len) = BBWP::default_args().bbwp_opt().unwrap();
         let indicator_type = IndicatorType::BBWP(len, lookback);
 
         for (i, candle) in ts.candles.iter().enumerate() {

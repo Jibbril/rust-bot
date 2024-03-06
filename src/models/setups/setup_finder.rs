@@ -8,7 +8,6 @@ use crate::{
         traits::trading_strategy::TradingStrategy,
     },
     notifications::notification_center::NotificationCenter,
-    resolution_strategies::{atr_resolution::AtrResolution, ResolutionStrategy},
 };
 use actix::{fut::wrap_future, Actor, Addr, AsyncContext, Context, Handler};
 
@@ -60,15 +59,13 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                 println!("No setup found");
                 return;
             }
+
             let sb = sb.unwrap();
-
-            let atr = AtrResolution::new(14, 2.0, 1.0);
-            let resolution_strategy = ResolutionStrategy::ATR(atr);
-
+            let resolution_strategy = strategy.default_resolution_strategy();
             let setup = sb
-                .ticker(candle_response.symbol)
-                .interval(candle_response.interval)
-                .resolution_strategy(resolution_strategy)
+                .symbol(&candle_response.symbol)
+                .interval(&candle_response.interval)
+                .resolution_strategy(&resolution_strategy)
                 .build();
 
             let setup = match setup {

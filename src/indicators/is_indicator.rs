@@ -6,4 +6,7 @@ pub trait IsIndicator {
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
         Self: Sized;
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized;
 }

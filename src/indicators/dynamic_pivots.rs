@@ -21,7 +21,7 @@ impl PopulatesCandles for DynamicPivots {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::DynamicPivot(len);
         let min_len = 2 * len + 1;
 
@@ -30,7 +30,7 @@ impl PopulatesCandles for DynamicPivots {
             let pivot = if end < min_len {
                 None
             } else {
-                Self::calculate(&ts.candles[end - min_len..end])
+                Self::calculate_args(&ts.candles[end - min_len..end], &args)
             };
 
             // Since the dynamic pivots are populated for the "len/2"-nth
@@ -53,7 +53,7 @@ impl PopulatesCandles for DynamicPivots {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let ctx_err = "Unable to get last candle";
         let indicator_type = IndicatorType::DynamicPivot(len);
         let candle_len = ts.candles.len();
@@ -73,7 +73,7 @@ impl PopulatesCandles for DynamicPivots {
             return Ok(());
         }
 
-        let new_pivot = Self::calculate(&ts.candles[candle_len - min_len..candle_len]);
+        let new_pivot = Self::calculate_args(&ts.candles[candle_len - min_len..candle_len], &args);
 
         ts.candles
             .get_mut(candle_len - (len + 1))
@@ -124,6 +124,20 @@ impl IsIndicator for DynamicPivots {
         };
 
         Some(pivots)
+    }
+
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        let len = args.len_opt()?;
+        let segment_len = segment.len();
+
+        if segment_len < 2 * len + 1 {
+            return None;
+        }
+
+        Self::calculate(&segment[segment_len - 2 * len - 1..segment_len])
     }
 }
 

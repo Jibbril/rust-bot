@@ -9,14 +9,13 @@ mod utils;
 
 use crate::{
     indicators::{
-        atr::ATR, bbwp::BBWP, is_indicator::IsIndicator, pmarp::PMARP,
-        populates_candles::PopulatesCandles, rsi::RSI,
+        atr::ATR, is_indicator::IsIndicator, pmarp::PMARP, populates_candles::PopulatesCandles,
+        rsi::RSI,
     },
-    models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
+    models::{ma_type::MAType, net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
-    strategy_testing::test_setups,
-    trading_strategies::rsi_basic::RsiBasic,
-    utils::save_setups,
+    trading_strategies::{jb_2::JB2, rsi_basic::RsiBasic},
+    utils::{data::dummy_data::PRICE_CHANGES, save_setups},
 };
 use actix::Actor;
 use anyhow::Result;
@@ -32,43 +31,28 @@ use models::{
     setups::setup_finder::SetupFinder,
     strategy_orientation::StrategyOrientation,
     timeseries::TimeSeries,
+    timeseries_builder::TimeSeriesBuilder,
     traits::trading_strategy::TradingStrategy,
 };
+use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
-use utils::data::dummy_data::PRICE_CHANGES;
+use trading_strategies::jb_1::JB1;
 
 pub async fn run_dummy() -> Result<()> {
     let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+    let pmarp = PMARP::calculate(&candles);
+    assert!(pmarp.is_some());
 
-    let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
-
-    let _ = BBWP::populate_candles(&mut ts);
-
-    let segment = &ts.candles[ts.candles.len() - 5..];
-    let correct_values = [
-        0.5238095238095238,
-        0.5515873015873016,
-        0.5436507936507936,
-        0.5079365079365079,
-        0.4722222222222222,
-    ];
-
-    let (len, lookback, _) = BBWP::default_args().extract_bbwp_opt().unwrap();
-    for (i, val) in correct_values.iter().enumerate() {
-        let bbwp = segment[i]
-            .clone_indicator(&IndicatorType::BBWP(len, lookback))
-            .unwrap()
-            .as_bbwp()
-            .unwrap();
-        assert_eq!(*val, bbwp.value)
-    }
+    let pmarp = pmarp.unwrap();
+    assert_eq!(pmarp.value, 0.3314285714285714);
 
     Ok(())
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let (len, lookback) = PMARP::default_args().extract_len_lookback_res()?;
-    let indicator_type = IndicatorType::PMARP(len, lookback);
+    let (len, lookback, _) = PMARP::default_args().pmarp_res()?;
+    let ma_type = MAType::VWMA;
+    let indicator_type = IndicatorType::PMARP(len, lookback, ma_type);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
@@ -93,17 +77,66 @@ pub async fn run_single_indicator() -> Result<()> {
 }
 
 pub async fn run_strategy() -> Result<()> {
-    let short_strategy: Box<dyn TradingStrategy> =
-        Box::new(RsiBasic::new(14, 45.0, 55.0, StrategyOrientation::Short));
-    let long_strategy: Box<dyn TradingStrategy> =
-        Box::new(RsiBasic::new(14, 45.0, 55.0, StrategyOrientation::Long));
+    let strategy: Box<dyn TradingStrategy> = Box::new(JB1::new());
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
 
     // Initialize timeseries and indicators
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, long_strategy.max_length() + 300, &net)
+        .get_historical_data("BTCUSDT", &interval, strategy.min_length() + 300, &net)
+        .await?;
+
+    // ts.save_to_local(&source).await?;
+    // let ts = source.load_local_data(symbol, &interval).await?;
+
+    for indicator_type in strategy.required_indicators() {
+        ts.add_indicator(indicator_type)?;
+    }
+
+    let ts_addr = ts.start();
+
+    // Create setup finder and subscribe to timeseries
+    let setup_finder = SetupFinder::new(strategy, ts_addr.clone());
+
+    let sf_addr = setup_finder.start();
+
+    let payload = TSSubscribePayload {
+        observer: sf_addr.clone(),
+    };
+
+    ts_addr.do_send(payload);
+
+    // Start websocket client
+    let mut wsclient = WebsocketClient::new(source, interval, net);
+    wsclient.add_observer(ts_addr);
+    wsclient.start();
+
+    loop {
+        sleep(Duration::from_secs(1)).await;
+    }
+}
+
+pub async fn run_double_strategies() -> Result<()> {
+    let short_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_args(
+        14,
+        45.0,
+        55.0,
+        StrategyOrientation::Short,
+    ));
+    let long_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_args(
+        14,
+        45.0,
+        55.0,
+        StrategyOrientation::Long,
+    ));
+    let interval = Interval::Minute1;
+    let source = DataSource::Bybit;
+    let net = NetVersion::Mainnet;
+
+    // Initialize timeseries and indicators
+    let mut ts = source
+        .get_historical_data("BTCUSDT", &interval, long_strategy.min_length() + 300, &net)
         .await?;
     // ts.save_to_local(&source).await?;
     // let ts = source.load_local_data(symbol, &interval).await?;
@@ -170,7 +203,7 @@ pub async fn run_local() -> Result<()> {
 }
 
 pub async fn run_setup_finder() -> Result<()> {
-    let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_default());
+    let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new());
     let ts = TimeSeries::dummy();
     let ts = ts.start();
 
@@ -199,10 +232,13 @@ pub async fn run_setup_finder() -> Result<()> {
 }
 
 pub async fn run_manual_setups() -> Result<()> {
-    let mut ts = TimeSeries::new("BTCUSDT".to_string(), Interval::Day1, vec![]);
+    let mut ts = TimeSeriesBuilder::new()
+        .symbol("BTCUSDT".to_string())
+        .interval(Interval::Day1)
+        .build();
     RSI::populate_candles(&mut ts)?;
 
-    let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_default());
+    let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new());
     let ts = ts.start();
 
     let sf = SetupFinder::new(strategy, ts.clone());
@@ -231,45 +267,64 @@ pub async fn run_manual_setups() -> Result<()> {
     Ok(())
 }
 
-pub async fn _run() -> Result<()> {
+pub async fn run_strategy_tester() -> Result<()> {
     // Get TimeSeries data
     let source = DataSource::Bybit;
-    let interval = Interval::Day1;
+    let strategy: Box<dyn TradingStrategy> = Box::new(JB2::new());
+    let interval = strategy.interval();
+    let net = NetVersion::Mainnet;
+
+    println!("Fetching Timeseries data.");
+    let mut ts = source
+        .get_historical_data("BTCUSDT", &interval, 20000, &net)
+        .await?;
+
+    // Calculate indicators for TimeSeries
+    // Implement Strategy to analyze TimeSeries
+
+    println!("Starting indicator calculations.");
+    for indicator in strategy.required_indicators() {
+        println!("Populating indicator: {:#?}", indicator);
+        indicator.populate_candles(&mut ts)?;
+    }
+
+    let result = StrategyTester::test_strategy(&strategy, &ts.candles[300..])?;
+
+    println!("{:#?}", result);
+
+    Ok(())
+}
+
+pub async fn _run_strategy_testing() -> Result<()> {
+    // Get TimeSeries data
+    let source = DataSource::Bybit;
+    let interval = Interval::Hour1;
     let net = NetVersion::Mainnet;
     let mut ts = source
         .get_historical_data("BTCUSDT", &interval, 1000, &net)
         .await?;
 
     // Calculate indicators for TimeSeries
-    // SMA::populate_candles(&mut ts.candles)?;
-    // SMA::populate_candles(&mut ts.candles)?;
-    // SMA::populate_candles(&mut ts.candles)?;
-    // BollingerBands::populate_candles(&mut ts.candles)?;
-    // DynamicPivot::populate_candles(&mut ts.candles)?;
-    // BBW::populate_candles(&mut ts)?;
-    // EMA::populate_candles(&mut ts)?;
-    BBWP::populate_candles(&mut ts)?;
-    RSI::populate_candles(&mut ts)?;
-    ATR::populate_candles(&mut ts)?;
-
-    println!("Candles:{:#?}", ts.candles);
 
     // Implement Strategy to analyze TimeSeries
-    let rsi_strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new_default());
+    let strategy: Box<dyn TradingStrategy> = Box::new(JB1::new());
 
-    let rsi_setups = rsi_strategy.find_setups(&ts)?;
+    for indicator in strategy.required_indicators() {
+        indicator.populate_candles(&mut ts)?;
+    }
 
-    save_setups(&rsi_setups, "rsi-setups.csv")?;
+    let setups = strategy.find_setups(&ts)?;
+
+    let filename = format!("{}-setups.csv", strategy);
+    save_setups(&setups, &filename)?;
 
     // Send email notifications
     if false {
-        NotificationCenter::notify(&rsi_setups[0], &rsi_strategy).await?;
+        NotificationCenter::notify(&setups[0], &strategy).await?;
     }
 
-    // Test result of taking setups
-    let _ = test_setups(&rsi_setups, &ts.candles);
-
-    // println!("RSI results:{:#?}", rsi_results);
+    // Test results of taking setups
+    // let result = test_setups(&setups, &ts.candles);
 
     Ok(())
 }

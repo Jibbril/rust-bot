@@ -1,6 +1,6 @@
 #[derive(Debug, Clone)]
 #[allow(dead_code)] // TODO: Remove once used
-pub struct TestResult {
+pub struct StrategyTestResult {
     pub accuracy: f64,
     pub n_setups: usize,
     pub avg_profitability: f64,
@@ -16,4 +16,6 @@ pub struct TestResult {
     pub losses_std: f64,
     pub win_bars_std: f64,
     pub loss_bars_std: f64,
+    pub initial_account: f64,
+    pub ending_account: f64,
 }

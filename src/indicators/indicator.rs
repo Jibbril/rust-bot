@@ -55,6 +55,7 @@ impl Indicator {
         Self::get_nth_last(ts, indicator_type, 2)
     }
 
+    #[allow(dead_code)] // TODO: Remove once used
     pub fn as_sma(&self) -> Option<SMA> {
         if let Indicator::SMA(sma) = self {
             sma.clone()

@@ -32,6 +32,7 @@ pub fn secs_to_datetime(timestamp: u64) -> Result<DateTime<Utc>> {
     millis_to_datetime(timestamp * 1000)
 }
 
+#[allow(dead_code)]
 pub fn len_or_one<T>(arr: &[T]) -> usize {
     if !arr.is_empty() {
         arr.len()
@@ -40,6 +41,7 @@ pub fn len_or_one<T>(arr: &[T]) -> usize {
     }
 }
 
+#[allow(dead_code)]
 pub fn f_len_or_one<T>(arr: &[T]) -> f64 {
     len_or_one(arr) as f64
 }

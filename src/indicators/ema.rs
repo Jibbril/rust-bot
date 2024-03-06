@@ -21,7 +21,7 @@ impl PopulatesCandles for EMA {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::EMA(len);
 
         let mut prev_ema: Option<EMA> = None;
@@ -31,7 +31,7 @@ impl PopulatesCandles for EMA {
                 None
             } else if end == len || prev_ema.is_none() {
                 let start = end - len;
-                Self::calculate(&ts.candles[start..end + 1])
+                Self::calculate_args(&ts.candles[start..end + 1], &args)
             } else {
                 let prev = prev_ema.unwrap().value;
                 let current = ts.candles[end].close;
@@ -54,7 +54,7 @@ impl PopulatesCandles for EMA {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::EMA(len);
         let end = ts.candles.len();
         let ctx_err = "Unable to get last candle";
@@ -81,7 +81,7 @@ impl PopulatesCandles for EMA {
         let new_ema = if prev.is_none() {
             let start = end - len;
             let end = end - 1;
-            Self::calculate(&ts.candles[start..end])
+            Self::calculate_args(&ts.candles[start..end], &args)
         } else {
             let prev = prev.unwrap();
             let current = ts.candles.last().unwrap().close;
@@ -103,6 +103,7 @@ impl IsIndicator for EMA {
         IndicatorArgs::LengthArg(8)
     }
 
+    /// Segment should be one candle longer than the length of EMA wanted.
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
         Self: Sized,
@@ -121,6 +122,20 @@ impl IsIndicator for EMA {
 
         Some(EMA { len, value: ema })
     }
+
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        let len = args.len_opt()?;
+        let candle_len = segment.len();
+
+        if candle_len < len + 1 {
+            return None;
+        }
+
+        Self::calculate(&segment[candle_len - len - 1..candle_len])
+    }
 }
 
 impl EMA {
@@ -137,16 +152,27 @@ mod tests {
     use super::EMA;
     use crate::{
         indicators::{
-            indicator_type::IndicatorType, is_indicator::IsIndicator,
-            populates_candles::PopulatesCandles,
+            indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+            is_indicator::IsIndicator, populates_candles::PopulatesCandles,
         },
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
     };
 
     #[test]
-    fn calculate_ema() {
+    fn ema_calculate() {
         let candles = Candle::dummy_data(8, "positive", 100.0);
         let ema = EMA::calculate(&candles);
+        assert!(ema.is_some());
+
+        let ema = ema.unwrap();
+        assert_eq!(ema.value, 150.0);
+    }
+
+    #[test]
+    fn ema_calculate_args() {
+        let candles = Candle::dummy_data(8, "positive", 100.0);
+        let args = IndicatorArgs::LengthArg(7);
+        let ema = EMA::calculate_args(&candles, &args);
         assert!(ema.is_some());
 
         let ema = ema.unwrap();
@@ -161,13 +187,25 @@ mod tests {
     }
 
     #[test]
+    fn ema_no_candles_args() {
+        let candles: Vec<Candle> = Vec::new();
+        let args = EMA::default_args();
+        let ema = EMA::calculate_args(&candles, &args);
+        assert!(ema.is_none());
+    }
+
+    #[test]
     fn ema_populate_candles() {
         let candles = Candle::dummy_data(10, "positive", 100.0);
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = EMA::populate_candles(&mut ts);
 
-        let len = EMA::default_args().extract_len_opt().unwrap();
+        let len = EMA::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::EMA(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {
@@ -196,11 +234,15 @@ mod tests {
         let mut candles = Candle::dummy_data(10, "positive", 100.0);
         let candle = candles.pop().unwrap();
 
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
         let _ = EMA::populate_candles(&mut ts);
-        let _ = ts.add_candle(candle);
+        let _ = ts.add_candle(&candle);
 
-        let len = EMA::default_args().extract_len_opt().unwrap();
+        let len = EMA::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::EMA(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {

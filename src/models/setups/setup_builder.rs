@@ -1,7 +1,7 @@
 use super::setup::Setup;
 use crate::{
     models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation},
-    resolution_strategies::ResolutionStrategy,
+    resolution_strategies::resolution_strategy::ResolutionStrategy,
 };
 use anyhow::{anyhow, Result};
 
@@ -9,7 +9,7 @@ use anyhow::{anyhow, Result};
 pub struct SetupBuilder {
     pub candle: Option<Candle>,
     pub orientation: Option<StrategyOrientation>,
-    pub ticker: Option<String>,
+    pub symbol: Option<String>,
     pub interval: Option<Interval>,
     pub resolution_strategy: Option<ResolutionStrategy>,
     pub stop_loss: Option<f64>,
@@ -22,7 +22,7 @@ impl SetupBuilder {
         SetupBuilder {
             candle: None,
             orientation: None,
-            ticker: None,
+            symbol: None,
             interval: None,
             resolution_strategy: None,
             stop_loss: None,
@@ -30,28 +30,28 @@ impl SetupBuilder {
         }
     }
 
-    pub fn candle(mut self, candle: Candle) -> Self {
-        self.candle = Some(candle);
+    pub fn candle(mut self, candle: &Candle) -> Self {
+        self.candle = Some(candle.clone());
         self
     }
 
-    pub fn orientation(mut self, orientation: StrategyOrientation) -> Self {
-        self.orientation = Some(orientation);
+    pub fn orientation(mut self, orientation: &StrategyOrientation) -> Self {
+        self.orientation = Some(orientation.clone());
         self
     }
 
-    pub fn ticker(mut self, ticker: String) -> Self {
-        self.ticker = Some(ticker);
+    pub fn symbol(mut self, symbol: &str) -> Self {
+        self.symbol = Some(symbol.to_string());
         self
     }
 
-    pub fn interval(mut self, interval: Interval) -> Self {
-        self.interval = Some(interval);
+    pub fn interval(mut self, interval: &Interval) -> Self {
+        self.interval = Some(interval.clone());
         self
     }
 
-    pub fn resolution_strategy(mut self, resolution_strategy: ResolutionStrategy) -> Self {
-        self.resolution_strategy = Some(resolution_strategy);
+    pub fn resolution_strategy(mut self, resolution_strategy: &ResolutionStrategy) -> Self {
+        self.resolution_strategy = Some(resolution_strategy.clone());
         self
     }
 
@@ -70,7 +70,7 @@ impl SetupBuilder {
         let orientation = self
             .orientation
             .ok_or(anyhow!("Orientation is required."))?;
-        let ticker = self.ticker.clone().ok_or(anyhow!("Ticker is required."))?;
+        let symbol = self.symbol.clone().ok_or(anyhow!("Symbol is required."))?;
         let interval = self
             .interval
             .clone()
@@ -79,7 +79,7 @@ impl SetupBuilder {
         Ok(Setup {
             candle,
             orientation,
-            ticker,
+            symbol,
             interval,
             resolution_strategy: self.resolution_strategy.clone(),
             stop_loss: self.stop_loss,

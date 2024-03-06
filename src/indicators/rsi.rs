@@ -20,7 +20,7 @@ impl PopulatesCandles for RSI {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::RSI(len);
 
         let mut prev: Option<RSI> = None;
@@ -30,7 +30,7 @@ impl PopulatesCandles for RSI {
                 None
             } else if i == len || prev.is_none() {
                 let start = i - len;
-                Self::calculate(&ts.candles[start..i + 1])
+                Self::calculate_args(&ts.candles[start..i + 1], &args)
             } else {
                 let candles = (&ts.candles[i - 1], &ts.candles[i]);
                 let prev = prev.unwrap();
@@ -53,7 +53,7 @@ impl PopulatesCandles for RSI {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let len = args.extract_len_res()?;
+        let len = args.len_res()?;
         let indicator_type = IndicatorType::RSI(len);
         let ctx_err = "Unable to get last candle";
         let candle_len = ts.candles.len();
@@ -79,7 +79,7 @@ impl PopulatesCandles for RSI {
         let new_rsi = if prev_rsi.is_none() {
             let start = candle_len - len;
             let end = candle_len - 1;
-            Self::calculate(&ts.candles[start..end])
+            Self::calculate_args(&ts.candles[start..end], &args)
         } else {
             let candles = (&ts.candles[candle_len - 2], &ts.candles[candle_len - 1]);
             Self::calculate_rolling(candles, prev_rsi.unwrap(), len)
@@ -100,6 +100,7 @@ impl IsIndicator for RSI {
         IndicatorArgs::LengthArg(14)
     }
 
+    /// Segment should be the length + 1 for the RSI wanted.
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
         Self: Sized,
@@ -118,6 +119,20 @@ impl IsIndicator for RSI {
         };
 
         Self::calculate_rsi(rs, len, (avg_gain, avg_loss))
+    }
+
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        let len = args.len_opt()?;
+        let candle_len = segment.len();
+
+        if candle_len < len + 1 {
+            return None;
+        }
+
+        Self::calculate(&segment[candle_len - len - 1..candle_len])
     }
 }
 
@@ -189,16 +204,27 @@ impl RSI {
 mod tests {
     use crate::{
         indicators::{
-            indicator_type::IndicatorType, is_indicator::IsIndicator,
-            populates_candles::PopulatesCandles, rsi::RSI,
+            indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+            is_indicator::IsIndicator, populates_candles::PopulatesCandles, rsi::RSI,
         },
-        models::{candle::Candle, interval::Interval, timeseries::TimeSeries},
+        models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
     };
 
     #[test]
-    fn rsi_calculation() {
+    fn rsi_calculate() {
         let candles = Candle::dummy_data(14, "alternating", 100.0);
         let rsi = RSI::calculate(&candles);
+
+        assert!(rsi.is_some());
+        let rsi = rsi.unwrap();
+        assert!(rsi.value >= 0.0 && rsi.value <= 100.0)
+    }
+
+    #[test]
+    fn rsi_calculate_args() {
+        let candles = Candle::dummy_data(14, "alternating", 100.0);
+        let args = IndicatorArgs::LengthArg(13);
+        let rsi = RSI::calculate_args(&candles, &args);
 
         assert!(rsi.is_some());
         let rsi = rsi.unwrap();
@@ -213,13 +239,25 @@ mod tests {
     }
 
     #[test]
+    fn rsi_no_candles_args() {
+        let candles: Vec<Candle> = Vec::new();
+        let args = RSI::default_args();
+        let rsi = RSI::calculate_args(&candles, &args);
+        assert!(rsi.is_none());
+    }
+
+    #[test]
     fn rsi_populate_candles() {
         let candles = Candle::dummy_data(130, "alternating", 100.0);
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = RSI::populate_candles(&mut ts);
 
-        let len = RSI::default_args().extract_len_opt().unwrap();
+        let len = RSI::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::RSI(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {
@@ -245,15 +283,19 @@ mod tests {
     #[test]
     fn rsi_populate_last_candle() {
         let candles = Candle::dummy_data(150, "alternating", 100.0);
-        let mut ts = TimeSeries::new("DUMMY".to_string(), Interval::Day1, candles);
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
 
         let _ = RSI::populate_candles(&mut ts);
 
         let candle = Candle::dummy_from_val(200.0);
 
-        let _ = ts.add_candle(candle);
+        let _ = ts.add_candle(&candle);
 
-        let len = RSI::default_args().extract_len_opt().unwrap();
+        let len = RSI::default_args().len_opt().unwrap();
         let indicator_type = IndicatorType::RSI(len);
 
         for (i, candle) in ts.candles.iter().enumerate() {
