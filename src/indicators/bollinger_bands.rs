@@ -1,12 +1,12 @@
-use anyhow::{anyhow, Context, Result};
-use crate::{
-    models::{candle::Candle, timeseries::TimeSeries},
-    utils::math::{sma, std},
-};
 use super::{
     indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
     is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
+use crate::{
+    models::{candle::Candle, timeseries::TimeSeries},
+    utils::math::{sma, std},
+};
+use anyhow::{anyhow, Context, Result};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct BollingerBands {
@@ -82,9 +82,12 @@ impl IsIndicator for BollingerBands {
         IndicatorArgs::BollingerBandArgs(20, 2.0)
     }
 
-    /// Segment should have the same number of candles as the desired length of 
+    /// Segment should have the same number of candles as the desired length of
     /// BollingerBands wanted.
-    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized, {
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
         if segment.len() == 0 {
             return None;
         }
@@ -95,23 +98,27 @@ impl IsIndicator for BollingerBands {
         Self::calculate_bb(segment, &args)
     }
 
-    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
-    where 
-        Self: Sized {
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
         let (arg_len, _) = args.bb_opt()?;
         let candle_len = segment.len();
 
         if candle_len < arg_len {
-            return None
-        } 
+            return None;
+        }
 
-        Self::calculate_bb(&segment[candle_len-arg_len..candle_len], args)
+        Self::calculate_bb(&segment[candle_len - arg_len..candle_len], args)
     }
 }
 
 impl BollingerBands {
-    fn calculate_bb(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> where Self: Sized {
-        let (_,std_n) = args.bb_opt()?;
+    fn calculate_bb(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        let (_, std_n) = args.bb_opt()?;
         let values: Vec<f64> = segment.iter().map(|c| c.close).collect();
 
         let sma = sma(&values);

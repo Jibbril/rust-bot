@@ -59,7 +59,7 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                 println!("No setup found");
                 return;
             }
-            
+
             let sb = sb.unwrap();
             let resolution_strategy = strategy.default_resolution_strategy();
             let setup = sb

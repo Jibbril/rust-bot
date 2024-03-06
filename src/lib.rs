@@ -9,13 +9,13 @@ mod utils;
 
 use crate::{
     indicators::{
-        atr::ATR, is_indicator::IsIndicator, pmarp::PMARP,
-        populates_candles::PopulatesCandles, rsi::RSI,
+        atr::ATR, is_indicator::IsIndicator, pmarp::PMARP, populates_candles::PopulatesCandles,
+        rsi::RSI,
     },
-    models::{net_version::NetVersion, websockets::wsclient::WebsocketClient, ma_type::MAType},
+    models::{ma_type::MAType, net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
-    trading_strategies::{rsi_basic::RsiBasic, jb_2::JB2},
-    utils::{save_setups, data::dummy_data::PRICE_CHANGES},
+    trading_strategies::{jb_2::JB2, rsi_basic::RsiBasic},
+    utils::{data::dummy_data::PRICE_CHANGES, save_setups},
 };
 use actix::Actor;
 use anyhow::Result;
@@ -31,7 +31,8 @@ use models::{
     setups::setup_finder::SetupFinder,
     strategy_orientation::StrategyOrientation,
     timeseries::TimeSeries,
-    traits::trading_strategy::TradingStrategy, timeseries_builder::TimeSeriesBuilder,
+    timeseries_builder::TimeSeriesBuilder,
+    traits::trading_strategy::TradingStrategy,
 };
 use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
@@ -283,13 +284,13 @@ pub async fn run_strategy_tester() -> Result<()> {
 
     println!("Starting indicator calculations.");
     for indicator in strategy.required_indicators() {
-        println!("Populating indicator: {:#?}",indicator);
+        println!("Populating indicator: {:#?}", indicator);
         indicator.populate_candles(&mut ts)?;
     }
 
     let result = StrategyTester::test_strategy(&strategy, &ts.candles[300..])?;
 
-    println!("{:#?}",result);
+    println!("{:#?}", result);
 
     Ok(())
 }

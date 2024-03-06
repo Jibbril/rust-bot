@@ -1,14 +1,32 @@
-use std::{fmt::{Display, Formatter}, collections::HashSet};
+use crate::{
+    indicators::indicator_type::IndicatorType,
+    models::{
+        candle::Candle,
+        interval::Interval,
+        ma_type::MAType,
+        setups::{setup::Setup, setup_builder::SetupBuilder},
+        strategy_orientation::StrategyOrientation,
+        timeseries::TimeSeries,
+        traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
+    },
+    resolution_strategies::{
+        pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution,
+        resolution_strategy::ResolutionStrategy,
+    },
+};
 use anyhow::Result;
-use chrono::{Weekday, Datelike};
-use crate::{models::{traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, setups::{setup::Setup, setup_builder::SetupBuilder}, timeseries::TimeSeries, strategy_orientation::StrategyOrientation, candle::Candle, ma_type::MAType, interval::Interval}, indicators::indicator_type::IndicatorType, resolution_strategies::{resolution_strategy::ResolutionStrategy, pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution}};
+use chrono::{Datelike, Weekday};
+use std::{
+    collections::HashSet,
+    fmt::{Display, Formatter},
+};
 
 /// # JB 2
 ///
 /// Trading strategy based on the strategy presented by Eric Crown in [this](https://www.youtube.com/watch?v=sB-8FTHA9hI&list=WL&index=8)
 /// video. It is based around identifying periods of low PMARP and BBWP values
 /// which initiate long-entries. Important to note DO NOT TRADE THURSDAYS AND
-/// SUNDAYS. 
+/// SUNDAYS.
 ///
 /// ## Directionality
 /// - Long
@@ -17,7 +35,7 @@ use crate::{models::{traits::{trading_strategy::TradingStrategy, requires_indica
 /// - 15 Minute
 ///
 /// ## Indicators
-/// - PMARP, 100 lookback, 21 length, EMA-based 
+/// - PMARP, 100 lookback, 21 length, EMA-based
 /// - BBWP, 13 sample length, 5 sma length, 252 lookback
 ///
 /// ## Entry conditions
@@ -44,11 +62,14 @@ pub struct JB2 {
     pmarp_ma_type: MAType,
     bbwp_len: usize,
     bbwp_lookback: usize,
-    trading_days: HashSet<Weekday>
+    trading_days: HashSet<Weekday>,
 }
 
 impl TradingStrategy for JB2 {
-    fn new() -> Self where Self: Sized {
+    fn new() -> Self
+    where
+        Self: Sized,
+    {
         Self {
             pmarp_len: 21,
             pmarp_lookback: 100,
@@ -68,10 +89,7 @@ impl TradingStrategy for JB2 {
 
         for window in ts.candles.windows(self.candles_needed_for_setup()) {
             if let Some(sb) = self.check_last_for_setup(&window) {
-                let setup = sb
-                    .symbol(&ts.symbol)
-                    .interval(&ts.interval)
-                    .build()?;
+                let setup = sb.symbol(&ts.symbol).interval(&ts.interval).build()?;
                 setups.push(setup);
             }
         }
@@ -89,8 +107,8 @@ impl TradingStrategy for JB2 {
         }
 
         let len = candles.len();
-        let current = &candles[len-1];
-        let previous = &candles[len-2];
+        let current = &candles[len - 1];
+        let previous = &candles[len - 2];
 
         let is_active_day = self.trading_days.contains(&current.timestamp.weekday());
         if !is_active_day {
@@ -99,17 +117,20 @@ impl TradingStrategy for JB2 {
 
         let pmarp = current
             .indicators
-            .get(&IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type))?
+            .get(&IndicatorType::PMARP(
+                self.pmarp_len,
+                self.pmarp_lookback,
+                self.pmarp_ma_type,
+            ))?
             .as_pmarp()?;
 
-        let bbwp_type = IndicatorType::BBWP(self.bbwp_len,self.bbwp_lookback);
+        let bbwp_type = IndicatorType::BBWP(self.bbwp_len, self.bbwp_lookback);
         let current_bbwp = current.indicators.get(&bbwp_type)?.as_bbwp()?;
         let prev_bbwp = previous.indicators.get(&bbwp_type)?.as_bbwp()?;
 
         let bbwp_ma_sloped_down = current_bbwp.sma < prev_bbwp.sma;
         let bbwp_low_enough = current_bbwp.value < 0.5;
         let pmarp_low_enough = pmarp.value < 0.2;
-
 
         if bbwp_ma_sloped_down && bbwp_low_enough && pmarp_low_enough {
             let resolution_strategy = self.default_resolution_strategy();
@@ -175,11 +196,11 @@ impl JB2 {
 impl RequiresIndicators for JB2 {
     fn required_indicators(&self) -> Vec<IndicatorType> {
         vec![
-            // PMARP is EMA based, add here to ensure existence everywhere this 
+            // PMARP is EMA based, add here to ensure existence everywhere this
             // strategy is used and reduce number of calculations.
             IndicatorType::EMA(self.pmarp_len),
             IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type),
-            IndicatorType::BBWP(self.bbwp_len, self.bbwp_lookback)
+            IndicatorType::BBWP(self.bbwp_len, self.bbwp_lookback),
         ]
     }
 }

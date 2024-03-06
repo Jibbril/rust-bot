@@ -1,5 +1,5 @@
-use actix::Message;
 use crate::models::interval::Interval;
+use actix::Message;
 
 #[derive(Debug, Clone)]
 pub struct FillHistoricalCandlesPayload {

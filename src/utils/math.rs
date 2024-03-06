@@ -27,20 +27,16 @@ pub fn ema_rolling(prev_ema: f64, price: f64, len: f64) -> f64 {
     (price * smoothing) + (prev_ema * (1.0 - smoothing))
 }
 
-pub fn vwma(segment: &[(f64,f64)]) -> f64 {
+pub fn vwma(segment: &[(f64, f64)]) -> f64 {
     let len = segment.len();
 
     if len == 0 {
         return 0.0;
     }
 
-    let pxv: f64 = segment.iter()
-        .map(|(price, volume)| price * volume)
-        .sum();
+    let pxv: f64 = segment.iter().map(|(price, volume)| price * volume).sum();
 
-    let vs: f64 = segment.iter()
-        .map(|(_,volume)| volume)
-        .sum();
+    let vs: f64 = segment.iter().map(|(_, volume)| volume).sum();
 
-    pxv/vs
+    pxv / vs
 }

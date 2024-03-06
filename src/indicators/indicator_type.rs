@@ -12,7 +12,7 @@ use super::{
     rsi::RSI,
     sma::SMA,
 };
-use crate::models::{timeseries::TimeSeries, ma_type::MAType};
+use crate::models::{ma_type::MAType, timeseries::TimeSeries};
 use anyhow::Result;
 use serde::Serialize;
 
@@ -27,7 +27,7 @@ pub enum IndicatorType {
     BBW(usize),
     BBWP(usize, usize), // length, lookback
     DynamicPivot(usize),
-    PMAR(usize,MAType),
+    PMAR(usize, MAType),
     PMARP(usize, usize, MAType), // length, lookback
 }
 
@@ -66,10 +66,10 @@ impl PopulatesCandlesWithSelf for IndicatorType {
                 let args = IndicatorArgs::LengthArg(*len);
                 SMA::populate_candles_args(ts, args)
             }
-            IndicatorType::PMAR(len,ma_type) => {
+            IndicatorType::PMAR(len, ma_type) => {
                 let args = IndicatorArgs::PMARArgs(*len, *ma_type);
                 PMAR::populate_candles_args(ts, args)
-          }
+            }
             IndicatorType::PMARP(len, lookback, ma_type) => {
                 let args = IndicatorArgs::PMARPArgs(*len, *lookback, *ma_type);
                 PMARP::populate_candles_args(ts, args)
@@ -112,7 +112,7 @@ impl PopulatesCandlesWithSelf for IndicatorType {
                 SMA::populate_last_candle_args(ts, args)
             }
             IndicatorType::PMAR(len, ma_type) => {
-                let args = IndicatorArgs::PMARArgs(*len,*ma_type);
+                let args = IndicatorArgs::PMARArgs(*len, *ma_type);
                 PMAR::populate_last_candle_args(ts, args)
             }
             IndicatorType::PMARP(len, lookback, ma_type) => {

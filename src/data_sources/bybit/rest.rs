@@ -3,9 +3,12 @@ use std::vec;
 use super::{bybit_structs::BybitApiResponse, util::interval_to_str};
 use crate::{
     data_sources::api_response::ApiResponse,
-    models::{interval::Interval, net_version::NetVersion, timeseries::TimeSeries, candle::Candle, timeseries_builder::TimeSeriesBuilder},
+    models::{
+        candle::Candle, interval::Interval, net_version::NetVersion, timeseries::TimeSeries,
+        timeseries_builder::TimeSeriesBuilder,
+    },
 };
-use anyhow::{anyhow, Result, Context};
+use anyhow::{anyhow, Context, Result};
 use chrono::Utc;
 use reqwest::Client;
 
@@ -54,7 +57,14 @@ pub async fn get(
             remaining += 1;
         }
 
-        let url = generate_url(symbol, interval, remaining, net, end.timestamp_millis(), None)?;
+        let url = generate_url(
+            symbol,
+            interval,
+            remaining,
+            net,
+            end.timestamp_millis(),
+            None,
+        )?;
         let response = client.get(url).send().await?;
 
         match response.status() {
@@ -64,7 +74,8 @@ pub async fn get(
                 candles.reverse();
                 acc.extend(candles.clone());
 
-                end = candles.last()
+                end = candles
+                    .last()
                     .context("Expected at least one candle.")?
                     .timestamp;
 
@@ -74,7 +85,6 @@ pub async fn get(
             }
             _ => Err(anyhow!(BYBIT_ERROR)),
         }?;
-
 
         if first_iter {
             first_iter = false;
@@ -93,12 +103,12 @@ pub async fn get(
 }
 
 fn generate_url(
-    symbol: &str, 
-    interval: &Interval, 
-    len: usize, 
+    symbol: &str,
+    interval: &Interval,
+    len: usize,
     net: &NetVersion,
     end: i64,
-    start: Option<i64>
+    start: Option<i64>,
 ) -> Result<String> {
     let interval = interval_to_str(interval)?;
     let base = match net {
@@ -108,7 +118,11 @@ fn generate_url(
 
     let mut url = format!(
         "{}/v5/market/kline?category=spot&symbol={}&interval={}&limit={}&end={}",
-        base, symbol, interval, len, end.to_string()
+        base,
+        symbol,
+        interval,
+        len,
+        end.to_string()
     );
 
     match start {

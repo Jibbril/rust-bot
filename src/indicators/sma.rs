@@ -81,7 +81,10 @@ impl IsIndicator for SMA {
     }
 
     /// Segment should be the same length as the of SMA wanted.
-    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized, {
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
         let len = segment.len();
         if len == 0 {
             return None;
@@ -95,9 +98,10 @@ impl IsIndicator for SMA {
         })
     }
 
-    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
-    where 
-        Self: Sized {
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
         let len = args.len_opt()?;
         let candle_len = segment.len();
 
@@ -105,7 +109,7 @@ impl IsIndicator for SMA {
             return None;
         }
 
-        Self::calculate(&segment[candle_len-len..candle_len])
+        Self::calculate(&segment[candle_len - len..candle_len])
     }
 }
 
@@ -114,8 +118,8 @@ mod tests {
     use super::SMA;
     use crate::{
         indicators::{
-            indicator_type::IndicatorType, is_indicator::IsIndicator,
-            populates_candles::PopulatesCandles, indicator_args::IndicatorArgs,
+            indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+            is_indicator::IsIndicator, populates_candles::PopulatesCandles,
         },
         models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
     };

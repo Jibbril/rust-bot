@@ -1,6 +1,9 @@
 use crate::{
     data_sources::api_response::ApiResponse,
-    models::{candle::Candle, interval::Interval, timeseries::TimeSeries, timeseries_builder::TimeSeriesBuilder},
+    models::{
+        candle::Candle, interval::Interval, timeseries::TimeSeries,
+        timeseries_builder::TimeSeriesBuilder,
+    },
     utils::millis_to_datetime,
 };
 use anyhow::{anyhow, Result};

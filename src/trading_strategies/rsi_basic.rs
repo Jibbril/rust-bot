@@ -2,15 +2,22 @@ use crate::{
     indicators::{indicator_type::IndicatorType, rsi::RSI},
     models::{
         candle::Candle,
+        interval::Interval,
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, interval::Interval,
-    }, resolution_strategies::{fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy},
+        traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
+    },
+    resolution_strategies::{
+        fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy,
+    },
 };
 use anyhow::Result;
-use chrono::{Weekday, Datelike};
-use std::{fmt::{Display, Formatter}, collections::HashSet};
+use chrono::{Datelike, Weekday};
+use std::{
+    collections::HashSet,
+    fmt::{Display, Formatter},
+};
 
 /// # RSIBasic
 ///
@@ -27,7 +34,7 @@ pub struct RsiBasic {
     pub upper_band: f64,
     pub lower_band: f64,
     pub orientation: StrategyOrientation,
-    pub trading_days: HashSet<Weekday>
+    pub trading_days: HashSet<Weekday>,
 }
 
 impl RsiBasic {
@@ -43,7 +50,7 @@ impl RsiBasic {
             upper_band,
             lower_band,
             orientation,
-            trading_days: Self::build_trading_days()
+            trading_days: Self::build_trading_days(),
         }
     }
 

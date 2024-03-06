@@ -77,7 +77,7 @@ impl IsIndicator for BBW {
         IndicatorArgs::BollingerBandArgs(20, 2.0)
     }
 
-    /// Segment should have the same number of candles as the desired length of 
+    /// Segment should have the same number of candles as the desired length of
     /// BBW wanted.
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
@@ -90,9 +90,10 @@ impl IsIndicator for BBW {
         })
     }
 
-    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
-    where 
-        Self: Sized {
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
         let bb = BollingerBands::calculate_args(segment, args)?;
 
         Some(BBW {
@@ -125,7 +126,7 @@ mod tests {
     fn bbw_calculate_args() {
         let candles = Candle::dummy_data(20, "positive", 100.0);
         let args = BBW::default_args();
-        let bbw = BBW::calculate_args(&candles,&args);
+        let bbw = BBW::calculate_args(&candles, &args);
         assert!(bbw.is_some());
         let bbw = bbw.unwrap();
         assert_eq!(bbw.value, 1.1543570308487054);
@@ -154,7 +155,6 @@ mod tests {
             .interval(Interval::Day1)
             .candles(candles)
             .build();
-        
 
         let _ = BBW::populate_candles(&mut ts);
 

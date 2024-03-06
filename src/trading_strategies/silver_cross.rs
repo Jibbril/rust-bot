@@ -2,15 +2,22 @@ use crate::{
     indicators::{indicator_type::IndicatorType, sma::SMA},
     models::{
         candle::Candle,
+        interval::Interval,
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, interval::Interval,
-    }, resolution_strategies::{fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy},
+        traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
+    },
+    resolution_strategies::{
+        fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy,
+    },
 };
 use anyhow::Result;
 use chrono::Weekday;
-use std::{fmt::{Display, Formatter}, collections::HashSet};
+use std::{
+    collections::HashSet,
+    fmt::{Display, Formatter},
+};
 
 /// # Silver Cross Strategy
 ///
@@ -21,7 +28,7 @@ pub struct SilverCross {
     pub short_len: usize,
     pub long_len: usize,
     pub orientation: StrategyOrientation,
-    pub trading_days: HashSet<Weekday>
+    pub trading_days: HashSet<Weekday>,
 }
 
 impl SilverCross {
@@ -31,7 +38,7 @@ impl SilverCross {
             orientation,
             short_len,
             long_len,
-            trading_days: Self::build_trading_days()
+            trading_days: Self::build_trading_days(),
         }
     }
 
@@ -76,7 +83,7 @@ impl TradingStrategy for SilverCross {
             orientation: StrategyOrientation::Long,
             short_len: 21,
             long_len: 55,
-            trading_days: Self::build_trading_days()
+            trading_days: Self::build_trading_days(),
         }
     }
 

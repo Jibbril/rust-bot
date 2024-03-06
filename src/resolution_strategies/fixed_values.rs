@@ -1,12 +1,18 @@
-use anyhow::{Result, anyhow};
-use serde::{Serialize, Deserialize};
-use crate::{models::{strategy_orientation::StrategyOrientation, candle::Candle, traits::requires_indicators::RequiresIndicators, setups::setup::Setup}, indicators::indicator_type::IndicatorType};
 use super::is_resolution_strategy::IsResolutionStrategy;
+use crate::{
+    indicators::indicator_type::IndicatorType,
+    models::{
+        candle::Candle, setups::setup::Setup, strategy_orientation::StrategyOrientation,
+        traits::requires_indicators::RequiresIndicators,
+    },
+};
+use anyhow::{anyhow, Result};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FixedValuesResolution {
     pub high: f64,
-    pub low: f64
+    pub low: f64,
 }
 
 impl IsResolutionStrategy for FixedValuesResolution {
@@ -18,9 +24,13 @@ impl IsResolutionStrategy for FixedValuesResolution {
         1
     }
 
-    fn stop_loss_reached(&self, orientation: &StrategyOrientation, candles: &[Candle]) -> Result<bool> {
+    fn stop_loss_reached(
+        &self,
+        orientation: &StrategyOrientation,
+        candles: &[Candle],
+    ) -> Result<bool> {
         if candles.len() < 1 {
-            return Err(anyhow!("No candle provided for fixed value resolution."))
+            return Err(anyhow!("No candle provided for fixed value resolution."));
         }
 
         let candle = &candles[0];
@@ -31,9 +41,13 @@ impl IsResolutionStrategy for FixedValuesResolution {
         })
     }
 
-    fn take_profit_reached(&self, orientation: &StrategyOrientation, candles: &[Candle]) -> Result<bool> {
+    fn take_profit_reached(
+        &self,
+        orientation: &StrategyOrientation,
+        candles: &[Candle],
+    ) -> Result<bool> {
         if candles.len() < 1 {
-            return Err(anyhow!("No candle provided for fixed value resolution."))
+            return Err(anyhow!("No candle provided for fixed value resolution."));
         }
 
         let candle = &candles[0];
@@ -45,7 +59,9 @@ impl IsResolutionStrategy for FixedValuesResolution {
     }
 
     fn set_initial_values(&mut self, _setup: &Setup) -> Result<()> {
-        Err(anyhow!("Fixed resolution does not support setting initial values from setup."))
+        Err(anyhow!(
+            "Fixed resolution does not support setting initial values from setup."
+        ))
     }
 }
 
@@ -60,5 +76,3 @@ impl FixedValuesResolution {
         Self { high, low }
     }
 }
-
-

@@ -1,7 +1,10 @@
+use super::{
+    candle::Candle, interval::Interval, net_version::NetVersion, setups::setup_finder::SetupFinder,
+    timeseries::TimeSeries,
+};
+use crate::indicators::indicator_type::IndicatorType;
 use actix::Addr;
 use indexmap::IndexSet;
-use crate::indicators::indicator_type::IndicatorType;
-use super::{interval::Interval, candle::Candle, setups::setup_finder::SetupFinder, net_version::NetVersion, timeseries::TimeSeries}; 
 
 #[derive(Debug, Clone)]
 pub struct TimeSeriesBuilder {

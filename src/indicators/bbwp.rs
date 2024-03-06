@@ -151,13 +151,17 @@ impl IsIndicator for BBWP {
     /// Note: Due to api based on segment length, the segment needs "len"
     /// number of extra candles. This is due to the get_bbws function resulting
     /// in the "len" first being empty values.
-    fn calculate(segment: &[Candle]) -> Option<Self> where Self: Sized, {
+    fn calculate(segment: &[Candle]) -> Option<Self>
+    where
+        Self: Sized,
+    {
         Self::calculate_bbwp(segment, &Self::default_args())
     }
 
-    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
-    where 
-        Self: Sized {
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
         Self::calculate_bbwp(segment, args)
     }
 }

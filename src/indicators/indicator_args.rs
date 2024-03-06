@@ -1,15 +1,15 @@
-use anyhow::{anyhow, Result};
 use crate::models::ma_type::MAType;
+use anyhow::{anyhow, Result};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub enum IndicatorArgs {
     LengthArg(usize),
-    BollingerBandArgs(usize, f64),      // length, n-standard deviations
-    BBWPArgs(usize, usize, usize),      // bbwp-length, lookback, sma-length
-    LengthLookbackArgs(usize, usize),   // Length, lookback
-    PMARArgs(usize,MAType),             // Length, moving average type
-    PMARPArgs(usize,usize,MAType)       // Lenght, lookback, moving average type
+    BollingerBandArgs(usize, f64),    // length, n-standard deviations
+    BBWPArgs(usize, usize, usize),    // bbwp-length, lookback, sma-length
+    LengthLookbackArgs(usize, usize), // Length, lookback
+    PMARArgs(usize, MAType),          // Length, moving average type
+    PMARPArgs(usize, usize, MAType),  // Lenght, lookback, moving average type
 }
 
 const ERR_MSG: &str = "Invalid indicator arguments.";
@@ -92,7 +92,7 @@ impl IndicatorArgs {
     }
 
     #[allow(dead_code)]
-    pub fn pmarp_opt(&self) -> Option<(usize,usize, MAType)> {
+    pub fn pmarp_opt(&self) -> Option<(usize, usize, MAType)> {
         match self {
             IndicatorArgs::PMARPArgs(a, b, c) => Some((*a, *b, *c)),
             _ => return None,

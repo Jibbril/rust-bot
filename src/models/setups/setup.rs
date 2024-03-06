@@ -1,7 +1,9 @@
 use super::csv_setup_row::CsvSetupRow;
 use crate::{
     models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation},
-    resolution_strategies::{resolution_strategy::ResolutionStrategy, dynamic_pivot::DynamicPivotResolution},
+    resolution_strategies::{
+        dynamic_pivot::DynamicPivotResolution, resolution_strategy::ResolutionStrategy,
+    },
 };
 use serde::{Deserialize, Serialize};
 

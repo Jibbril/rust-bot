@@ -3,7 +3,7 @@ use super::{
     is_indicator::IsIndicator, pmar::PMAR, populates_candles::PopulatesCandles,
 };
 use crate::{
-    models::{candle::Candle, timeseries::TimeSeries, ma_type::MAType},
+    models::{candle::Candle, ma_type::MAType, timeseries::TimeSeries},
     utils::math::sma,
 };
 use anyhow::{anyhow, Context, Result};
@@ -106,7 +106,7 @@ impl PopulatesCandles for PMARP {
         };
 
         let mut new_pmarp = Self::calculate_args(&ts.candles[start..end], &args)
-                .context("Unable to calculate PMARP")?;
+            .context("Unable to calculate PMARP")?;
 
         ts.candles
             .last_mut()
@@ -148,12 +148,13 @@ impl IsIndicator for PMARP {
         Self::calculate_args(segment, &Self::default_args())
     }
 
-    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
-    where 
-        Self: Sized {
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
         let mut pmars = Self::get_pmars(segment, args).ok()?;
         let new_pmar = pmars.pop()??;
-        let (len, lookback,_) = args.pmarp_opt()?;
+        let (len, lookback, _) = args.pmarp_opt()?;
 
         let count = pmars
             .iter()
@@ -221,10 +222,13 @@ impl PMARP {
 mod tests {
     use crate::{
         indicators::{
-            indicator_type::IndicatorType, is_indicator::IsIndicator, pmarp::PMARP,
-            populates_candles::PopulatesCandles, indicator_args::IndicatorArgs,
+            indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+            is_indicator::IsIndicator, pmarp::PMARP, populates_candles::PopulatesCandles,
         },
-        models::{candle::Candle, interval::Interval, ma_type::MAType, timeseries_builder::TimeSeriesBuilder},
+        models::{
+            candle::Candle, interval::Interval, ma_type::MAType,
+            timeseries_builder::TimeSeriesBuilder,
+        },
         utils::data::dummy_data::PRICE_CHANGES,
     };
 

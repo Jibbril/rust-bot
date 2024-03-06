@@ -3,7 +3,7 @@ use super::{
     is_indicator::IsIndicator, populates_candles::PopulatesCandles,
 };
 use crate::{
-    models::{candle::Candle, timeseries::TimeSeries, ma_type::MAType},
+    models::{candle::Candle, ma_type::MAType, timeseries::TimeSeries},
     utils::math::{sma, vwma},
 };
 use anyhow::{anyhow, Context, Result};
@@ -35,8 +35,8 @@ impl PopulatesCandles for PMAR {
     }
 
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len,ma_type) = args.pmar_res()?;
-        let indicator_type = IndicatorType::PMAR(len,ma_type);
+        let (len, ma_type) = args.pmar_res()?;
+        let indicator_type = IndicatorType::PMAR(len, ma_type);
 
         for i in 0..ts.candles.len() {
             let end = i + 1;
@@ -51,12 +51,12 @@ impl PopulatesCandles for PMAR {
                 .indicators
                 .insert(indicator_type, Indicator::PMAR(pmar));
 
-            // If ma type is EMA one extra candle is needed to proceed with 
-            // calculations (EMA always needs one extra previous value as 
+            // If ma type is EMA one extra candle is needed to proceed with
+            // calculations (EMA always needs one extra previous value as
             // compared to SMA and VWMA.
             let needed_len = match ma_type {
                 MAType::EMA => len + 1,
-                _ => len
+                _ => len,
             };
             if end < needed_len {
                 continue;
@@ -84,10 +84,10 @@ impl PopulatesCandles for PMAR {
     }
 
     fn populate_last_candle_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
-        let (len,ma_type) = args.pmar_res()?;
+        let (len, ma_type) = args.pmar_res()?;
         let end = ts.candles.len();
         let ctx_err = "Failed to get last candle";
-        let indicator_type = IndicatorType::PMAR(len,ma_type);
+        let indicator_type = IndicatorType::PMAR(len, ma_type);
 
         if end == 0 {
             return Err(anyhow!("No candle to populate"));
@@ -140,29 +140,30 @@ impl IsIndicator for PMAR {
     where
         Self: Sized,
     {
-        let (_,ma_type) = Self::default_args().pmar_opt()?;
+        let (_, ma_type) = Self::default_args().pmar_opt()?;
         let args = IndicatorArgs::PMARArgs(segment.len(), ma_type);
 
         Self::calculate_pmar(segment, &args)
     }
 
-    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> 
-    where 
-        Self: Sized {
-        let (len,_) = args.pmar_opt()?;
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        let (len, _) = args.pmar_opt()?;
         let candle_len = segment.len();
 
         if candle_len < len {
             return None;
         }
 
-        Self::calculate_pmar(&segment[candle_len-len..candle_len], args)
+        Self::calculate_pmar(&segment[candle_len - len..candle_len], args)
     }
 }
 
 impl PMAR {
     fn calculate_pmar(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> {
-        let (len,ma_type) = args.pmar_opt()?;
+        let (len, ma_type) = args.pmar_opt()?;
         let segment_len = segment.len();
 
         if segment_len == 0 || segment_len < len {
@@ -181,28 +182,23 @@ impl PMAR {
                 let values: Vec<f64> = segment.iter().map(|c| c.close).collect();
 
                 segment.last()?.close / sma(&values)
-            },
+            }
             MAType::EMA => {
                 // REVISIT: This calculation depends on the EMA being populated
                 // in the candles. This is due to the rolling nature of EMAs.
-                // To properly calculate it here would require a large amount 
+                // To properly calculate it here would require a large amount
                 // of iterations when populating further indicators (PMARP) and
-                // so this shortcut is taken. Revisit at some later point to 
+                // so this shortcut is taken. Revisit at some later point to
                 // rewrite the entire indicator system.
                 let candle = segment.last()?;
-                let ema = candle.indicators
-                    .get(&IndicatorType::EMA(len))?
-                    .as_ema()?;
+                let ema = candle.indicators.get(&IndicatorType::EMA(len))?.as_ema()?;
                 candle.close / ema.value
-            },
+            }
             MAType::VWMA => {
-                let values: Vec<(f64,f64)> = segment.iter()
-                    .map(|c| (c.close,c.volume))
-                    .collect();
+                let values: Vec<(f64, f64)> = segment.iter().map(|c| (c.close, c.volume)).collect();
                 segment.last()?.close / vwma(&values)
             }
         };
-
 
         Some(PMAR::new(pmar, segment_len))
     }
@@ -230,10 +226,13 @@ impl PMAR {
 mod tests {
     use crate::{
         indicators::{
-            indicator_type::IndicatorType, is_indicator::IsIndicator, pmar::PMAR,
-            populates_candles::PopulatesCandles, indicator_args::IndicatorArgs,
+            indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+            is_indicator::IsIndicator, pmar::PMAR, populates_candles::PopulatesCandles,
         },
-        models::{candle::Candle, interval::Interval, ma_type::MAType, timeseries_builder::TimeSeriesBuilder},
+        models::{
+            candle::Candle, interval::Interval, ma_type::MAType,
+            timeseries_builder::TimeSeriesBuilder,
+        },
         utils::data::dummy_data::PRICE_CHANGES,
     };
 
@@ -255,7 +254,7 @@ mod tests {
         let args = IndicatorArgs::PMARArgs(3, MAType::SMA);
         let pmar = PMAR::calculate_args(&candles[1..4], &args);
         assert!(pmar.is_some());
-        
+
         let pmar = pmar.unwrap();
         assert_eq!(pmar.value, 1.0012744552973925);
     }
@@ -296,7 +295,7 @@ mod tests {
 
         let _ = PMAR::populate_candles(&mut ts);
 
-        let (len, ma_type)= PMAR::default_args().pmar_opt().unwrap();
+        let (len, ma_type) = PMAR::default_args().pmar_opt().unwrap();
         let indicator_type = IndicatorType::PMAR(len, ma_type);
 
         for (i, candle) in ts.candles.iter().enumerate() {

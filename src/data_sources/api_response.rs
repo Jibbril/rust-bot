@@ -1,4 +1,4 @@
-use crate::models::{interval::Interval, timeseries::TimeSeries, candle::Candle};
+use crate::models::{candle::Candle, interval::Interval, timeseries::TimeSeries};
 use anyhow::Result;
 
 pub trait ApiResponse {

@@ -1,16 +1,24 @@
-use std::{fmt::{Display, Formatter}, collections::HashSet};
-use anyhow::Result;
-use chrono::{Weekday, Datelike};
 use crate::{
     indicators::indicator_type::IndicatorType,
     models::{
         candle::Candle,
+        interval::Interval,
+        ma_type::MAType,
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
-        traits::{trading_strategy::TradingStrategy, requires_indicators::RequiresIndicators}, ma_type::MAType, interval::Interval,
+        traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
     },
-    utils::math::sma, resolution_strategies::{resolution_strategy::ResolutionStrategy, pmarp_vs_percentage::PmarpVsPercentageResolution},
+    resolution_strategies::{
+        pmarp_vs_percentage::PmarpVsPercentageResolution, resolution_strategy::ResolutionStrategy,
+    },
+    utils::math::sma,
+};
+use anyhow::Result;
+use chrono::{Datelike, Weekday};
+use std::{
+    collections::HashSet,
+    fmt::{Display, Formatter},
 };
 
 /// # JB 1
@@ -38,7 +46,7 @@ use crate::{
 /// - 4.5% drawdown
 ///
 /// ## Trading days
-/// - All 
+/// - All
 ///
 #[derive(Debug, Clone)]
 pub struct JB1 {
@@ -49,7 +57,7 @@ pub struct JB1 {
     rsi_ma_len: usize,
     short_ema_len: usize,
     long_ema_len: usize,
-    trading_days: HashSet<Weekday>
+    trading_days: HashSet<Weekday>,
 }
 
 impl TradingStrategy for JB1 {
@@ -71,10 +79,7 @@ impl TradingStrategy for JB1 {
 
         for window in ts.candles.windows(self.candles_needed_for_setup()) {
             if let Some(sb) = self.check_last_for_setup(&window) {
-                let setup = sb
-                    .symbol(&ts.symbol)
-                    .interval(&ts.interval)
-                    .build()?;
+                let setup = sb.symbol(&ts.symbol).interval(&ts.interval).build()?;
                 setups.push(setup);
             }
         }
@@ -111,7 +116,11 @@ impl TradingStrategy for JB1 {
             .as_ema()?;
         let pmarp = current
             .indicators
-            .get(&IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type))?
+            .get(&IndicatorType::PMARP(
+                self.pmarp_len,
+                self.pmarp_lookback,
+                self.pmarp_ma_type,
+            ))?
             .as_pmarp()?;
 
         let (curr_rsi_sma, prev_rsi_sma) = self.calculate_rsi_smas(candles)?;
@@ -201,7 +210,8 @@ impl JB1 {
     fn get_rsi_values(&self, segment: &[Candle]) -> Vec<f64> {
         let key = IndicatorType::RSI(self.rsi_len);
 
-        segment.iter()
+        segment
+            .iter()
             .filter_map(|c| {
                 c.indicators
                     .get(&key)

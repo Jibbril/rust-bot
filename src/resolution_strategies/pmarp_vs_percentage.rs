@@ -1,7 +1,13 @@
-use anyhow::{Result, anyhow, Context};
-use serde::{Serialize, Deserialize};
-use crate::{models::{strategy_orientation::StrategyOrientation, candle::Candle, traits::requires_indicators::RequiresIndicators, setups::setup::Setup, ma_type::MAType}, indicators::indicator_type::IndicatorType};
 use super::is_resolution_strategy::IsResolutionStrategy;
+use crate::{
+    indicators::indicator_type::IndicatorType,
+    models::{
+        candle::Candle, ma_type::MAType, setups::setup::Setup,
+        strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators,
+    },
+};
+use anyhow::{anyhow, Context, Result};
+use serde::{Deserialize, Serialize};
 
 /// # PmarpVsPercentageResolution
 ///
@@ -21,7 +27,7 @@ pub struct PmarpVsPercentageResolution {
     pub drawdown_threshold: f64,
     pub pmarp_len: usize,
     pub pmarp_lookback: usize,
-    pub pmarp_ma_type: MAType
+    pub pmarp_ma_type: MAType,
 }
 
 const ERR_MESSAGE: &str = "pmarp vs % resolution does not support short orientation.";
@@ -35,39 +41,48 @@ impl IsResolutionStrategy for PmarpVsPercentageResolution {
         1
     }
 
-    fn stop_loss_reached(&self, orientation: &StrategyOrientation, candles: &[Candle]) -> Result<bool> {
+    fn stop_loss_reached(
+        &self,
+        orientation: &StrategyOrientation,
+        candles: &[Candle],
+    ) -> Result<bool> {
         let len = candles.len();
 
-        if len == 0 { 
-            return Err(anyhow!("No candle passed for pmarp vs % resolution."))
+        if len == 0 {
+            return Err(anyhow!("No candle passed for pmarp vs % resolution."));
         }
 
         match orientation {
             StrategyOrientation::Long => {
                 let init_value = self.initial_value.context("Expected initial value")?;
-                Ok(
-                    (1.0 - &candles[len-1].close / init_value) * 100.0 > self.drawdown_threshold
-                )
-            },
-            StrategyOrientation::Short => Err(anyhow!(ERR_MESSAGE))
+                Ok((1.0 - &candles[len - 1].close / init_value) * 100.0 > self.drawdown_threshold)
+            }
+            StrategyOrientation::Short => Err(anyhow!(ERR_MESSAGE)),
         }
     }
 
-    fn take_profit_reached(&self, orientation: &StrategyOrientation, candles: &[Candle]) -> Result<bool> {
+    fn take_profit_reached(
+        &self,
+        orientation: &StrategyOrientation,
+        candles: &[Candle],
+    ) -> Result<bool> {
         let len = candles.len();
-        if len == 0 { 
-            return Err(anyhow!("No candle passed for pmarp vs % resolution."))
+        if len == 0 {
+            return Err(anyhow!("No candle passed for pmarp vs % resolution."));
         }
 
-        let ind_type = IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type);
-        let pmarp = candles[len-1].indicators.get(&ind_type)
+        let ind_type =
+            IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type);
+        let pmarp = candles[len - 1]
+            .indicators
+            .get(&ind_type)
             .context("Unable to get pmarp for pmarp vs % resolution.")?
             .as_pmarp()
             .context("Unable to convert indicator to pmarp in pmarp vs % resolution")?;
 
         match orientation {
             StrategyOrientation::Long => Ok(pmarp.value > self.pmarp_threshhold),
-            StrategyOrientation::Short => Err(anyhow!(ERR_MESSAGE))
+            StrategyOrientation::Short => Err(anyhow!(ERR_MESSAGE)),
         }
     }
 
@@ -80,6 +95,10 @@ impl IsResolutionStrategy for PmarpVsPercentageResolution {
 
 impl RequiresIndicators for PmarpVsPercentageResolution {
     fn required_indicators(&self) -> Vec<IndicatorType> {
-        vec![IndicatorType::PMARP(self.pmarp_len, self.pmarp_lookback, self.pmarp_ma_type)]
+        vec![IndicatorType::PMARP(
+            self.pmarp_len,
+            self.pmarp_lookback,
+            self.pmarp_ma_type,
+        )]
     }
 }

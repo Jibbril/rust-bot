@@ -1,9 +1,12 @@
 use super::is_resolution_strategy::IsResolutionStrategy;
 use crate::{
     indicators::indicator_type::IndicatorType,
-    models::{candle::Candle, strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators, setups::setup::Setup},
+    models::{
+        candle::Candle, setups::setup::Setup, strategy_orientation::StrategyOrientation,
+        traits::requires_indicators::RequiresIndicators,
+    },
 };
-use anyhow::{anyhow, Result, Context};
+use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -20,10 +23,14 @@ impl IsResolutionStrategy for DynamicPivotResolution {
         self.len + 1
     }
 
-    fn stop_loss_reached(&self, orientation: &StrategyOrientation, candles: &[Candle]) -> Result<bool> {
+    fn stop_loss_reached(
+        &self,
+        orientation: &StrategyOrientation,
+        candles: &[Candle],
+    ) -> Result<bool> {
         let len = candles.len();
 
-        if len < self.len + 1 { 
+        if len < self.len + 1 {
             let msg = "Not enough candles to determine if stop loss reached.";
             return Err(anyhow!(msg));
         }
@@ -32,26 +39,33 @@ impl IsResolutionStrategy for DynamicPivotResolution {
         let pivots = candles[len - (self.len + 1)]
             .indicators
             .get(&ind_type)
-            .context(format!("Unable to find DynamicPivots indicator of length {}", self.len))?
+            .context(format!(
+                "Unable to find DynamicPivots indicator of length {}",
+                self.len
+            ))?
             .as_dynamic_pivots()
             .context("Unable to convert to Indicator::DynamicPivots")?;
-       
+
         match orientation {
             StrategyOrientation::Long => {
                 let bound = pivots.low.context("No pivot provided for comparison")?;
-                Ok(candles[len-1].close < bound)
+                Ok(candles[len - 1].close < bound)
             }
             StrategyOrientation::Short => {
                 let bound = pivots.high.context("No pivot provided for comparison")?;
-                Ok(candles[len-1].close > bound)
+                Ok(candles[len - 1].close > bound)
             }
         }
     }
 
-    fn take_profit_reached(&self, orientation: &StrategyOrientation, candles: &[Candle]) -> Result<bool> {
+    fn take_profit_reached(
+        &self,
+        orientation: &StrategyOrientation,
+        candles: &[Candle],
+    ) -> Result<bool> {
         let len = candles.len();
 
-        if len < self.len + 1 { 
+        if len < self.len + 1 {
             let msg = "Not enough enough candles to determine if take-profit reached.";
             return Err(anyhow!(msg));
         }
@@ -60,18 +74,21 @@ impl IsResolutionStrategy for DynamicPivotResolution {
         let pivots = candles[len - (self.len + 1)]
             .indicators
             .get(&ind_type)
-            .context(format!("Unable to find DynamicPivots indicator of length {}", self.len))?
+            .context(format!(
+                "Unable to find DynamicPivots indicator of length {}",
+                self.len
+            ))?
             .as_dynamic_pivots()
             .context("Unable to convert to Indicator::DynamicPivots")?;
-       
+
         match orientation {
             StrategyOrientation::Long => {
                 let bound = pivots.high.context("No pivot provided for comparison")?;
-                Ok(candles[len-1].high > bound)
+                Ok(candles[len - 1].high > bound)
             }
             StrategyOrientation::Short => {
                 let bound = pivots.low.context("No pivot provided for comparison")?;
-                Ok(candles[len-1].low < bound)
+                Ok(candles[len - 1].low < bound)
             }
         }
     }

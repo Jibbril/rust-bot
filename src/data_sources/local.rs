@@ -1,5 +1,8 @@
 use super::datasource::DataSource;
-use crate::models::{candle::Candle, interval::Interval, timeseries::TimeSeries, timeseries_builder::TimeSeriesBuilder};
+use crate::models::{
+    candle::Candle, interval::Interval, timeseries::TimeSeries,
+    timeseries_builder::TimeSeriesBuilder,
+};
 use anyhow::Result;
 use csv::Reader;
 use std::{
@@ -31,7 +34,6 @@ fn read_local(file: File, symbol: &str, interval: &Interval) -> Result<TimeSerie
         let candle: Candle = result?;
         candles.push(candle);
     }
-
 
     let ts = TimeSeriesBuilder::new()
         .symbol(symbol.to_string())

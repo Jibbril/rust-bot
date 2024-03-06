@@ -121,7 +121,10 @@ impl IsIndicator for RSI {
         Self::calculate_rsi(rs, len, (avg_gain, avg_loss))
     }
 
-    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self> where Self: Sized {
+    fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
+    where
+        Self: Sized,
+    {
         let len = args.len_opt()?;
         let candle_len = segment.len();
 
@@ -129,7 +132,7 @@ impl IsIndicator for RSI {
             return None;
         }
 
-        Self::calculate(&segment[candle_len-len-1..candle_len])
+        Self::calculate(&segment[candle_len - len - 1..candle_len])
     }
 }
 
@@ -201,8 +204,8 @@ impl RSI {
 mod tests {
     use crate::{
         indicators::{
-            indicator_type::IndicatorType, is_indicator::IsIndicator,
-            populates_candles::PopulatesCandles, rsi::RSI, indicator_args::IndicatorArgs,
+            indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+            is_indicator::IsIndicator, populates_candles::PopulatesCandles, rsi::RSI,
         },
         models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
     };
@@ -242,7 +245,6 @@ mod tests {
         let rsi = RSI::calculate_args(&candles, &args);
         assert!(rsi.is_none());
     }
-
 
     #[test]
     fn rsi_populate_candles() {
