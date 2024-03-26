@@ -1,8 +1,14 @@
-use std::vec;
+use crate::{
+    data_sources::{api_response::ApiResponse, bybit::util::interval_to_str},
+    models::{
+        candle::Candle, interval::Interval, net_version::NetVersion, timeseries::TimeSeries,
+        timeseries_builder::TimeSeriesBuilder,
+    },
+};
 use anyhow::{anyhow, Context, Result};
 use chrono::Utc;
 use reqwest::Client;
-use crate::{models::{interval::Interval, net_version::NetVersion, candle::Candle, timeseries::TimeSeries, timeseries_builder::TimeSeriesBuilder}, data_sources::{api_response::ApiResponse, bybit::util::interval_to_str}};
+use std::vec;
 
 use super::api_responses::kline_response::KlineResponse;
 

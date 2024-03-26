@@ -1,20 +1,18 @@
 use crate::{
-    data_sources::{datasource::DataSource, local, bybit::rest::kline::get_candles_between},
+    data_sources::{bybit::rest::kline::get_candles_between, datasource::DataSource, local},
     indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},
     models::{
+        candle::Candle,
+        interval::Interval,
         message_payloads::{
-            candle_added_payload::CandleAddedPayload,
+            add_candles_payload::AddCandlesPayload, candle_added_payload::CandleAddedPayload,
             fill_historical_candles_payload::FillHistoricalCandlesPayload,
-            add_candles_payload::AddCandlesPayload,
             latest_candles_payload::LatestCandleResponse,
             request_latest_candles_payload::RequestLatestCandlesPayload,
-            websocket_payload::WebsocketPayload,
-            ts_subscribe_payload::TSSubscribePayload
+            ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
         },
-        interval::Interval,
-        candle::Candle,
-        setups::setup_finder::SetupFinder,
         net_version::NetVersion,
+        setups::setup_finder::SetupFinder,
         timeseries_builder::TimeSeriesBuilder,
     },
 };
