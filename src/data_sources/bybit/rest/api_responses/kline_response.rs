@@ -10,7 +10,7 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct BybitApiResponse {
+pub struct KlineResponse {
     #[serde(rename = "retCode")]
     pub ret_code: i32,
     #[serde(rename = "retMsg")]
@@ -21,7 +21,7 @@ pub struct BybitApiResponse {
     pub time: i64,
 }
 
-impl ApiResponse for BybitApiResponse {
+impl ApiResponse for KlineResponse {
     fn to_timeseries(&mut self, symbol: &str, interval: &Interval) -> Result<TimeSeries> {
         let candles = Self::to_candles(self, true)?;
 

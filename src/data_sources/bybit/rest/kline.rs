@@ -1,15 +1,10 @@
 use std::vec;
-use super::{bybit_structs::BybitApiResponse, util::interval_to_str};
-use crate::{
-    data_sources::api_response::ApiResponse,
-    models::{
-        candle::Candle, interval::Interval, net_version::NetVersion, timeseries::TimeSeries,
-        timeseries_builder::TimeSeriesBuilder,
-    },
-};
 use anyhow::{anyhow, Context, Result};
 use chrono::Utc;
 use reqwest::Client;
+use crate::{models::{interval::Interval, net_version::NetVersion, candle::Candle, timeseries::TimeSeries, timeseries_builder::TimeSeriesBuilder}, data_sources::{api_response::ApiResponse, bybit::util::interval_to_str}};
+
+use super::api_responses::kline_response::KlineResponse;
 
 const GET_REQUEST_LIMIT: usize = 1000;
 const BYBIT_ERROR: &str = "Bybit request failed.";
@@ -28,7 +23,7 @@ pub async fn get_candles_between(
 
     let candles = match response.status() {
         reqwest::StatusCode::OK => {
-            let mut response: BybitApiResponse = response.json().await?;
+            let mut response: KlineResponse = response.json().await?;
             response.to_candles(true)
         }
         _ => Err(anyhow!(BYBIT_ERROR)),
@@ -68,7 +63,7 @@ pub async fn get(
 
         match response.status() {
             reqwest::StatusCode::OK => {
-                let mut response: BybitApiResponse = response.json().await?;
+                let mut response: KlineResponse = response.json().await?;
                 let mut candles = response.to_candles(!first_iter)?;
                 candles.reverse();
                 acc.extend(candles.clone());
