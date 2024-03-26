@@ -1,5 +1,11 @@
 use crate::{
-    data_sources::{api_response::ApiResponse, bybit::util::interval_to_str},
+    data_sources::{
+        api_response::ApiResponse, 
+        bybit::{
+            util::interval_to_str,
+            rest::api_responses::kline::KlineResponse
+        },
+    },
     models::{
         candle::Candle, interval::Interval, net_version::NetVersion, timeseries::TimeSeries,
         timeseries_builder::TimeSeriesBuilder,
@@ -9,8 +15,6 @@ use anyhow::{anyhow, Context, Result};
 use chrono::Utc;
 use reqwest::Client;
 use std::vec;
-
-use super::api_responses::kline_response::KlineResponse;
 
 const GET_REQUEST_LIMIT: usize = 1000;
 const BYBIT_ERROR: &str = "Bybit request failed.";

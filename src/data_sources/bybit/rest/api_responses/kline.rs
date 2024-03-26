@@ -6,19 +6,19 @@ use crate::{
     },
     utils::millis_to_datetime,
 };
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Result, Context};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct KlineResponse {
     #[serde(rename = "retCode")]
-    pub ret_code: i32,
+    pub ret_code: u32,
     #[serde(rename = "retMsg")]
     pub ret_msg: String,
-    pub result: ResultData,
+    pub result: Option<KlineResult>,
     #[serde(rename = "retExtInfo")]
     pub ret_ext_info: serde_json::Value,
-    pub time: i64,
+    pub time: u64,
 }
 
 impl ApiResponse for KlineResponse {
@@ -35,7 +35,8 @@ impl ApiResponse for KlineResponse {
     }
 
     fn to_candles(&mut self, pop_last: bool) -> Result<Vec<Candle>> {
-        let klines = match &self.result.list {
+        let result = self.result.as_ref().context("Unable to parse KlineResult.")?;
+        let klines = match &result.list {
             Some(result) => result,
             None => return Err(anyhow!(self.ret_msg.clone())),
         };
@@ -71,7 +72,7 @@ impl ApiResponse for KlineResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ResultData {
+pub struct KlineResult {
     // pub category: String,
     pub symbol: Option<String>,
     pub list: Option<Vec<BybitKline>>,
