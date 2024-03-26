@@ -1,5 +1,4 @@
 use std::vec;
-
 use super::{bybit_structs::BybitApiResponse, util::interval_to_str};
 use crate::{
     data_sources::api_response::ApiResponse,
