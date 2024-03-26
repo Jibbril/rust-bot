@@ -1,21 +1,21 @@
-use super::{
-    candle::Candle,
-    interval::Interval,
-    message_payloads::{
-        add_candles_payload::AddCandlesPayload, latest_candles_payload::LatestCandleResponse,
-        request_latest_candles_payload::RequestLatestCandlesPayload,
-        ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
-    },
-    net_version::NetVersion,
-    setups::setup_finder::SetupFinder,
-    timeseries_builder::TimeSeriesBuilder,
-};
 use crate::{
-    data_sources::{bybit::rest::get_candles_between, datasource::DataSource, local},
+    data_sources::{datasource::DataSource, local, bybit::rest::kline::get_candles_between},
     indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},
-    models::message_payloads::{
-        candle_added_payload::CandleAddedPayload,
-        fill_historical_candles_payload::FillHistoricalCandlesPayload,
+    models::{
+        message_payloads::{
+            candle_added_payload::CandleAddedPayload,
+            fill_historical_candles_payload::FillHistoricalCandlesPayload,
+            add_candles_payload::AddCandlesPayload,
+            latest_candles_payload::LatestCandleResponse,
+            request_latest_candles_payload::RequestLatestCandlesPayload,
+            websocket_payload::WebsocketPayload,
+            ts_subscribe_payload::TSSubscribePayload
+        },
+        interval::Interval,
+        candle::Candle,
+        setups::setup_finder::SetupFinder,
+        net_version::NetVersion,
+        timeseries_builder::TimeSeriesBuilder,
     },
 };
 use actix::{
