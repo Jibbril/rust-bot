@@ -15,11 +15,11 @@ use crate::{
     models::{ma_type::MAType, net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
     trading_strategies::{jb_2::JB2, rsi_basic::RsiBasic},
-    utils::{data::dummy_data::PRICE_CHANGES, save_setups},
+    utils::save_setups,
 };
 use actix::Actor;
 use anyhow::Result;
-use data_sources::{datasource::DataSource, local};
+use data_sources::{datasource::DataSource, local, bybit::rest::server_time::get_server_time};
 use dotenv::dotenv;
 use indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf};
 use models::{
@@ -39,12 +39,9 @@ use tokio::time::{sleep, Duration};
 use trading_strategies::jb_1::JB1;
 
 pub async fn run_dummy() -> Result<()> {
-    let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
-    let pmarp = PMARP::calculate(&candles);
-    assert!(pmarp.is_some());
+    let time = get_server_time(&NetVersion::Mainnet).await?;
 
-    let pmarp = pmarp.unwrap();
-    assert_eq!(pmarp.value, 0.3314285714285714);
+    println!("Time: {:#?}",time);
 
     Ok(())
 }
