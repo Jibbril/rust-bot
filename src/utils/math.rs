@@ -40,3 +40,21 @@ pub fn vwma(segment: &[(f64, f64)]) -> f64 {
 
     pxv / vs
 }
+
+#[allow(dead_code)]
+fn round(x: f64, n: i64) -> f64 {
+    let scaling = 10f64.powi(n as i32);
+    (x * scaling).round() / scaling
+}
+
+#[allow(dead_code)]
+fn floor(x: f64, n: i64) -> f64 {
+    let scaling = 10f64.powi(n as i32);
+    (x * scaling).floor() / scaling
+}
+
+#[allow(dead_code)]
+fn ceil(x: f64, n: i64) -> f64 {
+    let scaling = 10f64.powi(n as i32);
+    (x * scaling).ceil() / scaling
+}
