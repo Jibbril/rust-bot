@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct WalletBalanceApiResponse {
+pub struct WalletBalanceResponse {
     #[serde(rename = "retCode")]
     ret_code: u32,
 
@@ -19,11 +19,11 @@ pub struct WalletBalanceApiResponse {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WalletBalanceResult {
-    pub list: Vec<WalletInfo>,
+    pub list: Vec<WalletBalance>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct WalletInfo {
+pub struct WalletBalance {
     #[serde(rename = "totalEquity")]
     total_equity: String,
 

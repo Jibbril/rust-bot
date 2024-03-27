@@ -15,7 +15,7 @@ use crate::{
     models::{ma_type::MAType, net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
     trading_strategies::{jb_2::JB2, rsi_basic::RsiBasic},
-    utils::save_setups,
+    utils::save_setups, data_sources::bybit::rest::wallet_balance,
 };
 use actix::Actor;
 use anyhow::Result;
@@ -42,6 +42,10 @@ pub async fn run_dummy() -> Result<()> {
     let time = get_server_time(&NetVersion::Mainnet).await?;
 
     println!("Time: {:#?}",time);
+
+    let wallet_balance = wallet_balance::get(time).await?;
+
+    println!("Wallet Balance: {:#?}",wallet_balance);
 
     Ok(())
 }
