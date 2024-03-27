@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct OrderCreateApiResponse{
+pub struct OrderCreateResponse {
     #[serde(rename = "retCode")]
     ret_code: u32,
 

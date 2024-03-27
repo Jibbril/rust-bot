@@ -1,6 +1,7 @@
 pub mod data;
 pub mod math;
 pub mod string;
+pub mod constants;
 
 use crate::models::setups::setup::Setup;
 use anyhow::{anyhow, Context, Result};

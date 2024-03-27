@@ -15,7 +15,7 @@ use crate::{
     models::{ma_type::MAType, net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
     trading_strategies::{jb_2::JB2, rsi_basic::RsiBasic},
-    utils::save_setups, data_sources::bybit::rest::wallet_balance,
+    utils::save_setups, data_sources::bybit::rest::{wallet_balance, order_create::{market_buy, market_sell_all}},
 };
 use actix::Actor;
 use anyhow::Result;
@@ -39,13 +39,27 @@ use tokio::time::{sleep, Duration};
 use trading_strategies::jb_1::JB1;
 
 pub async fn run_dummy() -> Result<()> {
-    let time = get_server_time(&NetVersion::Mainnet).await?;
+    todo!()
+}
+
+pub async fn run_market_buy() -> Result<()> {
+    let net = &NetVersion::Mainnet;
+    let time = get_server_time(&net).await?;
 
     println!("Time: {:#?}",time);
 
     let wallet_balance = wallet_balance::get(time).await?;
 
     println!("Wallet Balance: {:#?}",wallet_balance);
+
+    let buy = false;
+
+    if buy {
+        let balance: f64 = wallet_balance.total_available_balance.parse()?;
+        market_buy(balance * 0.5, &net).await?;
+    } else {
+        market_sell_all(&wallet_balance, &net).await?;
+    }
 
     Ok(())
 }
