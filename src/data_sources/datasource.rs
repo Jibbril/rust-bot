@@ -37,7 +37,7 @@ impl DataSource {
         let ts = match self {
             DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
             DataSource::Bitfinex => bitfinex::rest::get(symbol, &interval).await?,
-            DataSource::Bybit => BybitRestApi::get_cline(symbol, &interval, len, net).await?, 
+            DataSource::Bybit => BybitRestApi::get_kline(symbol, &interval, len, net).await?, 
             DataSource::CoinMarketCap => coinmarketcap::get().await?,
             DataSource::CryptoCompare(exchange) => {
                 cryptocompare::get(symbol, &interval, exchange.clone()).await?

@@ -10,3 +10,5 @@ pub mod timeseries;
 pub mod timeseries_builder;
 pub mod traits;
 pub mod websockets;
+pub mod wallet;
+pub mod wallet_builder;

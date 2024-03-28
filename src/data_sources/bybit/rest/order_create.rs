@@ -6,7 +6,7 @@ use crate::{
         math::{round, floor}, 
         constants::BASE_CURRENCY,
     },
-    data_sources::bybit::rest::{api_responses::{wallet_balance::WalletBalance, order_create::OrderCreateResponse}, server_time::get_server_time, utils::{bybit_key, generate_hmac_signature, bybit_url}}, models::net_version::NetVersion,
+    data_sources::bybit::rest::{api_responses::order_create::OrderCreateResponse, server_time::get_server_time, utils::{bybit_key, generate_hmac_signature, bybit_url}}, models::{net_version::NetVersion, wallet::Wallet},
 };
 
 const ORDER_MAX_DECIMALS: i64 = 6;
@@ -28,30 +28,28 @@ pub async fn market_buy(quantity: f64, net: &NetVersion) -> Result<()> {
     Ok(post_market_order(params,net).await?)
 }
 
-pub async fn market_sell_all(account_info: &WalletBalance, net: &NetVersion) -> Result<()> {
-    for coin in account_info.coin.iter() {
+pub async fn market_sell_all(wallet: &Wallet, net: &NetVersion) -> Result<()> {
+    for coin in wallet.coins.values() {
         // Skip selling of base currency
-        if coin.coin == BASE_CURRENCY { continue; };
-
-        let usd_value: f64 = coin.usd_value.parse()?;
+        if coin.symbol == BASE_CURRENCY { continue; };
 
         // Ignore small amounts
-        if usd_value < 1.0 { continue; };
+        if coin.usd_value < 1.0 { continue; };
 
-        let amount: f64 = coin.wallet_balance.parse()?;
-        let amount = floor(amount, ORDER_MAX_DECIMALS);
+        let quantity: f64 = coin.quantity;
+        let quantity = floor(quantity, ORDER_MAX_DECIMALS);
 
         // Ignore extremely small quantities of the traded currency
-        if amount == 0.0 { continue; };
+        if quantity == 0.0 { continue; };
 
-        let symbol = format!("{}{}", coin.coin, BASE_CURRENCY);
+        let symbol = format!("{}{}", coin.symbol, BASE_CURRENCY);
 
         let mut params = Map::new();
         params.insert("category".to_string(), json!("spot"));
         params.insert("symbol".to_string(), json!(symbol));
         params.insert("side".to_string(), json!("Sell"));
         params.insert("orderType".to_string(), json!("Market"));
-        params.insert("qty".to_string(), json!(amount.to_string()));
+        params.insert("qty".to_string(), json!(quantity.to_string()));
         params.insert("marketUnit".to_string(), json!("baseCoin"));
 
         post_market_order(params, net).await?;

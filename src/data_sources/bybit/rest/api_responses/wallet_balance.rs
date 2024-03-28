@@ -1,5 +1,8 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+use crate::models::{wallet::{Wallet, WalletCoin}, wallet_builder::WalletBuilder};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WalletBalanceResponse {
@@ -111,4 +114,25 @@ pub struct CoinInfo {
     margin_collateral: bool,
 
     pub coin: String,
+}
+
+impl WalletBalance {
+    pub fn to_wallet(&self) -> Result<Wallet> {
+        let wb = WalletBuilder::new();
+
+        let mut coins: Vec<WalletCoin> = vec![];
+        for c in self.coin.iter() {
+            let quantity: f64 = c.wallet_balance.parse()?;
+            let usd_value: f64 = c.usd_value.parse()?;
+            let wc = WalletCoin::new(&c.coin, quantity, usd_value);
+            coins.push(wc);
+        };
+
+        let wallet = wb
+            .total_available_balance(self.total_available_balance.parse()?)
+            .add_coins(coins)
+            .build();
+
+        Ok(wallet)
+    }
 }

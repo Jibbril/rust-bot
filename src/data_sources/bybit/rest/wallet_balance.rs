@@ -5,10 +5,7 @@ use reqwest::Client;
 use crate::{
     data_sources::bybit::rest::{
         bybit_rest_api::BybitRestApi,
-        api_responses::wallet_balance::{
-            WalletBalance,
-            WalletBalanceResponse
-        },
+        api_responses::wallet_balance::WalletBalanceResponse,
         utils::{
             bybit_url,
             bybit_key,
@@ -16,10 +13,10 @@ use crate::{
         }
     }, 
     utils::string::params_to_query_str, 
-    models::net_version::NetVersion
+    models::{net_version::NetVersion, wallet::Wallet}
 };
 
-pub async fn get(net: &NetVersion) -> Result<WalletBalance> {
+pub async fn get(net: &NetVersion) -> Result<Wallet> {
     let server_time = BybitRestApi::get_server_time(&net).await?;
     let mut params: HashMap<String,String> = HashMap::new();
     params.insert("accountType".to_string(), "UNIFIED".to_string());
@@ -52,7 +49,7 @@ pub async fn get(net: &NetVersion) -> Result<WalletBalance> {
         _ => panic!("Unable to fetch account balance")
     };
 
-    let account_info = response
+    let wallet_balance = response
         .result
         .context("Unable to parse Wallet Balance Result")?
         .list
@@ -60,5 +57,5 @@ pub async fn get(net: &NetVersion) -> Result<WalletBalance> {
         .cloned()
         .expect("Should return at least one account.");
 
-    Ok(account_info)
+    Ok(wallet_balance.to_wallet()?)
 }

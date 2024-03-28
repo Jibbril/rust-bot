@@ -43,22 +43,22 @@ pub async fn run_dummy() -> Result<()> {
 }
 
 pub async fn run_market_buy() -> Result<()> {
-    let net = &NetVersion::Mainnet;
+    let net = NetVersion::Mainnet;
     let time = BybitRestApi::get_server_time(&net).await?;
 
     println!("Time: {:#?}",time);
 
-    let wallet_balance = BybitRestApi::get_wallet_balance(&net).await?;
+    let wallet = BybitRestApi::get_wallet_balance(&net).await?;
 
-    println!("Wallet Balance: {:#?}",wallet_balance);
+    println!("Wallet: {:#?}",wallet);
 
     let buy = false;
 
     if buy {
-        let balance: f64 = wallet_balance.total_available_balance.parse()?;
+        let balance: f64 = wallet.total_available_balance;
         BybitRestApi::market_buy(balance * 0.5, &net).await?;
     } else {
-        BybitRestApi::market_sell_all(&wallet_balance, &net).await?;
+        BybitRestApi::market_sell_all(&wallet, &net).await?;
     }
 
     Ok(())
