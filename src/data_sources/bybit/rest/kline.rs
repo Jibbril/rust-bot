@@ -1,10 +1,7 @@
 use crate::{
     data_sources::{
-        api_response::ApiResponse, 
-        bybit::{
-            util::interval_to_str,
-            rest::api_responses::kline::KlineResponse
-        },
+        api_response::ApiResponse,
+        bybit::{rest::api_responses::kline::KlineResponse, util::interval_to_str},
     },
     models::{
         candle::Candle, interval::Interval, net_version::NetVersion, timeseries::TimeSeries,

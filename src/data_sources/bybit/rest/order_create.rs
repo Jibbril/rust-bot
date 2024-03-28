@@ -1,13 +1,18 @@
+use crate::{
+    data_sources::bybit::rest::{
+        api_responses::order_create::OrderCreateResponse,
+        server_time::get_server_time,
+        utils::{bybit_key, bybit_url, generate_hmac_signature},
+    },
+    models::{net_version::NetVersion, wallet::Wallet},
+    utils::{
+        constants::BASE_CURRENCY,
+        math::{floor, round},
+    },
+};
 use anyhow::Result;
 use reqwest::Client;
-use serde_json::{json, Map, Value, to_string};
-use crate::{
-    utils::{
-        math::{round, floor}, 
-        constants::BASE_CURRENCY,
-    },
-    data_sources::bybit::rest::{api_responses::order_create::OrderCreateResponse, server_time::get_server_time, utils::{bybit_key, generate_hmac_signature, bybit_url}}, models::{net_version::NetVersion, wallet::Wallet},
-};
+use serde_json::{json, to_string, Map, Value};
 
 const ORDER_MAX_DECIMALS: i64 = 6;
 
@@ -23,24 +28,30 @@ pub async fn market_buy(quantity: f64, net: &NetVersion) -> Result<()> {
     params.insert("marketUnit".to_string(), json!("quoteCoin"));
     params.insert("qty".to_string(), json!(rounded_quantity.to_string()));
 
-    println!("params: {:#?}",params);
+    println!("params: {:#?}", params);
 
-    Ok(post_market_order(params,net).await?)
+    Ok(post_market_order(params, net).await?)
 }
 
 pub async fn market_sell_all(wallet: &Wallet, net: &NetVersion) -> Result<()> {
     for coin in wallet.coins.values() {
         // Skip selling of base currency
-        if coin.symbol == BASE_CURRENCY { continue; };
+        if coin.symbol == BASE_CURRENCY {
+            continue;
+        };
 
         // Ignore small amounts
-        if coin.usd_value < 1.0 { continue; };
+        if coin.usd_value < 1.0 {
+            continue;
+        };
 
         let quantity: f64 = coin.quantity;
         let quantity = floor(quantity, ORDER_MAX_DECIMALS);
 
         // Ignore extremely small quantities of the traded currency
-        if quantity == 0.0 { continue; };
+        if quantity == 0.0 {
+            continue;
+        };
 
         let symbol = format!("{}{}", coin.symbol, BASE_CURRENCY);
 
@@ -54,25 +65,20 @@ pub async fn market_sell_all(wallet: &Wallet, net: &NetVersion) -> Result<()> {
 
         post_market_order(params, net).await?;
     }
-    
+
     Ok(())
 }
 
-
-async fn post_market_order(params: Map<String,Value>, net: &NetVersion) -> Result<()> {
+async fn post_market_order(params: Map<String, Value>, net: &NetVersion) -> Result<()> {
     let client = Client::new();
     let timestamp = get_server_time(net).await?;
     let recv_window = 5000;
     let api_key = &bybit_key()?;
 
-    let signature = generate_hmac_signature(
-        timestamp, 
-        &api_key, 
-        recv_window, 
-        to_string(&params)?
-    )?;
+    let signature = generate_hmac_signature(timestamp, &api_key, recv_window, to_string(&params)?)?;
 
-    let res = client.post(bybit_url("/v5/order/create", net))
+    let res = client
+        .post(bybit_url("/v5/order/create", net))
         .json(&params)
         .header("X-BAPI-SIGN", signature)
         .header("X-BAPI-API-KEY", api_key)
@@ -87,7 +93,7 @@ async fn post_market_order(params: Map<String,Value>, net: &NetVersion) -> Resul
 
     let response: OrderCreateResponse = match res.status() {
         reqwest::StatusCode::OK => res.json().await?,
-        _ => panic!("Unable to perform market buy")
+        _ => panic!("Unable to perform market buy"),
     };
 
     println!("Create Response: {:#?}", response);

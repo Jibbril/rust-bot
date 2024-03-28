@@ -1,9 +1,12 @@
-use anyhow::Result;
-use crate::models::{timeseries::TimeSeries, net_version::NetVersion, interval::Interval, candle::Candle, wallet::Wallet};
 use super::{kline, order_create, server_time, wallet_balance};
+use crate::models::{
+    candle::Candle, interval::Interval, net_version::NetVersion, timeseries::TimeSeries,
+    wallet::Wallet,
+};
+use anyhow::Result;
 
 #[derive(Debug, Clone)]
-pub struct BybitRestApi; 
+pub struct BybitRestApi;
 
 impl BybitRestApi {
     pub async fn get_kline(
@@ -29,10 +32,7 @@ impl BybitRestApi {
         Ok(order_create::market_buy(quantity, net).await?)
     }
 
-    pub async fn market_sell_all(
-        account_info: &Wallet, 
-        net: &NetVersion
-    ) -> Result<()> {
+    pub async fn market_sell_all(account_info: &Wallet, net: &NetVersion) -> Result<()> {
         Ok(order_create::market_sell_all(account_info, net).await?)
     }
 

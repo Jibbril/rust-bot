@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::models::wallet::{Wallet, WalletCoin};
+use std::collections::HashMap;
 
 pub struct WalletBuilder {
     total_available_balance: f64,

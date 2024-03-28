@@ -1,8 +1,8 @@
-use std::env;
+use crate::models::net_version::NetVersion;
 use anyhow::Result;
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
-use crate::models::net_version::NetVersion;
+use std::env;
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -14,10 +14,10 @@ pub fn bybit_url(path: &str, net: &NetVersion) -> String {
 }
 
 pub fn generate_hmac_signature(
-    timestamp: u64, 
+    timestamp: u64,
     api_key: &String,
     recv_window: i64,
-    params: String
+    params: String,
 ) -> Result<String> {
     let mut mac = HmacSha256::new_from_slice(bybit_secret()?.as_bytes())?;
     mac.update(timestamp.to_string().as_bytes());
@@ -38,4 +38,3 @@ pub fn bybit_secret() -> Result<String> {
 pub fn bybit_key() -> Result<String> {
     Ok(env::var("BYBIT_API_KEY")?)
 }
-

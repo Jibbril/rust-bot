@@ -2,7 +2,10 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::models::{wallet::{Wallet, WalletCoin}, wallet_builder::WalletBuilder};
+use crate::models::{
+    wallet::{Wallet, WalletCoin},
+    wallet_builder::WalletBuilder,
+};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WalletBalanceResponse {
@@ -15,8 +18,8 @@ pub struct WalletBalanceResponse {
     pub result: Option<WalletBalanceResult>,
 
     #[serde(rename = "retExtInfo")]
-    ret_ext_info: HashMap<String, serde_json::Value>, 
-    
+    ret_ext_info: HashMap<String, serde_json::Value>,
+
     time: u64,
 }
 
@@ -126,7 +129,7 @@ impl WalletBalance {
             let usd_value: f64 = c.usd_value.parse()?;
             let wc = WalletCoin::new(&c.coin, quantity, usd_value);
             coins.push(wc);
-        };
+        }
 
         let wallet = wb
             .total_available_balance(self.total_available_balance.parse()?)

@@ -1,6 +1,6 @@
 use super::{
     alphavantage, bitfinex,
-    bybit::{ws::bybit_ws_api::BybitWebsocketApi, rest::bybit_rest_api::BybitRestApi},
+    bybit::{rest::bybit_rest_api::BybitRestApi, ws::bybit_ws_api::BybitWebsocketApi},
     coinmarketcap, cryptocompare, local,
 };
 use crate::models::{
@@ -37,7 +37,7 @@ impl DataSource {
         let ts = match self {
             DataSource::AlphaVantage => alphavantage::get(symbol, &interval).await?,
             DataSource::Bitfinex => bitfinex::rest::get(symbol, &interval).await?,
-            DataSource::Bybit => BybitRestApi::get_kline(symbol, &interval, len, net).await?, 
+            DataSource::Bybit => BybitRestApi::get_kline(symbol, &interval, len, net).await?,
             DataSource::CoinMarketCap => coinmarketcap::get().await?,
             DataSource::CryptoCompare(exchange) => {
                 cryptocompare::get(symbol, &interval, exchange.clone()).await?

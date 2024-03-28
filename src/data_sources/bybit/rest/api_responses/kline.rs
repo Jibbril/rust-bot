@@ -6,7 +6,7 @@ use crate::{
     },
     utils::millis_to_datetime,
 };
-use anyhow::{anyhow, Result, Context};
+use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -35,7 +35,10 @@ impl ApiResponse for KlineResponse {
     }
 
     fn to_candles(&mut self, pop_last: bool) -> Result<Vec<Candle>> {
-        let result = self.result.as_ref().context("Unable to parse KlineResult.")?;
+        let result = self
+            .result
+            .as_ref()
+            .context("Unable to parse KlineResult.")?;
         let klines = match &result.list {
             Some(result) => result,
             None => return Err(anyhow!(self.ret_msg.clone())),

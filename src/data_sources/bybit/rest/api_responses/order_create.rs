@@ -25,4 +25,3 @@ pub struct OrderCreateResult {
     #[serde(rename = "orderLinkId")]
     order_link_id: String,
 }
-

@@ -8,6 +8,7 @@ mod trading_strategies;
 mod utils;
 
 use crate::{
+    data_sources::bybit::rest::bybit_rest_api::BybitRestApi,
     indicators::{
         atr::ATR, is_indicator::IsIndicator, pmarp::PMARP, populates_candles::PopulatesCandles,
         rsi::RSI,
@@ -15,7 +16,7 @@ use crate::{
     models::{ma_type::MAType, net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
     trading_strategies::{jb_2::JB2, rsi_basic::RsiBasic},
-    utils::save_setups, data_sources::bybit::rest::bybit_rest_api::BybitRestApi,
+    utils::save_setups,
 };
 use actix::Actor;
 use anyhow::Result;
@@ -46,11 +47,11 @@ pub async fn run_market_buy() -> Result<()> {
     let net = NetVersion::Mainnet;
     let time = BybitRestApi::get_server_time(&net).await?;
 
-    println!("Time: {:#?}",time);
+    println!("Time: {:#?}", time);
 
     let wallet = BybitRestApi::get_wallet_balance(&net).await?;
 
-    println!("Wallet: {:#?}",wallet);
+    println!("Wallet: {:#?}", wallet);
 
     let buy = false;
 
