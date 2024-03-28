@@ -4,6 +4,7 @@ use anyhow::{Result, Context};
 use reqwest::Client;
 use crate::{
     data_sources::bybit::rest::{
+        bybit_rest_api::BybitRestApi,
         api_responses::wallet_balance::{
             WalletBalance,
             WalletBalanceResponse
@@ -18,7 +19,8 @@ use crate::{
     models::net_version::NetVersion
 };
 
-pub async fn get(server_time: u64) -> Result<WalletBalance> {
+pub async fn get(net: &NetVersion) -> Result<WalletBalance> {
+    let server_time = BybitRestApi::get_server_time(&net).await?;
     let mut params: HashMap<String,String> = HashMap::new();
     params.insert("accountType".to_string(), "UNIFIED".to_string());
 

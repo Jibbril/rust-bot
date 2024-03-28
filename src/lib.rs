@@ -15,11 +15,11 @@ use crate::{
     models::{ma_type::MAType, net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
     trading_strategies::{jb_2::JB2, rsi_basic::RsiBasic},
-    utils::save_setups, data_sources::bybit::rest::{wallet_balance, order_create::{market_buy, market_sell_all}},
+    utils::save_setups, data_sources::bybit::rest::bybit_rest_api::BybitRestApi,
 };
 use actix::Actor;
 use anyhow::Result;
-use data_sources::{datasource::DataSource, local, bybit::rest::server_time::get_server_time};
+use data_sources::{datasource::DataSource, local};
 use dotenv::dotenv;
 use indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf};
 use models::{
@@ -44,11 +44,11 @@ pub async fn run_dummy() -> Result<()> {
 
 pub async fn run_market_buy() -> Result<()> {
     let net = &NetVersion::Mainnet;
-    let time = get_server_time(&net).await?;
+    let time = BybitRestApi::get_server_time(&net).await?;
 
     println!("Time: {:#?}",time);
 
-    let wallet_balance = wallet_balance::get(time).await?;
+    let wallet_balance = BybitRestApi::get_wallet_balance(&net).await?;
 
     println!("Wallet Balance: {:#?}",wallet_balance);
 
@@ -56,9 +56,9 @@ pub async fn run_market_buy() -> Result<()> {
 
     if buy {
         let balance: f64 = wallet_balance.total_available_balance.parse()?;
-        market_buy(balance * 0.5, &net).await?;
+        BybitRestApi::market_buy(balance * 0.5, &net).await?;
     } else {
-        market_sell_all(&wallet_balance, &net).await?;
+        BybitRestApi::market_sell_all(&wallet_balance, &net).await?;
     }
 
     Ok(())

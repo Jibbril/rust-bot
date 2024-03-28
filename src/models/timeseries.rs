@@ -1,5 +1,5 @@
 use crate::{
-    data_sources::{bybit::rest::kline::get_candles_between, datasource::DataSource, local},
+    data_sources::{datasource::DataSource, local, bybit::rest::bybit_rest_api::BybitRestApi},
     indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},
     models::{
         candle::Candle,
@@ -123,7 +123,7 @@ impl Handler<FillHistoricalCandlesPayload> for TimeSeries {
         let net = self.net;
 
         let fut = async move {
-            let candles = match get_candles_between(&symbol, &interval, &net, from, to).await {
+            let candles = match BybitRestApi::get_kline_between(&symbol, &interval, &net, from, to).await {
                 Ok(c) => c,
                 _ => panic!("Unable to get candles in between."),
             };
