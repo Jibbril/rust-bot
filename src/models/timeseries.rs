@@ -1,21 +1,19 @@
-use super::{
-    candle::Candle,
-    interval::Interval,
-    message_payloads::{
-        add_candles_payload::AddCandlesPayload, latest_candles_payload::LatestCandleResponse,
-        request_latest_candles_payload::RequestLatestCandlesPayload,
-        ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
-    },
-    net_version::NetVersion,
-    setups::setup_finder::SetupFinder,
-    timeseries_builder::TimeSeriesBuilder,
-};
 use crate::{
-    data_sources::{bybit::rest::get_candles_between, datasource::DataSource, local},
+    data_sources::{bybit::rest::bybit_rest_api::BybitRestApi, datasource::DataSource, local},
     indicators::{indicator_type::IndicatorType, populates_candles::PopulatesCandlesWithSelf},
-    models::message_payloads::{
-        candle_added_payload::CandleAddedPayload,
-        fill_historical_candles_payload::FillHistoricalCandlesPayload,
+    models::{
+        candle::Candle,
+        interval::Interval,
+        message_payloads::{
+            add_candles_payload::AddCandlesPayload, candle_added_payload::CandleAddedPayload,
+            fill_historical_candles_payload::FillHistoricalCandlesPayload,
+            latest_candles_payload::LatestCandleResponse,
+            request_latest_candles_payload::RequestLatestCandlesPayload,
+            ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
+        },
+        net_version::NetVersion,
+        setups::setup_finder::SetupFinder,
+        timeseries_builder::TimeSeriesBuilder,
     },
 };
 use actix::{
@@ -125,10 +123,11 @@ impl Handler<FillHistoricalCandlesPayload> for TimeSeries {
         let net = self.net;
 
         let fut = async move {
-            let candles = match get_candles_between(&symbol, &interval, &net, from, to).await {
-                Ok(c) => c,
-                _ => panic!("Unable to get candles in between."),
-            };
+            let candles =
+                match BybitRestApi::get_kline_between(&symbol, &interval, &net, from, to).await {
+                    Ok(c) => c,
+                    _ => panic!("Unable to get candles in between."),
+                };
 
             let payload = AddCandlesPayload { candles };
             address.do_send(payload);

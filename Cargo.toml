@@ -11,9 +11,12 @@ anyhow              = "1.0"
 csv                 = "1.2.2"
 dotenv              = "0.15.0"
 futures-util        = "0.3"
+hex                 = "0.4.3"
+hmac                = "0.12.1"
 indexmap            = "2.2.2"
 lettre              = "0.10"
 serde_json          = "1"
+sha2                = "0.10.8"
 tungstenite         = "0.20.0"
 chrono              = { version = "0.4.26",     features = ["serde"] }
 reqwest             = { version =" 0.11.18",    features = ["json"] }

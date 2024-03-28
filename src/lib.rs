@@ -8,6 +8,7 @@ mod trading_strategies;
 mod utils;
 
 use crate::{
+    data_sources::bybit::rest::bybit_rest_api::BybitRestApi,
     indicators::{
         atr::ATR, is_indicator::IsIndicator, pmarp::PMARP, populates_candles::PopulatesCandles,
         rsi::RSI,
@@ -15,7 +16,7 @@ use crate::{
     models::{ma_type::MAType, net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
     trading_strategies::{jb_2::JB2, rsi_basic::RsiBasic},
-    utils::{data::dummy_data::PRICE_CHANGES, save_setups},
+    utils::save_setups,
 };
 use actix::Actor;
 use anyhow::Result;
@@ -39,12 +40,27 @@ use tokio::time::{sleep, Duration};
 use trading_strategies::jb_1::JB1;
 
 pub async fn run_dummy() -> Result<()> {
-    let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
-    let pmarp = PMARP::calculate(&candles);
-    assert!(pmarp.is_some());
+    todo!()
+}
 
-    let pmarp = pmarp.unwrap();
-    assert_eq!(pmarp.value, 0.3314285714285714);
+pub async fn run_market_buy() -> Result<()> {
+    let net = NetVersion::Mainnet;
+    let time = BybitRestApi::get_server_time(&net).await?;
+
+    println!("Time: {:#?}", time);
+
+    let wallet = BybitRestApi::get_wallet_balance(&net).await?;
+
+    println!("Wallet: {:#?}", wallet);
+
+    let buy = false;
+
+    if buy {
+        let balance: f64 = wallet.total_available_balance;
+        BybitRestApi::market_buy(balance * 0.5, &net).await?;
+    } else {
+        BybitRestApi::market_sell_all(&wallet, &net).await?;
+    }
 
     Ok(())
 }

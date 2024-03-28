@@ -48,6 +48,8 @@ impl StrategyTester {
 
             // Initialize resolution strategy
             let mut resolution_strategy = strat.default_resolution_strategy();
+            let tp_candles_needed = resolution_strategy.n_candles_take_profit();
+            let sl_candles_needed = resolution_strategy.n_candles_stop_loss();
             resolution_strategy.set_initial_values(&setup)?;
             let mut n_bars = 0;
 
@@ -65,7 +67,6 @@ impl StrategyTester {
                     break;
                 };
 
-                let tp_candles_needed = resolution_strategy.n_candles_take_profit();
                 let tp_candles = &candles[end - tp_candles_needed..end];
                 let take_profit_reached =
                     resolution_strategy.take_profit_reached(&orientation, tp_candles)?;
@@ -78,7 +79,6 @@ impl StrategyTester {
                     break;
                 }
 
-                let sl_candles_needed = resolution_strategy.n_candles_stop_loss();
                 let sl_candles = &candles[end - sl_candles_needed..end];
                 let stop_loss_reached =
                     resolution_strategy.stop_loss_reached(&orientation, sl_candles)?;

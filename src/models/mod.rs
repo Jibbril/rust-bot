@@ -9,4 +9,6 @@ pub mod strategy_orientation;
 pub mod timeseries;
 pub mod timeseries_builder;
 pub mod traits;
+pub mod wallet;
+pub mod wallet_builder;
 pub mod websockets;
