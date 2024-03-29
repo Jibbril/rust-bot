@@ -1,10 +1,12 @@
-use super::strategy_test_result::StrategyTestResult;
 use crate::{
     models::{candle::Candle, interval::Interval, traits::trading_strategy::TradingStrategy},
     resolution_strategies::{
         is_resolution_strategy::IsResolutionStrategy, resolution_strategy::ResolutionStrategy,
     },
-    strategy_testing::strategy_test_result_builder::StrategyTestResultBuilder,
+    strategy_testing::{
+        strategy_test_result::StrategyTestResult,
+        strategy_test_result_builder::StrategyTestResultBuilder,
+    },
 };
 use anyhow::{Context, Result};
 

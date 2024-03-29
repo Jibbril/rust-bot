@@ -1,10 +1,10 @@
-use super::is_resolution_strategy::IsResolutionStrategy;
 use crate::{
     indicators::indicator_type::IndicatorType,
     models::{
         candle::Candle, ma_type::MAType, setups::setup::Setup,
         strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators,
     },
+    resolution_strategies::is_resolution_strategy::IsResolutionStrategy,
 };
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};

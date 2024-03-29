@@ -1,6 +1,8 @@
-use super::setup::Setup;
 use crate::{
-    models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation},
+    models::{
+        candle::Candle, interval::Interval, setups::setup::Setup,
+        strategy_orientation::StrategyOrientation,
+    },
     resolution_strategies::resolution_strategy::ResolutionStrategy,
 };
 use anyhow::{anyhow, Result};

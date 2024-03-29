@@ -1,8 +1,8 @@
-use super::{
-    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
-};
 use crate::{
+    indicators::{
+        indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+        is_indicator::IsIndicator, populates_candles::PopulatesCandles,
+    },
     models::{candle::Candle, ma_type::MAType, timeseries::TimeSeries},
     utils::math::{sma, vwma},
 };
@@ -131,7 +131,7 @@ impl PopulatesCandles for PMAR {
 }
 
 impl IsIndicator for PMAR {
-    fn default_args() -> super::indicator_args::IndicatorArgs {
+    fn default_args() -> IndicatorArgs {
         IndicatorArgs::PMARArgs(20, MAType::SMA)
     }
 

@@ -1,4 +1,4 @@
-use super::{action::Action, subscription::Subscription};
+use crate::data_sources::cryptocompare::websockets::{action::Action, subscription::Subscription};
 
 #[derive(Debug)]
 pub struct OutgoingMessage {

@@ -1,8 +1,10 @@
-use super::{
-    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
+use crate::{
+    indicators::{
+        indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+        is_indicator::IsIndicator, populates_candles::PopulatesCandles,
+    },
+    models::{candle::Candle, timeseries::TimeSeries},
 };
-use crate::models::{candle::Candle, timeseries::TimeSeries};
 use anyhow::{anyhow, Context, Result};
 
 #[derive(Debug, Copy, Clone)]
@@ -157,10 +159,9 @@ impl IsIndicator for ATR {
 
 #[cfg(test)]
 mod tests {
-    use super::ATR;
     use crate::{
         indicators::{
-            indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+            atr::ATR, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
             is_indicator::IsIndicator, populates_candles::PopulatesCandles,
         },
         models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},

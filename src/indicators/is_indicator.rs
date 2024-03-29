@@ -1,5 +1,4 @@
-use super::indicator_args::IndicatorArgs;
-use crate::models::candle::Candle;
+use crate::{indicators::indicator_args::IndicatorArgs, models::candle::Candle};
 
 pub trait IsIndicator {
     fn default_args() -> IndicatorArgs;
