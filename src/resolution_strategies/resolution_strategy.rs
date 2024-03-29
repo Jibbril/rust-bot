@@ -1,14 +1,14 @@
-use super::{
-    dynamic_pivot::DynamicPivotResolution, fixed_values::FixedValuesResolution,
-    is_resolution_strategy::IsResolutionStrategy,
-    pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution,
-    pmarp_vs_percentage::PmarpVsPercentageResolution,
-};
 use crate::{
     indicators::indicator_type::IndicatorType,
     models::{
         candle::Candle, setups::setup::Setup, strategy_orientation::StrategyOrientation,
         traits::requires_indicators::RequiresIndicators,
+    },
+    resolution_strategies::{
+        dynamic_pivot::DynamicPivotResolution, fixed_values::FixedValuesResolution,
+        is_resolution_strategy::IsResolutionStrategy,
+        pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution,
+        pmarp_vs_percentage::PmarpVsPercentageResolution,
     },
 };
 use anyhow::Result;

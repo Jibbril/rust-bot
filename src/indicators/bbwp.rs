@@ -1,8 +1,9 @@
-use super::{
-    bbw::BBW, indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    is_indicator::IsIndicator, populates_candles::PopulatesCandles, sma::SMA,
-};
 use crate::{
+    indicators::{
+        bbw::BBW, indicator::Indicator, indicator_args::IndicatorArgs,
+        indicator_type::IndicatorType, is_indicator::IsIndicator,
+        populates_candles::PopulatesCandles, sma::SMA,
+    },
     models::{candle::Candle, timeseries::TimeSeries},
     utils::math::sma,
 };
@@ -226,10 +227,9 @@ impl BBWP {
 
 #[cfg(test)]
 mod tests {
-    use super::BBWP;
     use crate::{
         indicators::{
-            indicator_type::IndicatorType, is_indicator::IsIndicator,
+            bbwp::BBWP, indicator_type::IndicatorType, is_indicator::IsIndicator,
             populates_candles::PopulatesCandles,
         },
         models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},

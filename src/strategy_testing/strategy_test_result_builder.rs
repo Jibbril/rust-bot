@@ -1,5 +1,7 @@
-use super::strategy_test_result::StrategyTestResult;
-use crate::utils::math::{sma, std};
+use crate::{
+    strategy_testing::strategy_test_result::StrategyTestResult,
+    utils::math::{sma, std},
+};
 
 const INITIAL_ACCOUNT_SIZE: f64 = 100_000.0;
 

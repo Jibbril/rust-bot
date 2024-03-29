@@ -1,11 +1,13 @@
-use super::{
-    alphavantage, bitfinex,
-    bybit::{rest::bybit_rest_api::BybitRestApi, ws::bybit_ws_api::BybitWebsocketApi},
-    coinmarketcap, cryptocompare, local,
-};
-use crate::models::{
-    interval::Interval, net_version::NetVersion, timeseries::TimeSeries,
-    websockets::wsclient::WebsocketClient,
+use crate::{
+    data_sources::{
+        alphavantage, bitfinex,
+        bybit::{rest::bybit_rest_api::BybitRestApi, ws::bybit_ws_api::BybitWebsocketApi},
+        coinmarketcap, cryptocompare, local,
+    },
+    models::{
+        interval::Interval, net_version::NetVersion, timeseries::TimeSeries,
+        websockets::wsclient::WebsocketClient,
+    },
 };
 use actix::Addr;
 use anyhow::{anyhow, Result};

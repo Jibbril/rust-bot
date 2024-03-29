@@ -1,4 +1,3 @@
-use super::requires_indicators::RequiresIndicators;
 use crate::{
     models::{
         candle::Candle,
@@ -6,6 +5,7 @@ use crate::{
         setups::{setup::Setup, setup_builder::SetupBuilder},
         strategy_orientation::StrategyOrientation,
         timeseries::TimeSeries,
+        traits::requires_indicators::RequiresIndicators,
     },
     resolution_strategies::resolution_strategy::ResolutionStrategy,
 };

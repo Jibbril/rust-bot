@@ -1,6 +1,8 @@
-use super::csv_setup_row::CsvSetupRow;
 use crate::{
-    models::{candle::Candle, interval::Interval, strategy_orientation::StrategyOrientation},
+    models::{
+        candle::Candle, interval::Interval, setups::csv_setup_row::CsvSetupRow,
+        strategy_orientation::StrategyOrientation,
+    },
     resolution_strategies::{
         dynamic_pivot::DynamicPivotResolution, resolution_strategy::ResolutionStrategy,
     },

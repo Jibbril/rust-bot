@@ -1,5 +1,7 @@
-use super::calculation_mode::CalculationMode;
-use crate::indicators::{indicator::Indicator, indicator_type::IndicatorType};
+use crate::{
+    indicators::{indicator::Indicator, indicator_type::IndicatorType},
+    models::calculation_mode::CalculationMode,
+};
 use anyhow::{Context, Result};
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};

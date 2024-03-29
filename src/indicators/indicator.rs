@@ -1,8 +1,11 @@
-use super::{
-    atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands, dynamic_pivots::DynamicPivots,
-    ema::EMA, indicator_type::IndicatorType, pmar::PMAR, pmarp::PMARP, rsi::RSI, sma::SMA,
+use crate::{
+    indicators::{
+        atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands,
+        dynamic_pivots::DynamicPivots, ema::EMA, indicator_type::IndicatorType, pmar::PMAR,
+        pmarp::PMARP, rsi::RSI, sma::SMA,
+    },
+    models::timeseries::TimeSeries,
 };
-use crate::models::timeseries::TimeSeries;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]

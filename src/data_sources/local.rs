@@ -1,7 +1,9 @@
-use super::datasource::DataSource;
-use crate::models::{
-    candle::Candle, interval::Interval, timeseries::TimeSeries,
-    timeseries_builder::TimeSeriesBuilder,
+use crate::{
+    data_sources::datasource::DataSource,
+    models::{
+        candle::Candle, interval::Interval, timeseries::TimeSeries,
+        timeseries_builder::TimeSeriesBuilder,
+    },
 };
 use anyhow::Result;
 use csv::Reader;

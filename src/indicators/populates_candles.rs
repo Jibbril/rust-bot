@@ -1,5 +1,4 @@
-use super::indicator_args::IndicatorArgs;
-use crate::models::timeseries::TimeSeries;
+use crate::{indicators::indicator_args::IndicatorArgs, models::timeseries::TimeSeries};
 use anyhow::Result;
 
 pub trait PopulatesCandles {

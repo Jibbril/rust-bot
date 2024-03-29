@@ -1,8 +1,8 @@
-use super::{
-    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    is_indicator::IsIndicator, pmar::PMAR, populates_candles::PopulatesCandles,
-};
 use crate::{
+    indicators::{
+        indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+        is_indicator::IsIndicator, pmar::PMAR, populates_candles::PopulatesCandles,
+    },
     models::{candle::Candle, ma_type::MAType, timeseries::TimeSeries},
     utils::math::sma,
 };

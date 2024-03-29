@@ -1,8 +1,8 @@
-use super::{
-    indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
-    is_indicator::IsIndicator, populates_candles::PopulatesCandles,
-};
 use crate::{
+    indicators::{
+        indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+        is_indicator::IsIndicator, populates_candles::PopulatesCandles,
+    },
     models::{candle::Candle, timeseries::TimeSeries},
     utils::math::{sma, std},
 };
@@ -139,11 +139,10 @@ impl BollingerBands {
 
 #[cfg(test)]
 mod tests {
-    use super::BollingerBands;
     use crate::{
         indicators::{
-            indicator_type::IndicatorType, is_indicator::IsIndicator,
-            populates_candles::PopulatesCandles,
+            bollinger_bands::BollingerBands, indicator_type::IndicatorType,
+            is_indicator::IsIndicator, populates_candles::PopulatesCandles,
         },
         models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
     };

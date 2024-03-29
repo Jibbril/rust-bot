@@ -1,18 +1,20 @@
-use super::{
-    atr::ATR,
-    bbw::BBW,
-    bbwp::BBWP,
-    bollinger_bands::BollingerBands,
-    dynamic_pivots::DynamicPivots,
-    ema::EMA,
-    indicator_args::IndicatorArgs,
-    pmar::PMAR,
-    pmarp::PMARP,
-    populates_candles::{PopulatesCandles, PopulatesCandlesWithSelf},
-    rsi::RSI,
-    sma::SMA,
+use crate::{
+    indicators::{
+        atr::ATR,
+        bbw::BBW,
+        bbwp::BBWP,
+        bollinger_bands::BollingerBands,
+        dynamic_pivots::DynamicPivots,
+        ema::EMA,
+        indicator_args::IndicatorArgs,
+        pmar::PMAR,
+        pmarp::PMARP,
+        populates_candles::{PopulatesCandles, PopulatesCandlesWithSelf},
+        rsi::RSI,
+        sma::SMA,
+    },
+    models::{ma_type::MAType, timeseries::TimeSeries},
 };
-use crate::models::{ma_type::MAType, timeseries::TimeSeries};
 use anyhow::Result;
 use serde::Serialize;
 

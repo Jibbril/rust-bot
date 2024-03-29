@@ -1,8 +1,9 @@
 mod alphavantage_structs;
 
-use super::api_response::ApiResponse;
-use crate::models::interval::Interval;
-use crate::models::timeseries::TimeSeries;
+use crate::{
+    data_sources::api_response::ApiResponse,
+    models::{interval::Interval, timeseries::TimeSeries},
+};
 use alphavantage_structs::AlphaVantageApiResponse;
 use anyhow::{anyhow, Result};
 use reqwest;
