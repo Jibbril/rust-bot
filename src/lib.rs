@@ -15,8 +15,7 @@ use crate::{
     },
     models::{ma_type::MAType, net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
-    trading_strategies::{jb_2::JB2, rsi_basic::RsiBasic},
-    utils::save_setups,
+    utils::save_setups, trading_strategies::private::jb_2::JB2,
 };
 use actix::Actor;
 use anyhow::Result;
@@ -37,7 +36,7 @@ use models::{
 };
 use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
-use trading_strategies::jb_1::JB1;
+use trading_strategies::{private::jb_1::JB1, public::rsi_basic::RsiBasic};
 
 pub async fn run_dummy() -> Result<()> {
     todo!()
