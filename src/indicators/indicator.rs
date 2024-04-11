@@ -2,7 +2,7 @@ use crate::{
     indicators::{
         atr::ATR, bbw::BBW, bbwp::BBWP, bollinger_bands::BollingerBands,
         dynamic_pivots::DynamicPivots, ema::EMA, indicator_type::IndicatorType, pmar::PMAR,
-        pmarp::PMARP, rsi::RSI, sma::SMA,
+        pmarp::PMARP, rsi::RSI, sma::SMA,stochastic::Stochastic,
     },
     models::timeseries::TimeSeries,
 };
@@ -20,6 +20,7 @@ pub enum Indicator {
     DynamicPivot(Option<DynamicPivots>),
     PMAR(Option<PMAR>),
     PMARP(Option<PMARP>),
+    Stochastic(Option<Stochastic>)
 }
 
 impl Indicator {

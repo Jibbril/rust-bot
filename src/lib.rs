@@ -10,10 +10,10 @@ mod utils;
 use crate::{
     data_sources::bybit::rest::bybit_rest_api::BybitRestApi,
     indicators::{
-        atr::ATR, is_indicator::IsIndicator, pmarp::PMARP, populates_candles::PopulatesCandles,
-        rsi::RSI,
+        atr::ATR, is_indicator::IsIndicator, populates_candles::PopulatesCandles,
+        rsi::RSI, stochastic::Stochastic
     },
-    models::{ma_type::MAType, net_version::NetVersion, websockets::wsclient::WebsocketClient},
+    models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
     utils::save_setups, trading_strategies::private::jb_2::JB2,
 };
@@ -65,17 +65,18 @@ pub async fn run_market_buy() -> Result<()> {
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let (len, lookback, _) = PMARP::default_args().pmarp_res()?;
-    let ma_type = MAType::VWMA;
-    let indicator_type = IndicatorType::PMARP(len, lookback, ma_type);
+    let (k_len, k_smoothing, d_smoothing) = Stochastic::default_args().stochastic_res()?;
+    let indicator_type = IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing);
 
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
+    let needed_candles = k_len + k_smoothing + d_smoothing - 2;
     let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, len + 500, &net)
+        .get_historical_data("BTCUSDT", &interval, needed_candles + 500, &net)
         .await?;
 
+    println!("ts: {:#?}",ts);
     indicator_type.populate_candles(&mut ts)?;
     println!("Ts:{:#?}", ts);
 

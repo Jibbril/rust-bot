@@ -13,3 +13,4 @@ pub mod pmarp;
 pub mod populates_candles;
 pub mod rsi;
 pub mod sma;
+pub mod stochastic;
