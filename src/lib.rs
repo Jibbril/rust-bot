@@ -76,7 +76,6 @@ pub async fn run_single_indicator() -> Result<()> {
         .get_historical_data("BTCUSDT", &interval, needed_candles + 500, &net)
         .await?;
 
-    println!("ts: {:#?}",ts);
     indicator_type.populate_candles(&mut ts)?;
     println!("Ts:{:#?}", ts);
 

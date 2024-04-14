@@ -28,7 +28,7 @@ impl PopulatesCandles for Stochastic {
     fn populate_candles_args(ts: &mut TimeSeries, args: IndicatorArgs) -> Result<()> {
         let (k_len, k_smoothing, d_smoothing) = args.stochastic_res()?;
         let indicator_type = IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing);
-        let needed_candles = k_len + k_smoothing + d_smoothing - 2;
+        let needed_candles = Self::needed_candles(k_len, k_smoothing, d_smoothing);
 
         for i in 0..ts.candles.len() {
             let end = i + 1;
@@ -100,9 +100,6 @@ impl IsIndicator for Stochastic {
         
         if segment.len() < k_len + (k_smoothing - 1) + (d_len - 1) { return None; }
 
-        println!("first before loop: {:#?}",segment.first().unwrap().timestamp);
-        println!("last before loop: {:#?}",segment.last().unwrap().timestamp);
-
         let mut ks: Vec<f64> = segment.windows(k_len)
             .rev()
             .take(k_smoothing + d_len)
@@ -110,9 +107,6 @@ impl IsIndicator for Stochastic {
                 let close = s.last()
                     .expect("Expected candle in slice.")
                     .close;
-
-                println!("first candle datetime: {:#?}",s.first().unwrap().timestamp);
-                println!("last candle datetime: {:#?}",s.last().unwrap().timestamp);
 
                 let (low,high) = s.iter().fold((f64::MAX,f64::MIN), |(min,max), c| {
                     let mut low = min;
@@ -129,9 +123,6 @@ impl IsIndicator for Stochastic {
                     (low,high) 
                 });
 
-                println!("high: {:#?}",high);
-                println!("low: {:#?}",low);
-
                 if high == low { 
                     0.5 
                 } else { 
@@ -139,8 +130,6 @@ impl IsIndicator for Stochastic {
                 }
             })
             .collect();
-
-        println!("ks: {:#?}",ks);
 
         if k_smoothing > 1 {
             ks = ks.windows(k_smoothing)

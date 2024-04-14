@@ -9,7 +9,6 @@ use crate::{
     },
 };
 use anyhow::{anyhow, Context, Result};
-use chrono::Utc;
 use reqwest::Client;
 use std::vec;
 
@@ -25,7 +24,7 @@ pub async fn get_candles_between(
     to: i64,
 ) -> Result<Vec<Candle>> {
     let client = Client::new();
-    let url = generate_url(symbol, interval, 1000, net, to, Some(from))?;
+    let url = generate_url(symbol, interval, 1000, net, Some(to), Some(from))?;
     let response = client.get(url).send().await?;
 
     let candles = match response.status() {
@@ -49,8 +48,8 @@ pub async fn get(
 
     let mut acc: Vec<Candle> = vec![];
     let mut remaining = len;
-    let mut end = Utc::now();
-    let mut first_iter = true;
+    let mut pop_last = len > GET_REQUEST_LIMIT;
+    let mut end = None;
 
     while remaining > 1 {
         // Add one for final request due to issues with request ordering
@@ -63,7 +62,7 @@ pub async fn get(
             interval,
             remaining,
             net,
-            end.timestamp_millis(),
+            end,
             None,
         )?;
         let response = client.get(url).send().await?;
@@ -71,14 +70,15 @@ pub async fn get(
         match response.status() {
             reqwest::StatusCode::OK => {
                 let mut response: KlineResponse = response.json().await?;
-                let mut candles = response.to_candles(!first_iter)?;
+                let mut candles = response.to_candles(!pop_last)?;
                 candles.reverse();
                 acc.extend(candles.clone());
 
-                end = candles
+                let new_end = candles
                     .last()
                     .context("Expected at least one candle.")?
                     .timestamp;
+                end = Some(new_end.timestamp_millis());
 
                 remaining -= remaining.min(candles.len());
 
@@ -87,8 +87,8 @@ pub async fn get(
             _ => Err(anyhow!(BYBIT_ERROR)),
         }?;
 
-        if first_iter {
-            first_iter = false;
+        if pop_last {
+            pop_last = false;
         }
     }
 
@@ -108,7 +108,7 @@ fn generate_url(
     interval: &Interval,
     len: usize,
     net: &NetVersion,
-    end: i64,
+    end: Option<i64>,
     start: Option<i64>,
 ) -> Result<String> {
     let interval = interval_to_str(interval)?;
@@ -118,16 +118,20 @@ fn generate_url(
     };
 
     let mut url = format!(
-        "{}/v5/market/kline?category=spot&symbol={}&interval={}&limit={}&end={}",
+        "{}/v5/market/kline?category=spot&symbol={}&interval={}&limit={}",
         base,
         symbol,
         interval,
         len,
-        end.to_string()
     );
 
     match start {
         Some(s) => url = format!("{}&start={}", url, s.to_string()),
+        _ => {}
+    }
+
+    match end {
+        Some(e) => url = format!("{}&end={}", url, e.to_string()),
         _ => {}
     }
 
