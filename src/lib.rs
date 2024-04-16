@@ -65,7 +65,7 @@ pub async fn run_market_buy() -> Result<()> {
 }
 
 pub async fn run_single_indicator() -> Result<()> {
-    let (k_len, k_smoothing, d_smoothing) = Stochastic::default_args().stochastic_res()?;
+    let (k_len, k_smoothing, d_smoothing) = Stochastic::krown_args().stochastic_res()?;
     let indicator_type = IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing);
 
     let interval = Interval::Minute1;

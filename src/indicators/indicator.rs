@@ -140,4 +140,12 @@ impl Indicator {
             None
         }
     }
+
+    pub fn as_stochastic(&self) -> Option<Stochastic> {
+        if let Indicator::Stochastic(stoch) = self {
+            stoch.clone()
+        } else {
+            None
+        }
+    }
 }

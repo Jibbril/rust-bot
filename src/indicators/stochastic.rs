@@ -96,13 +96,14 @@ impl IsIndicator for Stochastic {
     fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
     where
         Self: Sized {
-        let (k_len, k_smoothing, d_len) = args.stochastic_opt()?;
+        let (k_len, k_smoothing, d_smoothing) = args.stochastic_opt()?;
+        let needed_candles = Self::needed_candles(k_len, k_smoothing, d_smoothing);
         
-        if segment.len() < k_len + (k_smoothing - 1) + (d_len - 1) { return None; }
+        if segment.len() < needed_candles { return None; }
 
         let mut ks: Vec<f64> = segment.windows(k_len)
             .rev()
-            .take(k_smoothing + d_len)
+            .take(k_smoothing + d_smoothing)
             .map(|s| {
                 let close = s.last()
                     .expect("Expected candle in slice.")
@@ -138,8 +139,8 @@ impl IsIndicator for Stochastic {
         }
 
         let d = ks.iter()
-            .take(d_len)
-            .sum::<f64>() / d_len as f64;
+            .take(d_smoothing)
+            .sum::<f64>() / d_smoothing as f64;
 
         Some(Self { k: *ks.first()?, d })
     }
@@ -149,4 +150,139 @@ impl Stochastic {
     fn needed_candles(k_len: usize, k_smoothing: usize, d_smoothing: usize) -> usize {
         k_len + k_smoothing + d_smoothing - 2
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        indicators::{
+            indicator_type::IndicatorType, is_indicator::IsIndicator,
+            populates_candles::PopulatesCandles, stochastic::Stochastic
+        },
+        models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
+        utils::data::dummy_data::PRICE_CHANGES,
+    };
+
+    const FINAL_VALUES: &[(f64,f64)] = &[
+        (1.0,1.0),
+        (1.0,1.0),
+        (1.0,1.0),
+        (1.0,1.0),
+        (1.0,1.0),
+    ];
+
+    #[test]
+    fn stochastic_calculate() {
+        let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+
+        let mut ts = TimeSeriesBuilder::new()
+            .symbol("DUMMY".to_string())
+            .interval(Interval::Day1)
+            .candles(candles)
+            .build();
+
+        let _ = Stochastic::populate_candles(&mut ts);
+
+        let segment = &ts.candles[ts.candles.len() - 5..];
+
+        let (k_len, k_smoothing, d_smoothing) = Stochastic::default_args().stochastic_opt().unwrap();
+        for (i, (k_val,d_val)) in FINAL_VALUES.iter().enumerate() {
+            let stochastic = segment[i]
+                .clone_indicator(&IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing))
+                .unwrap()
+                .as_stochastic()
+                .unwrap();
+            assert_eq!(*k_val, stochastic.k);
+            assert_eq!(*d_val, stochastic.d);
+        }
+    }
+
+    // #[test]
+    // fn stochastic_no_candles() {
+    //     let candles = Vec::new();
+    //     let sma = BBWP::calculate(&candles);
+    //     assert!(sma.is_none());
+    // }
+    //
+    // #[test]
+    // fn stochastic_no_candles_args() {
+    //     let candles = Vec::new();
+    //     let args = BBWP::default_args();
+    //     let sma = BBWP::calculate_args(&candles, &args);
+    //     assert!(sma.is_none());
+    // }
+    //
+    // #[test]
+    // fn stochastic_populate_candles() {
+    //     let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+    //     let mut ts = TimeSeriesBuilder::new()
+    //         .symbol("DUMMY".to_string())
+    //         .interval(Interval::Day1)
+    //         .candles(candles)
+    //         .build();
+    //
+    //     let _ = BBWP::populate_candles(&mut ts);
+    //
+    //     let (len, lookback, _sma_len) = BBWP::default_args().bbwp_opt().unwrap();
+    //     let indicator_type = IndicatorType::BBWP(len, lookback);
+    //
+    //     for (i, candle) in ts.candles.iter().enumerate() {
+    //         let indicator = candle.indicators.get(&indicator_type).unwrap();
+    //         let bbwp = indicator.as_bbwp();
+    //         if i < len - 1 {
+    //             assert!(bbwp.is_none());
+    //         } else {
+    //             assert!(bbwp.is_some());
+    //         }
+    //     }
+    //
+    //     let segment = &ts.candles[ts.candles.len() - 5..];
+    //
+    //     let (len, lookback, _) = BBWP::default_args().bbwp_opt().unwrap();
+    //     for (i, val) in FINAL_VALUES.iter().enumerate() {
+    //         let bbwp = segment[i]
+    //             .clone_indicator(&IndicatorType::BBWP(len, lookback))
+    //             .unwrap()
+    //             .as_bbwp()
+    //             .unwrap();
+    //         assert_eq!(*val, bbwp.value)
+    //     }
+    // }
+    //
+    // #[test]
+    // fn stochastic_populate_last_candle() {
+    //     let mut candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+    //     let candle = candles.pop().unwrap();
+    //
+    //     let mut ts = TimeSeriesBuilder::new()
+    //         .symbol("DUMMY".to_string())
+    //         .interval(Interval::Day1)
+    //         .candles(candles)
+    //         .build();
+    //     let _ = BBWP::populate_candles(&mut ts);
+    //     let _ = ts.add_candle(&candle);
+    //
+    //     let (len, lookback, _sma_len) = BBWP::default_args().bbwp_opt().unwrap();
+    //     let indicator_type = IndicatorType::BBWP(len, lookback);
+    //
+    //     for (i, candle) in ts.candles.iter().enumerate() {
+    //         let indicator = candle.indicators.get(&indicator_type).unwrap();
+    //         let bbwp = indicator.as_bbwp();
+    //         if i < len - 1 {
+    //             assert!(bbwp.is_none());
+    //         } else {
+    //             assert!(bbwp.is_some());
+    //         }
+    //     }
+    //
+    //     let last_candle = ts.candles.last().unwrap();
+    //     let last_bbwp = last_candle
+    //         .indicators
+    //         .get(&indicator_type)
+    //         .unwrap()
+    //         .as_bbwp()
+    //         .unwrap();
+    //
+    //     assert_eq!(&last_bbwp.value, FINAL_VALUES.last().unwrap());
+    // }
 }
