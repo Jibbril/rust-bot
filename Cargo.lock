@@ -1077,6 +1077,7 @@ dependencies = [
  "hmac",
  "indexmap 2.2.2",
  "lettre",
+ "rand",
  "reqwest",
  "serde",
  "serde_json",
