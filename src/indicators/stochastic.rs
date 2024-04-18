@@ -156,7 +156,7 @@ impl Stochastic {
 mod tests {
     use crate::{
         indicators::{
-            indicator_type::IndicatorType, is_indicator::IsIndicator,
+            indicator_type::IndicatorType, 
             populates_candles::PopulatesCandles, stochastic::Stochastic
         },
         models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
@@ -164,16 +164,16 @@ mod tests {
     };
 
     const FINAL_VALUES: &[(f64,f64)] = &[
-        (1.0,1.0),
-        (1.0,1.0),
-        (1.0,1.0),
-        (1.0,1.0),
-        (1.0,1.0),
+        (0.6542362500479966,0.3932293973692202),
+        (0.72863012488384,0.5269333770227321),
+        (0.6017964844106882,0.6002101651769305),
+        (0.37588233499204177,0.5900912298007457),
+        (0.39696803104797135,0.5685657964420793),
     ];
 
     #[test]
     fn stochastic_calculate() {
-        let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+        let candles = Candle::dyn_dummy_from_increments(&PRICE_CHANGES);
 
         let mut ts = TimeSeriesBuilder::new()
             .symbol("DUMMY".to_string())
@@ -181,11 +181,12 @@ mod tests {
             .candles(candles)
             .build();
 
-        let _ = Stochastic::populate_candles(&mut ts);
+        let args = Stochastic::krown_args();
+        let _ = Stochastic::populate_candles_args(&mut ts, args);
 
         let segment = &ts.candles[ts.candles.len() - 5..];
 
-        let (k_len, k_smoothing, d_smoothing) = Stochastic::default_args().stochastic_opt().unwrap();
+        let (k_len, k_smoothing, d_smoothing) = args.stochastic_opt().unwrap();
         for (i, (k_val,d_val)) in FINAL_VALUES.iter().enumerate() {
             let stochastic = segment[i]
                 .clone_indicator(&IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing))

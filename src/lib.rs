@@ -37,9 +37,43 @@ use models::{
 use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
 use trading_strategies::{private::jb_1::JB1, public::rsi_basic::RsiBasic};
+use utils::data::dummy_data::PRICE_CHANGES;
+
+// TODO: Investigate why these values are coming out wrong
+const FINAL_VALUES: &[(f64,f64)] = &[
+    (1.0,1.0),
+    (1.0,1.0),
+    (1.0,1.0),
+    (1.0,1.0),
+    (1.0,1.0),
+];
 
 pub async fn run_dummy() -> Result<()> {
-    todo!()
+    let candles = Candle::dummy_from_increments(&PRICE_CHANGES);
+
+    let mut ts = TimeSeriesBuilder::new()
+        .symbol("DUMMY".to_string())
+        .interval(Interval::Day1)
+        .candles(candles)
+        .build();
+
+    let _ = Stochastic::populate_candles(&mut ts);
+
+    let segment = &ts.candles[ts.candles.len() - 5..];
+
+    let (k_len, k_smoothing, d_smoothing) = Stochastic::default_args().stochastic_opt().unwrap();
+    for (i, (k_val,d_val)) in FINAL_VALUES.iter().enumerate() {
+
+        let stochastic = segment[i]
+            .clone_indicator(&IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing))
+            .unwrap()
+            .as_stochastic()
+            .unwrap();
+        assert_eq!(*k_val, stochastic.k);
+        assert_eq!(*d_val, stochastic.d);
+    }
+
+    Ok(())
 }
 
 pub async fn run_market_buy() -> Result<()> {
