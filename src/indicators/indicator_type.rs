@@ -12,13 +12,12 @@ use crate::{
         populates_candles::{PopulatesCandles, PopulatesCandlesWithSelf},
         rsi::RSI,
         sma::SMA,
+        stochastic::Stochastic,
     },
     models::{ma_type::MAType, timeseries::TimeSeries},
 };
 use anyhow::Result;
 use serde::Serialize;
-
-use super::stochastic::Stochastic;
 
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, Serialize)]
