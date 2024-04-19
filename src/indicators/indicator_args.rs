@@ -9,7 +9,8 @@ pub enum IndicatorArgs {
     BBWPArgs(usize, usize, usize),    // bbwp-length, lookback, sma-length
     LengthLookbackArgs(usize, usize), // Length, lookback
     PMARArgs(usize, MAType),          // Length, moving average type
-    PMARPArgs(usize, usize, MAType),  // Lenght, lookback, moving average type
+    PMARPArgs(usize, usize, MAType),  // Length, lookback, moving average type
+    StochasticArgs(usize, usize, usize), // K length, K smoothing, D Smoothing
 }
 
 const ERR_MSG: &str = "Invalid indicator arguments.";
@@ -104,6 +105,22 @@ impl IndicatorArgs {
         match self {
             IndicatorArgs::PMARPArgs(a, b, c) => Ok((*a, *b, *c)),
             _ => return Err(anyhow!(ERR_MSG)),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn stochastic_res(&self) -> Result<(usize, usize, usize)> {
+        match self {
+            IndicatorArgs::StochasticArgs(a, b, c) => Ok((*a, *b, *c)),
+            _ => return Err(anyhow!(ERR_MSG)),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn stochastic_opt(&self) -> Option<(usize, usize, usize)> {
+        match self {
+            IndicatorArgs::StochasticArgs(a, b, c) => Some((*a, *b, *c)),
+            _ => return None,
         }
     }
 }

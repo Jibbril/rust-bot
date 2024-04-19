@@ -4,6 +4,7 @@ use crate::{
 };
 use anyhow::{Context, Result};
 use chrono::{DateTime, Duration, Utc};
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -105,6 +106,42 @@ impl Candle {
                     high: val,
                     low: val,
                     volume: 1000.0,
+                    indicators: HashMap::new(),
+                }
+            })
+            .collect()
+    }
+
+    #[allow(dead_code)]
+    pub fn dyn_dummy_from_increments(nums: &[f64]) -> Vec<Candle> {
+        let mut now = Utc::now();
+        let mut prev: f64 = 1000.0;
+        let mut rng = rand::thread_rng();
+
+        nums.iter()
+            .map(|num| {
+                let open = prev;
+                let close = prev + *num;
+                let high;
+                let low;
+                prev = close;
+
+                if open < close {
+                    high = open + 1.0;
+                    low = close - 1.0;
+                } else {
+                    high = close + 1.0;
+                    low = open - 1.0;
+                }
+
+                now += Duration::days(1);
+                Candle {
+                    timestamp: now,
+                    open,
+                    close,
+                    high,
+                    low,
+                    volume: rng.gen_range(200..1500) as f64,
                     indicators: HashMap::new(),
                 }
             })

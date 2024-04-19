@@ -12,6 +12,7 @@ use crate::{
         populates_candles::{PopulatesCandles, PopulatesCandlesWithSelf},
         rsi::RSI,
         sma::SMA,
+        stochastic::Stochastic,
     },
     models::{ma_type::MAType, timeseries::TimeSeries},
 };
@@ -30,7 +31,8 @@ pub enum IndicatorType {
     BBWP(usize, usize), // length, lookback
     DynamicPivot(usize),
     PMAR(usize, MAType),
-    PMARP(usize, usize, MAType), // length, lookback
+    PMARP(usize, usize, MAType),     // length, lookback
+    Stochastic(usize, usize, usize), // K-lenght, K-smoothing, D-smoothing
 }
 
 impl PopulatesCandlesWithSelf for IndicatorType {
@@ -76,6 +78,10 @@ impl PopulatesCandlesWithSelf for IndicatorType {
                 let args = IndicatorArgs::PMARPArgs(*len, *lookback, *ma_type);
                 PMARP::populate_candles_args(ts, args)
             }
+            IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing) => {
+                let args = IndicatorArgs::StochasticArgs(*k_len, *k_smoothing, *d_smoothing);
+                Stochastic::populate_candles_args(ts, args)
+            }
         }
     }
 
@@ -120,6 +126,10 @@ impl PopulatesCandlesWithSelf for IndicatorType {
             IndicatorType::PMARP(len, lookback, ma_type) => {
                 let args = IndicatorArgs::PMARPArgs(*len, *lookback, *ma_type);
                 PMARP::populate_last_candle_args(ts, args)
+            }
+            IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing) => {
+                let args = IndicatorArgs::StochasticArgs(*k_len, *k_smoothing, *d_smoothing);
+                Stochastic::populate_last_candle_args(ts, args)
             }
         }
     }
