@@ -10,12 +10,13 @@ mod utils;
 use crate::{
     data_sources::bybit::rest::bybit_rest_api::BybitRestApi,
     indicators::{
-        atr::ATR, is_indicator::IsIndicator, populates_candles::PopulatesCandles,
-        rsi::RSI, stochastic::Stochastic
+        atr::ATR, is_indicator::IsIndicator, populates_candles::PopulatesCandles, rsi::RSI,
+        stochastic::Stochastic,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     notifications::notification_center::NotificationCenter,
-    utils::save_setups, trading_strategies::private::jb_2::JB2,
+    trading_strategies::private::jb_2::JB2,
+    utils::save_setups,
 };
 use actix::Actor;
 use anyhow::Result;

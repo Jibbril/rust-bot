@@ -57,14 +57,7 @@ pub async fn get(
             remaining += 1;
         }
 
-        let url = generate_url(
-            symbol,
-            interval,
-            remaining,
-            net,
-            end,
-            None,
-        )?;
+        let url = generate_url(symbol, interval, remaining, net, end, None)?;
         let response = client.get(url).send().await?;
 
         match response.status() {
@@ -119,10 +112,7 @@ fn generate_url(
 
     let mut url = format!(
         "{}/v5/market/kline?category=spot&symbol={}&interval={}&limit={}",
-        base,
-        symbol,
-        interval,
-        len,
+        base, symbol, interval, len,
     );
 
     match start {

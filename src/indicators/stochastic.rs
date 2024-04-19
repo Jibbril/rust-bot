@@ -1,11 +1,11 @@
-use anyhow::{Result, anyhow, Context};
-use crate::{indicators::{
-    is_indicator::IsIndicator,
-    indicator_args::IndicatorArgs,
-    populates_candles::PopulatesCandles,
-    indicator_type::IndicatorType,
-    indicator::Indicator,
-}, models::{candle::Candle, timeseries::TimeSeries}};
+use crate::{
+    indicators::{
+        indicator::Indicator, indicator_args::IndicatorArgs, indicator_type::IndicatorType,
+        is_indicator::IsIndicator, populates_candles::PopulatesCandles,
+    },
+    models::{candle::Candle, timeseries::TimeSeries},
+};
+use anyhow::{anyhow, Context, Result};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct Stochastic {
@@ -89,27 +89,30 @@ impl IsIndicator for Stochastic {
 
     fn calculate(segment: &[Candle]) -> Option<Self>
     where
-        Self: Sized {
+        Self: Sized,
+    {
         Self::calculate_args(segment, &Self::default_args())
     }
 
     fn calculate_args(segment: &[Candle], args: &IndicatorArgs) -> Option<Self>
     where
-        Self: Sized {
+        Self: Sized,
+    {
         let (k_len, k_smoothing, d_smoothing) = args.stochastic_opt()?;
         let needed_candles = Self::needed_candles(k_len, k_smoothing, d_smoothing);
-        
-        if segment.len() < needed_candles { return None; }
 
-        let mut ks: Vec<f64> = segment.windows(k_len)
+        if segment.len() < needed_candles {
+            return None;
+        }
+
+        let mut ks: Vec<f64> = segment
+            .windows(k_len)
             .rev()
             .take(k_smoothing + d_smoothing)
             .map(|s| {
-                let close = s.last()
-                    .expect("Expected candle in slice.")
-                    .close;
+                let close = s.last().expect("Expected candle in slice.").close;
 
-                let (low,high) = s.iter().fold((f64::MAX,f64::MIN), |(min,max), c| {
+                let (low, high) = s.iter().fold((f64::MAX, f64::MIN), |(min, max), c| {
                     let mut low = min;
                     let mut high = max;
 
@@ -121,30 +124,29 @@ impl IsIndicator for Stochastic {
                         high = c.high
                     }
 
-                    (low,high) 
+                    (low, high)
                 });
 
-                if high == low { 
-                    0.5 
-                } else { 
+                if high == low {
+                    0.5
+                } else {
                     (close - low) / (high - low)
                 }
             })
             .collect();
 
         if k_smoothing > 1 {
-            ks = ks.windows(k_smoothing)
+            ks = ks
+                .windows(k_smoothing)
                 .map(|s| s.iter().sum::<f64>() / k_smoothing as f64)
                 .collect();
         }
 
-        let d = ks.iter()
-            .take(d_smoothing)
-            .sum::<f64>() / d_smoothing as f64;
+        let d = ks.iter().take(d_smoothing).sum::<f64>() / d_smoothing as f64;
 
         Some(Self { k: *ks.first()?, d })
     }
-} 
+}
 
 impl Stochastic {
     fn needed_candles(k_len: usize, k_smoothing: usize, d_smoothing: usize) -> usize {
@@ -156,19 +158,19 @@ impl Stochastic {
 mod tests {
     use crate::{
         indicators::{
-            indicator_type::IndicatorType, 
-            populates_candles::PopulatesCandles, stochastic::Stochastic, is_indicator::IsIndicator
+            indicator_type::IndicatorType, is_indicator::IsIndicator,
+            populates_candles::PopulatesCandles, stochastic::Stochastic,
         },
         models::{candle::Candle, interval::Interval, timeseries_builder::TimeSeriesBuilder},
         utils::data::dummy_data::PRICE_CHANGES,
     };
 
-    const FINAL_VALUES: &[(f64,f64)] = &[
-        (0.6542362500479966,0.3932293973692202),
-        (0.72863012488384,0.5269333770227321),
-        (0.6017964844106882,0.6002101651769305),
-        (0.37588233499204177,0.5900912298007457),
-        (0.39696803104797135,0.5685657964420793),
+    const FINAL_VALUES: &[(f64, f64)] = &[
+        (0.6542362500479966, 0.3932293973692202),
+        (0.72863012488384, 0.5269333770227321),
+        (0.6017964844106882, 0.6002101651769305),
+        (0.37588233499204177, 0.5900912298007457),
+        (0.39696803104797135, 0.5685657964420793),
     ];
 
     #[test]
@@ -187,7 +189,7 @@ mod tests {
         let segment = &ts.candles[ts.candles.len() - 5..];
 
         let (k_len, k_smoothing, d_smoothing) = args.stochastic_opt().unwrap();
-        for (i, (k_val,d_val)) in FINAL_VALUES.iter().enumerate() {
+        for (i, (k_val, d_val)) in FINAL_VALUES.iter().enumerate() {
             let stochastic = segment[i]
                 .clone_indicator(&IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing))
                 .unwrap()
@@ -197,7 +199,7 @@ mod tests {
             assert_eq!(*d_val, stochastic.d);
         }
     }
-    
+
     #[test]
     fn stochastic_no_candles() {
         let candles = Vec::new();
@@ -240,7 +242,7 @@ mod tests {
 
         let segment = &ts.candles[ts.candles.len() - 5..];
 
-        for (i, (k_val,d_val)) in FINAL_VALUES.iter().enumerate() {
+        for (i, (k_val, d_val)) in FINAL_VALUES.iter().enumerate() {
             let stoch = segment[i]
                 .clone_indicator(&IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing))
                 .unwrap()

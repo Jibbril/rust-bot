@@ -10,7 +10,7 @@ pub enum IndicatorArgs {
     LengthLookbackArgs(usize, usize), // Length, lookback
     PMARArgs(usize, MAType),          // Length, moving average type
     PMARPArgs(usize, usize, MAType),  // Length, lookback, moving average type
-    StochasticArgs(usize,usize,usize) // K length, K smoothing, D Smoothing 
+    StochasticArgs(usize, usize, usize), // K length, K smoothing, D Smoothing
 }
 
 const ERR_MSG: &str = "Invalid indicator arguments.";
