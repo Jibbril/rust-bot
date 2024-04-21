@@ -11,11 +11,12 @@ use crate::{
 };
 use actix::{fut::wrap_future, Actor, Addr, AsyncContext, Context, Handler};
 
-#[allow(dead_code)]
 #[derive(Debug)]
 pub struct SetupFinder {
     strategy: Box<dyn TradingStrategy>,
     ts: Addr<TimeSeries>,
+    notifications_enabled: bool,
+    live_trading_enabled: bool,
 }
 
 impl Actor for SetupFinder {
@@ -32,6 +33,8 @@ impl Handler<CandleAddedPayload> for SetupFinder {
 
         let ts = self.ts.clone();
         let strategy = self.strategy.clone_box();
+        let notifications_enabled = self.notifications_enabled;
+        let live_trading_enabled = self.live_trading_enabled;
 
         let fut = async move {
             let send_result = match ts.send(payload).await {
@@ -78,13 +81,19 @@ impl Handler<CandleAddedPayload> for SetupFinder {
 
             println!("Setup found: {:#?}", setup);
 
-            match NotificationCenter::notify(&setup, &strategy).await {
-                Ok(_) => (),
-                Err(e) => {
-                    println!("Error when notifying: {:#?}", e);
-                    return;
-                }
-            };
+            if notifications_enabled {
+                match NotificationCenter::notify(&setup, &strategy).await {
+                    Ok(_) => (),
+                    Err(e) => {
+                        println!("Error when notifying: {:#?}", e);
+                        return;
+                    }
+                };
+            }
+
+            if live_trading_enabled {
+                // TODO: Spin up SetupTracker
+            }
         };
 
         let actor_fut = wrap_future::<_, Self>(fut);
@@ -94,7 +103,7 @@ impl Handler<CandleAddedPayload> for SetupFinder {
 
 #[allow(dead_code)]
 impl SetupFinder {
-    pub fn new(strategy: Box<dyn TradingStrategy>, ts: Addr<TimeSeries>) -> Self {
-        SetupFinder { strategy, ts }
+    pub fn new(strategy: Box<dyn TradingStrategy>, ts: Addr<TimeSeries>, notifications_enabled: bool, live_trading_enabled: bool) -> Self {
+        SetupFinder { strategy, ts, notifications_enabled, live_trading_enabled }
     }
 }

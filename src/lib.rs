@@ -10,7 +10,7 @@ mod utils;
 use crate::{
     data_sources::bybit::rest::bybit_rest_api::BybitRestApi,
     indicators::{
-        atr::ATR, is_indicator::IsIndicator, populates_candles::PopulatesCandles, rsi::RSI,
+        atr::ATR, populates_candles::PopulatesCandles, rsi::RSI,
         stochastic::Stochastic,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
@@ -29,7 +29,7 @@ use models::{
     message_payloads::{
         ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
     },
-    setups::setup_finder::SetupFinder,
+    setups::setup_finder_builder::SetupFinderBuilder,
     strategy_orientation::StrategyOrientation,
     timeseries::TimeSeries,
     timeseries_builder::TimeSeriesBuilder,
@@ -113,7 +113,12 @@ pub async fn run_strategy() -> Result<()> {
     let ts_addr = ts.start();
 
     // Create setup finder and subscribe to timeseries
-    let setup_finder = SetupFinder::new(strategy, ts_addr.clone());
+    let setup_finder = SetupFinderBuilder::new()
+        .strategy(strategy)
+        .ts(ts_addr.clone())
+        .notifications_enabled(true)
+        .live_trading_enabled(false)
+        .build()?;
 
     let sf_addr = setup_finder.start();
 
@@ -164,8 +169,16 @@ pub async fn run_double_strategies() -> Result<()> {
     let ts_addr = ts.start();
 
     // Create setup finder and subscribe to timeseries
-    let long_setup_finder = SetupFinder::new(long_strategy, ts_addr.clone());
-    let short_setup_finder = SetupFinder::new(short_strategy, ts_addr.clone());
+    let long_setup_finder = SetupFinderBuilder::new()
+        .strategy(long_strategy)
+        .ts(ts_addr.clone())
+        .notifications_enabled(true)
+        .build()?;
+    let short_setup_finder = SetupFinderBuilder::new()
+        .strategy(short_strategy)
+        .ts(ts_addr.clone())
+        .notifications_enabled(true)
+        .build()?;
 
     let long_sf_addr = long_setup_finder.start();
     let short_sf_addr = short_setup_finder.start();
@@ -223,7 +236,12 @@ pub async fn run_setup_finder() -> Result<()> {
     let ts = TimeSeries::dummy();
     let ts = ts.start();
 
-    let sf = SetupFinder::new(strategy, ts.clone());
+    let sf = SetupFinderBuilder::new()
+        .strategy(strategy)
+        .ts(ts.clone())
+        .notifications_enabled(true)
+        .build()?;
+
     let sf = sf.start();
 
     let payload = TSSubscribePayload {
@@ -257,7 +275,11 @@ pub async fn run_manual_setups() -> Result<()> {
     let strategy: Box<dyn TradingStrategy> = Box::new(RsiBasic::new());
     let ts = ts.start();
 
-    let sf = SetupFinder::new(strategy, ts.clone());
+    let sf = SetupFinderBuilder::new()
+        .strategy(strategy)
+        .ts(ts.clone())
+        .notifications_enabled(true)
+        .build()?;
     let sf = sf.start();
 
     let payload = TSSubscribePayload {
