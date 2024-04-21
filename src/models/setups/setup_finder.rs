@@ -6,10 +6,14 @@ use crate::{
         },
         timeseries::TimeSeries,
         traits::trading_strategy::TradingStrategy,
+        active_trade::ActiveTrade
     },
     notifications::notification_center::NotificationCenter,
 };
 use actix::{fut::wrap_future, Actor, Addr, AsyncContext, Context, Handler};
+use anyhow::Result;
+
+use super::setup_finder_builder::SetupFinderBuilder;
 
 #[derive(Debug)]
 pub struct SetupFinder {
@@ -17,6 +21,7 @@ pub struct SetupFinder {
     ts: Addr<TimeSeries>,
     notifications_enabled: bool,
     live_trading_enabled: bool,
+    spawned_trades: Vec<Addr<ActiveTrade>>
 }
 
 impl Actor for SetupFinder {
@@ -35,6 +40,8 @@ impl Handler<CandleAddedPayload> for SetupFinder {
         let strategy = self.strategy.clone_box();
         let notifications_enabled = self.notifications_enabled;
         let live_trading_enabled = self.live_trading_enabled;
+        let spawned_trades = self.spawned_trades.clone();
+        let self_addr = ctx.address();
 
         let fut = async move {
             let send_result = match ts.send(payload).await {
@@ -81,6 +88,19 @@ impl Handler<CandleAddedPayload> for SetupFinder {
 
             println!("Setup found: {:#?}", setup);
 
+            if live_trading_enabled {
+                // Don't allow multiple active trades from the same strategy 
+                // and timeseries
+                if spawned_trades.len() > 0 {
+                    return;
+                }
+
+                // TODO: Spin up SetupTracker
+                let trade = todo!();
+
+                spawned_trades.push(trade)
+            }
+
             if notifications_enabled {
                 match NotificationCenter::notify(&setup, &strategy).await {
                     Ok(_) => (),
@@ -89,10 +109,6 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                         return;
                     }
                 };
-            }
-
-            if live_trading_enabled {
-                // TODO: Spin up SetupTracker
             }
         };
 
@@ -103,7 +119,19 @@ impl Handler<CandleAddedPayload> for SetupFinder {
 
 #[allow(dead_code)]
 impl SetupFinder {
-    pub fn new(strategy: Box<dyn TradingStrategy>, ts: Addr<TimeSeries>, notifications_enabled: bool, live_trading_enabled: bool) -> Self {
-        SetupFinder { strategy, ts, notifications_enabled, live_trading_enabled }
+    pub fn new(
+        strategy: Box<dyn TradingStrategy>, 
+        ts: Addr<TimeSeries>, 
+        notifications_enabled: bool, 
+        live_trading_enabled: bool, 
+        spawned_trades: &[Addr<ActiveTrade>]
+    ) -> Result<Self> {
+        SetupFinderBuilder::new()
+            .strategy(strategy)
+            .ts(ts)
+            .notifications_enabled(notifications_enabled)
+            .live_trading_enabled(live_trading_enabled)
+            .spawned_trades(spawned_trades)
+            .build()
     }
 }

@@ -4,7 +4,7 @@ use anyhow::{Result, Context};
 use crate::models::{
     traits::trading_strategy::TradingStrategy, 
     timeseries::TimeSeries,
-    setups::setup_finder::SetupFinder
+    setups::setup_finder::SetupFinder, active_trade::ActiveTrade
 };
 
 pub struct SetupFinderBuilder {
@@ -12,6 +12,7 @@ pub struct SetupFinderBuilder {
     ts: Option<Addr<TimeSeries>>,
     notifications_enabled: bool,
     live_trading_enabled: bool,
+    spawned_trades: Vec<Addr<ActiveTrade>>
 }
 
 impl SetupFinderBuilder {
@@ -19,8 +20,9 @@ impl SetupFinderBuilder {
         SetupFinderBuilder {
             strategy: None,
             ts: None,
-            notifications_enabled: false, // Defaulting to false
-            live_trading_enabled: false, // Defaulting to false
+            notifications_enabled: false,
+            live_trading_enabled: false,
+            spawned_trades: vec![]
         }
     }
 
@@ -44,12 +46,24 @@ impl SetupFinderBuilder {
         self
     }
 
+    pub fn spawned_trades(mut self, trades: &[Addr<ActiveTrade>]) -> Self {
+        self.spawned_trades = trades.to_vec();
+        self
+    }
+
     pub fn build(self) -> Result<SetupFinder> {
         let strategy = self.strategy.context("Strategy is required to build SetupFinder")?;
         let ts = self.ts.context("TimeSeries address is required to build SetupFinder")?;
         let notifications_enabled = self.notifications_enabled;
         let live_trading_enabled = self.live_trading_enabled;
+        let spawned_trades = self.spawned_trades;
 
-        Ok(SetupFinder::new(strategy, ts, notifications_enabled, live_trading_enabled))
+        Ok(SetupFinder::new(
+            strategy, 
+            ts, 
+            notifications_enabled, 
+            live_trading_enabled,
+            &spawned_trades
+        )?)
     }
 }

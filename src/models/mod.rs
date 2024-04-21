@@ -12,3 +12,4 @@ pub mod traits;
 pub mod wallet;
 pub mod wallet_builder;
 pub mod websockets;
+pub mod active_trade;
