@@ -5,8 +5,8 @@ use crate::{
 use anyhow::Result;
 use reqwest::get;
 
-pub async fn get_server_time(net: &NetVersion) -> Result<u64> {
-    let url = bybit_url("/v5/market/time", net);
+pub async fn get_server_time() -> Result<u64> {
+    let url = bybit_url("/v5/market/time", &NetVersion::Mainnet);
 
     let res = get(url).await?;
 

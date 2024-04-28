@@ -6,7 +6,7 @@ use crate::{
     },
     models::{
         interval::Interval, net_version::NetVersion, timeseries::TimeSeries,
-        websockets::wsclient::WebsocketClient,
+        websockets::wsclient::WebsocketClient, wallet::Wallet,
     },
 };
 use actix::Addr;
@@ -27,6 +27,33 @@ impl DataSource {
     #[allow(dead_code)]
     pub async fn load_local_data(&self, symbol: &str, interval: &Interval) -> Result<TimeSeries> {
         local::read(self, symbol, interval).await
+    }
+
+    pub async fn exit_trade(&self, symbol: &str, quantity: f64) -> Result<()> {
+        match self {
+            DataSource::Bybit => {
+                BybitRestApi::market_sell(symbol, quantity).await
+            },
+            _ => Err(anyhow!(format!("{} does not support exiting positions yet", self)))
+        }
+    }
+
+    pub async fn get_wallet(&self) -> Result<Wallet> {
+        match self {
+            DataSource::Bybit => {
+                BybitRestApi::get_wallet_balance().await
+            },
+            _ => Err(anyhow!(format!("{} does not support fetching wallet balance yet", self)))
+        }
+    }
+
+    pub async fn get_symbol_price(&self, symbol: &str) -> Result<f64> {
+        match self {
+            DataSource::Bybit => {
+                BybitRestApi::get_symbol_price(symbol).await
+            },
+            _ => Err(anyhow!(format!("{} does not support fetching prices yet", self)))
+        }
     }
 
     pub async fn get_historical_data(

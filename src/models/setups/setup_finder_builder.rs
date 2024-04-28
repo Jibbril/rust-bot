@@ -1,18 +1,19 @@
 use actix::Addr;
 use anyhow::{Result, Context};
 
-use crate::models::{
+use crate::{models::{
     traits::trading_strategy::TradingStrategy, 
     timeseries::TimeSeries,
-    setups::setup_finder::SetupFinder, active_trade::ActiveTrade
-};
+    setups::setup_finder::SetupFinder, trade::Trade
+}, data_sources::datasource::DataSource};
 
 pub struct SetupFinderBuilder {
     strategy: Option<Box<dyn TradingStrategy>>,
     ts: Option<Addr<TimeSeries>>,
+    source: Option<DataSource>,
     notifications_enabled: bool,
     live_trading_enabled: bool,
-    spawned_trades: Vec<Addr<ActiveTrade>>
+    spawned_trades: Vec<Addr<Trade>>
 }
 
 impl SetupFinderBuilder {
@@ -20,6 +21,7 @@ impl SetupFinderBuilder {
         SetupFinderBuilder {
             strategy: None,
             ts: None,
+            source: None,
             notifications_enabled: false,
             live_trading_enabled: false,
             spawned_trades: vec![]
@@ -28,6 +30,11 @@ impl SetupFinderBuilder {
 
     pub fn strategy(mut self, strategy: Box<dyn TradingStrategy>) -> Self {
         self.strategy = Some(strategy);
+        self
+    }
+
+    pub fn source(mut self, source: DataSource) -> Self {
+        self.source = Some(source);
         self
     }
 
@@ -46,7 +53,7 @@ impl SetupFinderBuilder {
         self
     }
 
-    pub fn spawned_trades(mut self, trades: &[Addr<ActiveTrade>]) -> Self {
+    pub fn spawned_trades(mut self, trades: &[Addr<Trade>]) -> Self {
         self.spawned_trades = trades.to_vec();
         self
     }
@@ -57,13 +64,15 @@ impl SetupFinderBuilder {
         let notifications_enabled = self.notifications_enabled;
         let live_trading_enabled = self.live_trading_enabled;
         let spawned_trades = self.spawned_trades;
+        let source = self.source.context("Source is required to build SetupFinder")?;
 
         Ok(SetupFinder::new(
             strategy, 
             ts, 
             notifications_enabled, 
             live_trading_enabled,
-            &spawned_trades
+            &spawned_trades,
+            source
         )?)
     }
 }

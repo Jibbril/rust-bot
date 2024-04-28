@@ -6,22 +6,24 @@ use crate::{
         },
         timeseries::TimeSeries,
         traits::trading_strategy::TradingStrategy,
-        active_trade::ActiveTrade
+        trade::Trade,
+        setups::setup_finder_builder::SetupFinderBuilder, trade_builder::TradeBuilder
     },
-    notifications::notification_center::NotificationCenter,
+    notifications::notification_center::NotificationCenter, data_sources::datasource::DataSource,
 };
 use actix::{fut::wrap_future, Actor, Addr, AsyncContext, Context, Handler};
 use anyhow::Result;
-
-use super::setup_finder_builder::SetupFinderBuilder;
+use tokio::try_join;
 
 #[derive(Debug)]
 pub struct SetupFinder {
+    symbol: String,
     strategy: Box<dyn TradingStrategy>,
     ts: Addr<TimeSeries>,
+    source: DataSource,
     notifications_enabled: bool,
     live_trading_enabled: bool,
-    spawned_trades: Vec<Addr<ActiveTrade>>
+    spawned_trades: Vec<Addr<Trade>>
 }
 
 impl Actor for SetupFinder {
@@ -40,8 +42,9 @@ impl Handler<CandleAddedPayload> for SetupFinder {
         let strategy = self.strategy.clone_box();
         let notifications_enabled = self.notifications_enabled;
         let live_trading_enabled = self.live_trading_enabled;
-        let spawned_trades = self.spawned_trades.clone();
-        let self_addr = ctx.address();
+        let mut spawned_trades = self.spawned_trades.clone();
+        let source = self.source.clone();
+        let symbol = self.symbol.clone();
 
         let fut = async move {
             let send_result = match ts.send(payload).await {
@@ -95,10 +98,31 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                     return;
                 }
 
-                // TODO: Spin up SetupTracker
-                let trade = todo!();
+                let wallet_fut = source.get_wallet();
+                let last_price_fut = source.get_symbol_price(&symbol);
 
-                spawned_trades.push(trade)
+                let (wallet, last_price) = try_join!(wallet_fut, last_price_fut)
+                    .expect("Unable to fetch data when creating Trade.");
+
+                let quantity = wallet.total_available_balance / 2.0;
+                let dollar_value = quantity * last_price;
+
+                let trade = TradeBuilder::new()
+                    .symbol(symbol)
+                    .quantity(quantity)
+                    .dollar_value(dollar_value)
+                    .source(source)
+                    .notifications_enabled(notifications_enabled)
+                    .trading_enabled(true)
+                    .resolution_strategy(resolution_strategy)
+                    .orientation(strategy.orientation())
+                    .timeseries(ts)
+                    .build()
+                    .expect("Unable to build Trade in SetupFinder");
+
+                let trade_addr = trade.start();
+
+                spawned_trades.push(trade_addr)
             }
 
             if notifications_enabled {
@@ -124,7 +148,8 @@ impl SetupFinder {
         ts: Addr<TimeSeries>, 
         notifications_enabled: bool, 
         live_trading_enabled: bool, 
-        spawned_trades: &[Addr<ActiveTrade>]
+        spawned_trades: &[Addr<Trade>],
+        source: DataSource
     ) -> Result<Self> {
         SetupFinderBuilder::new()
             .strategy(strategy)
@@ -132,6 +157,7 @@ impl SetupFinder {
             .notifications_enabled(notifications_enabled)
             .live_trading_enabled(live_trading_enabled)
             .spawned_trades(spawned_trades)
+            .source(source)
             .build()
     }
 }

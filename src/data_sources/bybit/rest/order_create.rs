@@ -16,7 +16,7 @@ use serde_json::{json, to_string, Map, Value};
 
 const ORDER_MAX_DECIMALS: i64 = 6;
 
-pub async fn market_buy(quantity: f64, net: &NetVersion) -> Result<()> {
+pub async fn market_buy(quantity: f64) -> Result<()> {
     let symbol = "BTCUSDT";
     let rounded_quantity = round(quantity, 2);
 
@@ -30,10 +30,10 @@ pub async fn market_buy(quantity: f64, net: &NetVersion) -> Result<()> {
 
     println!("params: {:#?}", params);
 
-    Ok(post_market_order(params, net).await?)
+    Ok(post_market_order(params, &NetVersion::Mainnet).await?)
 }
 
-pub async fn market_sell_all(wallet: &Wallet, net: &NetVersion) -> Result<()> {
+pub async fn market_sell_all(wallet: &Wallet) -> Result<()> {
     for coin in wallet.coins.values() {
         // Skip selling of base currency
         if coin.symbol == BASE_CURRENCY {
@@ -63,15 +63,29 @@ pub async fn market_sell_all(wallet: &Wallet, net: &NetVersion) -> Result<()> {
         params.insert("qty".to_string(), json!(quantity.to_string()));
         params.insert("marketUnit".to_string(), json!("baseCoin"));
 
-        post_market_order(params, net).await?;
+        post_market_order(params, &NetVersion::Mainnet).await?;
     }
+
+    Ok(())
+}
+
+pub async fn market_sell(symbol: &str, quantity: f64) -> Result<()> {
+    let mut params = Map::new();
+    params.insert("category".to_string(), json!("spot"));
+    params.insert("symbol".to_string(), json!(symbol));
+    params.insert("side".to_string(), json!("Sell"));
+    params.insert("orderType".to_string(), json!("Market"));
+    params.insert("qty".to_string(), json!(quantity.to_string()));
+    params.insert("marketUnit".to_string(), json!("baseCoin"));
+
+    post_market_order(params, &NetVersion::Mainnet).await?;
 
     Ok(())
 }
 
 async fn post_market_order(params: Map<String, Value>, net: &NetVersion) -> Result<()> {
     let client = Client::new();
-    let timestamp = get_server_time(net).await?;
+    let timestamp = get_server_time().await?;
     let recv_window = 5000;
     let api_key = &bybit_key()?;
 
