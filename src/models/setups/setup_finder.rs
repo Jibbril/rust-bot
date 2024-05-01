@@ -19,11 +19,11 @@ use tokio::try_join;
 pub struct SetupFinder {
     symbol: String,
     strategy: Box<dyn TradingStrategy>,
-    ts: Addr<TimeSeries>,
+    ts_addr: Addr<TimeSeries>,
     source: DataSource,
     notifications_enabled: bool,
     live_trading_enabled: bool,
-    spawned_trades: Vec<Addr<Trade>>
+    spawned_trade_addrs: Vec<Addr<Trade>>
 }
 
 impl Actor for SetupFinder {
@@ -38,11 +38,11 @@ impl Handler<CandleAddedPayload> for SetupFinder {
             n: self.strategy.candles_needed_for_setup(),
         };
 
-        let ts = self.ts.clone();
+        let ts = self.ts_addr.clone();
         let strategy = self.strategy.clone_box();
         let notifications_enabled = self.notifications_enabled;
         let live_trading_enabled = self.live_trading_enabled;
-        let mut spawned_trades = self.spawned_trades.clone();
+        let mut spawned_trades = self.spawned_trade_addrs.clone();
         let source = self.source.clone();
         let symbol = self.symbol.clone();
 
@@ -116,7 +116,7 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                     .trading_enabled(true)
                     .resolution_strategy(resolution_strategy)
                     .orientation(strategy.orientation())
-                    .timeseries(ts)
+                    .timeseries_addr(ts)
                     .build()
                     .expect("Unable to build Trade in SetupFinder");
 

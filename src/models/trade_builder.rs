@@ -22,7 +22,7 @@ pub struct TradeBuilder {
     pub trading_enabled: bool,
     pub resolution_strategy: Option<ResolutionStrategy>,
     pub orientation: Option<StrategyOrientation>,
-    pub timeseries: Option<Addr<TimeSeries>>
+    pub timeseries_addr: Option<Addr<TimeSeries>>
 }
 
 impl TradeBuilder {
@@ -36,7 +36,7 @@ impl TradeBuilder {
             trading_enabled: false,
             resolution_strategy: None,
             orientation: None,
-            timeseries: None,
+            timeseries_addr: None,
         }
     }
 
@@ -81,8 +81,8 @@ impl TradeBuilder {
         self
     }
 
-    pub fn timeseries(mut self, timeseries: Addr<TimeSeries>) -> Self {
-        self.timeseries = Some(timeseries);
+    pub fn timeseries_addr(mut self, timeseries: Addr<TimeSeries>) -> Self {
+        self.timeseries_addr = Some(timeseries);
         self
     }
 
@@ -101,7 +101,7 @@ impl TradeBuilder {
             .ok_or(anyhow!("Resolution strategy is required to build Trade."))?;
         let orientation = self.orientation.clone()
             .ok_or(anyhow!("Orientation is required to build Trade."))?;
-        let timeseries = self.timeseries.clone()
+        let timeseries = self.timeseries_addr.clone()
             .ok_or(anyhow!("TimeSeries is required to build Trade."))?;
 
         let trade = Trade {

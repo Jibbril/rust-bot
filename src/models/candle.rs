@@ -181,6 +181,7 @@ impl Candle {
             .collect()
     }
 
+    #[allow(dead_code)]
     pub fn price_by_mode(&self, mode: &CalculationMode) -> f64 {
         match mode {
             CalculationMode::Close => self.close,

@@ -232,10 +232,12 @@ impl TimeSeries {
         self.candles = candles.to_vec();
     }
 
+    #[allow(dead_code)]
     pub fn get_candles(&self) -> Vec<Candle> {
         self.candles.clone()
     }
 
+    #[allow(dead_code)]
     pub fn clear_candles(&mut self) {
         self.candles.clear()
     }
