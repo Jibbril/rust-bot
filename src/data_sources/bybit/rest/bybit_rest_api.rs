@@ -30,8 +30,8 @@ impl BybitRestApi {
         Ok(kline::get_candles_between(symbol, interval, net, from, to).await?)
     }
 
-    pub async fn market_buy(quantity: f64) -> Result<()> {
-        Ok(order_create::market_buy(quantity).await?)
+    pub async fn market_buy(symbol: &str, quantity: f64) -> Result<()> {
+        Ok(order_create::market_buy(symbol, quantity).await?)
     }
 
     pub async fn market_sell(symbol: &str, quantity: f64) -> Result<()> {

@@ -29,6 +29,15 @@ impl DataSource {
         local::read(self, symbol, interval).await
     }
 
+    pub async fn enter_trade(&self, symbol: &str, quantity: f64) -> Result<()> {
+        match self {
+            DataSource::Bybit => {
+                BybitRestApi::market_buy(symbol, quantity).await
+            },
+            _ => Err(anyhow!(format!("{} does not support exiting positions yet", self)))
+        }
+    }
+
     pub async fn exit_trade(&self, symbol: &str, quantity: f64) -> Result<()> {
         match self {
             DataSource::Bybit => {

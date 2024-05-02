@@ -1,4 +1,5 @@
-use actix::{Addr, Actor, Context, Handler, fut::wrap_future, AsyncContext};
+use crate::models::message_payloads::stop_payload::StopPayload;
+use actix::{Actor, ActorContext, Addr, AsyncContext, Context, Handler, WrapFuture};
 use crate::{
     resolution_strategies::{
         resolution_strategy::ResolutionStrategy, 
@@ -31,20 +32,33 @@ pub struct Trade {
 impl Actor for Trade {
     type Context = Context<Self>;
 
-    // fn started(&mut self, ctx: &mut Self::Context) {
-    //     let client = ctx.address();
-    //     let source = self.source.clone();
-    //     let interval = self.interval.clone();
-    //     let net = self.net.clone();
-    //     let fut = async move {
-    //         if let Err(e) = source.connect_ws(client, interval, &net).await {
-    //             // TODO: Add logic for error handling, restarting client etc.
-    //             println!("Error: {}", e);
-    //         }
-    //     };
-    //
-    //     ctx.spawn(fut.into_actor(self));
-    // 
+    fn started(&mut self, ctx: &mut Self::Context) {
+        let source = self.source.clone();
+        let symbol = self.symbol.clone();
+        let quantity = self.quantity.clone();
+
+        let fut = async move {
+            let res = source.enter_trade(&symbol, quantity).await;
+            
+            match res {
+                Ok(_) => println!("Successfully entered trade"),
+                Err(e) => println!("Unable to enter trade, error: {:#?}", e),
+            }
+
+            // TODO: Setup system that manages scenario where Trade is unable
+            // to enter. Send notifications and or stop service. 
+        };
+
+        ctx.spawn(fut.into_actor(self));
+    }
+}
+
+impl Handler<StopPayload> for Trade {
+    type Result = ();
+
+    fn handle(&mut self, _msg: StopPayload, ctx: &mut Self::Context) -> Self::Result {
+        ctx.stop();
+    }
 }
 
 impl Handler<CandleAddedPayload> for Trade {
@@ -59,6 +73,7 @@ impl Handler<CandleAddedPayload> for Trade {
         let source = self.source.clone();
         let symbol = self.symbol.clone();
         let quantity = self.quantity;
+        let self_addr = ctx.address();
 
         let payload = RequestLatestCandlesPayload {
             n: tp_candles_needed.max(sl_candles_needed),
@@ -86,14 +101,11 @@ impl Handler<CandleAddedPayload> for Trade {
                 let _ = source.exit_trade(&symbol, quantity).await;
 
                 // TODO: Handle/notify user in case selling was unsuccessful.
-                // TODO: Delete self
+
+                self_addr.do_send(StopPayload);
             }
         };
 
-        // TODO: Setup system that manages scenario where ActiveTrade is unable
-        // to sell (technical/connection issue or otherwise). Send notifications
-        // and or stop service. 
-        let actor_fut = wrap_future::<_, Self>(fut);
-        ctx.wait(actor_fut);
+        ctx.spawn(fut.into_actor(self));
     }
 }

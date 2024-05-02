@@ -56,7 +56,8 @@ pub async fn run_market_buy() -> Result<()> {
 
     if buy {
         let balance: f64 = wallet.total_available_balance;
-        BybitRestApi::market_buy(balance * 0.5).await?;
+        let symbol = "BTCUSDT";
+        BybitRestApi::market_buy(symbol, balance * 0.5).await?;
     } else {
         BybitRestApi::market_sell_all(&wallet).await?;
     }

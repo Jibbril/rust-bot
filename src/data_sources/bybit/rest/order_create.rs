@@ -16,8 +16,7 @@ use serde_json::{json, to_string, Map, Value};
 
 const ORDER_MAX_DECIMALS: i64 = 6;
 
-pub async fn market_buy(quantity: f64) -> Result<()> {
-    let symbol = "BTCUSDT";
+pub async fn market_buy(symbol: &str, quantity: f64) -> Result<()> {
     let rounded_quantity = round(quantity, 2);
 
     let mut params = Map::new();
