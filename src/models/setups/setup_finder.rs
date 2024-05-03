@@ -1,15 +1,17 @@
 use crate::{
+    data_sources::datasource::DataSource,
     models::{
         message_payloads::{
             candle_added_payload::CandleAddedPayload,
             request_latest_candles_payload::RequestLatestCandlesPayload,
         },
+        setups::setup_finder_builder::SetupFinderBuilder,
         timeseries::TimeSeries,
-        traits::trading_strategy::TradingStrategy,
         trade::Trade,
-        setups::setup_finder_builder::SetupFinderBuilder, trade_builder::TradeBuilder
+        trade_builder::TradeBuilder,
+        traits::trading_strategy::TradingStrategy,
     },
-    notifications::notification_center::NotificationCenter, data_sources::datasource::DataSource,
+    notifications::notification_center::NotificationCenter,
 };
 use actix::{fut::wrap_future, Actor, Addr, AsyncContext, Context, Handler};
 use anyhow::Result;
@@ -23,7 +25,7 @@ pub struct SetupFinder {
     source: DataSource,
     notifications_enabled: bool,
     live_trading_enabled: bool,
-    spawned_trade_addrs: Vec<Addr<Trade>>
+    spawned_trade_addrs: Vec<Addr<Trade>>,
 }
 
 impl Actor for SetupFinder {
@@ -91,7 +93,7 @@ impl Handler<CandleAddedPayload> for SetupFinder {
             println!("Setup found: {:#?}", setup);
 
             if live_trading_enabled {
-                // Don't allow multiple active trades from the same strategy 
+                // Don't allow multiple active trades from the same strategy
                 // and timeseries
                 if spawned_trades.len() > 0 {
                     return;
@@ -143,12 +145,12 @@ impl Handler<CandleAddedPayload> for SetupFinder {
 #[allow(dead_code)]
 impl SetupFinder {
     pub fn new(
-        strategy: Box<dyn TradingStrategy>, 
-        ts: Addr<TimeSeries>, 
-        notifications_enabled: bool, 
-        live_trading_enabled: bool, 
+        strategy: Box<dyn TradingStrategy>,
+        ts: Addr<TimeSeries>,
+        notifications_enabled: bool,
+        live_trading_enabled: bool,
         spawned_trades: &[Addr<Trade>],
-        source: DataSource
+        source: DataSource,
     ) -> Result<Self> {
         SetupFinderBuilder::new()
             .strategy(strategy)

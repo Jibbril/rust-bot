@@ -1,9 +1,7 @@
-use crate::
-    models::{
-        candle::Candle, interval::Interval, setups::csv_setup_row::CsvSetupRow,
-        strategy_orientation::StrategyOrientation,
-    }
-;
+use crate::models::{
+    candle::Candle, interval::Interval, setups::csv_setup_row::CsvSetupRow,
+    strategy_orientation::StrategyOrientation,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

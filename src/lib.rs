@@ -9,10 +9,7 @@ mod utils;
 
 use crate::{
     data_sources::bybit::rest::bybit_rest_api::BybitRestApi,
-    indicators::{
-        atr::ATR, populates_candles::PopulatesCandles, rsi::RSI,
-        stochastic::Stochastic,
-    },
+    indicators::{atr::ATR, populates_candles::PopulatesCandles, rsi::RSI, stochastic::Stochastic},
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
     trading_strategies::private::jb_2::JB2,
 };

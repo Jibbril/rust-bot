@@ -1,18 +1,15 @@
-use actix::Addr;
-use anyhow::{Result, anyhow};
 use crate::{
-    data_sources::datasource::DataSource, 
+    data_sources::datasource::DataSource,
+    models::{strategy_orientation::StrategyOrientation, timeseries::TimeSeries},
     resolution_strategies::resolution_strategy::ResolutionStrategy,
-    models::{
-        strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries
-    }
 };
+use actix::Addr;
+use anyhow::{anyhow, Result};
 
 use super::trade::Trade;
 
 #[allow(dead_code)]
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct TradeBuilder {
     pub symbol: Option<String>,
     pub quantity: Option<f64>,
@@ -22,7 +19,7 @@ pub struct TradeBuilder {
     pub trading_enabled: bool,
     pub resolution_strategy: Option<ResolutionStrategy>,
     pub orientation: Option<StrategyOrientation>,
-    pub timeseries_addr: Option<Addr<TimeSeries>>
+    pub timeseries_addr: Option<Addr<TimeSeries>>,
 }
 
 impl TradeBuilder {
@@ -89,19 +86,33 @@ impl TradeBuilder {
     pub fn build(&self) -> Result<Trade> {
         let notifications_enabled = self.notifications_enabled;
         let trading_enabled = self.trading_enabled;
-        let symbol = self.symbol.clone()
+        let symbol = self
+            .symbol
+            .clone()
             .ok_or(anyhow!("Symbol is required to build Trade."))?;
-        let quantity = self.quantity.clone()
+        let quantity = self
+            .quantity
+            .clone()
             .ok_or(anyhow!("Quantity is required to build Trade."))?;
-        let dollar_value = self.dollar_value.clone()
+        let dollar_value = self
+            .dollar_value
+            .clone()
             .ok_or(anyhow!("Dollar value is required to build Trade."))?;
-        let source = self.source.clone()
+        let source = self
+            .source
+            .clone()
             .ok_or(anyhow!("DataSource is required to build Trade."))?;
-        let resolution_strategy = self.resolution_strategy.clone()
+        let resolution_strategy = self
+            .resolution_strategy
+            .clone()
             .ok_or(anyhow!("Resolution strategy is required to build Trade."))?;
-        let orientation = self.orientation.clone()
+        let orientation = self
+            .orientation
+            .clone()
             .ok_or(anyhow!("Orientation is required to build Trade."))?;
-        let timeseries = self.timeseries_addr.clone()
+        let timeseries = self
+            .timeseries_addr
+            .clone()
             .ok_or(anyhow!("TimeSeries is required to build Trade."))?;
 
         let trade = Trade {
@@ -113,10 +124,9 @@ impl TradeBuilder {
             trading_enabled,
             resolution_strategy,
             orientation,
-            timeseries
+            timeseries,
         };
 
         Ok(trade)
     }
 }
-

@@ -2,7 +2,7 @@ use crate::{
     data_sources::bybit::rest::{api_responses::tickers::TickersApiResponse, utils::bybit_url},
     models::net_version::NetVersion,
 };
-use anyhow::{Result, Context, anyhow};
+use anyhow::{anyhow, Context, Result};
 use reqwest::get;
 
 pub async fn get_symbol_price(symbol: &str) -> Result<f64> {
@@ -15,8 +15,8 @@ pub async fn get_symbol_price(symbol: &str) -> Result<f64> {
         reqwest::StatusCode::OK => {
             let resdata: TickersApiResponse = res.json().await?;
             let res = resdata.result.context("Unable to parse TickersResult")?;
-            
-            if res.list.len() > 0 { 
+
+            if res.list.len() > 0 {
                 Ok(res.list[0].last_price.parse()?)
             } else {
                 Err(anyhow!("Unable to find ticker data."))

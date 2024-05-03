@@ -7,9 +7,7 @@ use crate::{
         strategy_orientation::StrategyOrientation,
         traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
     },
-    resolution_strategies::
-        resolution_strategy::ResolutionStrategy
-    ,
+    resolution_strategies::resolution_strategy::ResolutionStrategy,
 };
 use chrono::{Datelike, Weekday};
 use std::{

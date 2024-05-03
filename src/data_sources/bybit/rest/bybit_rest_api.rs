@@ -1,5 +1,5 @@
 use crate::{
-    data_sources::bybit::rest::{tickers, kline, order_create, server_time, wallet_balance},
+    data_sources::bybit::rest::{kline, order_create, server_time, tickers, wallet_balance},
     models::{
         candle::Candle, interval::Interval, net_version::NetVersion, timeseries::TimeSeries,
         wallet::Wallet,

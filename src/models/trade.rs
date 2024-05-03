@@ -1,22 +1,22 @@
 use crate::models::message_payloads::stop_payload::StopPayload;
-use actix::{Actor, ActorContext, Addr, AsyncContext, Context, Handler, WrapFuture};
 use crate::{
-    resolution_strategies::{
-        resolution_strategy::ResolutionStrategy, 
-        is_resolution_strategy::IsResolutionStrategy
-    }, 
+    data_sources::datasource::DataSource,
     models::{
-        timeseries::TimeSeries,
         message_payloads::{
-            candle_added_payload::CandleAddedPayload, 
-            request_latest_candles_payload::RequestLatestCandlesPayload, 
+            candle_added_payload::CandleAddedPayload,
+            request_latest_candles_payload::RequestLatestCandlesPayload,
         },
-        strategy_orientation::StrategyOrientation
-    }, data_sources::datasource::DataSource
+        strategy_orientation::StrategyOrientation,
+        timeseries::TimeSeries,
+    },
+    resolution_strategies::{
+        is_resolution_strategy::IsResolutionStrategy, resolution_strategy::ResolutionStrategy,
+    },
 };
+use actix::{Actor, ActorContext, Addr, AsyncContext, Context, Handler, WrapFuture};
 
 #[allow(dead_code)]
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Trade {
     pub symbol: String,
     pub quantity: f64,
@@ -26,7 +26,7 @@ pub struct Trade {
     pub trading_enabled: bool,
     pub resolution_strategy: ResolutionStrategy,
     pub orientation: StrategyOrientation,
-    pub timeseries: Addr<TimeSeries>
+    pub timeseries: Addr<TimeSeries>,
 }
 
 impl Actor for Trade {
@@ -39,14 +39,14 @@ impl Actor for Trade {
 
         let fut = async move {
             let res = source.enter_trade(&symbol, quantity).await;
-            
+
             match res {
                 Ok(_) => println!("Successfully entered trade"),
                 Err(e) => println!("Unable to enter trade, error: {:#?}", e),
             }
 
             // TODO: Setup system that manages scenario where Trade is unable
-            // to enter. Send notifications and or stop service. 
+            // to enter. Send notifications and or stop service.
         };
 
         ctx.spawn(fut.into_actor(self));
@@ -81,7 +81,8 @@ impl Handler<CandleAddedPayload> for Trade {
 
         let fut = async move {
             let candle_response = ts_addr
-                .send(payload).await
+                .send(payload)
+                .await
                 .expect("Unable to fetch timeseries data in ActiveTrade.")
                 .expect("Unable to parse LatestCandleResponse in ActiveTrade.");
 

@@ -1,11 +1,24 @@
-use std::{collections::HashSet, fmt::{Display, Formatter}};
+use crate::{
+    indicators::indicator_type::IndicatorType,
+    models::{
+        candle::Candle,
+        interval::Interval,
+        setups::setup_builder::SetupBuilder,
+        strategy_orientation::StrategyOrientation,
+        traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
+    },
+    resolution_strategies::resolution_strategy::ResolutionStrategy,
+};
 use chrono::Weekday;
-use crate::{indicators::indicator_type::IndicatorType, models::{candle::Candle, interval::Interval, setups::setup_builder::SetupBuilder, strategy_orientation::StrategyOrientation, traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy}}, resolution_strategies::resolution_strategy::ResolutionStrategy};
+use std::{
+    collections::HashSet,
+    fmt::{Display, Formatter},
+};
 
 /// # One Activation Strategy
 ///
 /// Dummy strategy used for testing purposes. Always returns that entry
-/// conditions have been reached on first ask, after that always negative. 
+/// conditions have been reached on first ask, after that always negative.
 /// Same for take-profit and stop-loss.
 ///
 /// ## Directionality
@@ -32,7 +45,10 @@ pub struct AlwaysTrueStrategy {
 }
 
 impl TradingStrategy for AlwaysTrueStrategy {
-    fn new() -> Self where Self: Sized {
+    fn new() -> Self
+    where
+        Self: Sized,
+    {
         Self {
             trading_days: Self::build_trading_days(),
         }
@@ -50,7 +66,7 @@ impl TradingStrategy for AlwaysTrueStrategy {
         let sb = SetupBuilder::new()
             .candle(&candles[0])
             .orientation(&StrategyOrientation::Long);
-            
+
         Some(sb)
     }
 

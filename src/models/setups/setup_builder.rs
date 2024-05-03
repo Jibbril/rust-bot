@@ -1,9 +1,7 @@
-use crate::
-    models::{
-        candle::Candle, interval::Interval, setups::setup::Setup,
-        strategy_orientation::StrategyOrientation,
-    }
-;
+use crate::models::{
+    candle::Candle, interval::Interval, setups::setup::Setup,
+    strategy_orientation::StrategyOrientation,
+};
 use anyhow::{anyhow, Result};
 
 #[derive(Debug, Clone)]

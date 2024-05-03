@@ -104,7 +104,6 @@ impl RequiresIndicators for DynamicPivotResolution {
     }
 }
 
-
 impl DynamicPivotResolution {
     #[allow(dead_code)]
     pub fn new() -> Self {

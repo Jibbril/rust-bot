@@ -1,10 +1,7 @@
 use crate::{
     models::{
-        candle::Candle,
-        interval::Interval,
-        setups::setup_builder::SetupBuilder,
-        strategy_orientation::StrategyOrientation,
-        traits::requires_indicators::RequiresIndicators,
+        candle::Candle, interval::Interval, setups::setup_builder::SetupBuilder,
+        strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators,
     },
     resolution_strategies::resolution_strategy::ResolutionStrategy,
 };
@@ -42,8 +39,7 @@ pub trait TradingStrategy: Display + Debug + RequiresIndicators {
     /// strategy.
     fn default_resolution_strategy(&self) -> ResolutionStrategy;
 
-
-    /// Returns the resolution strategy of this Trading Strategy. If none has 
+    /// Returns the resolution strategy of this Trading Strategy. If none has
     /// been set then it returns the default strategy.
     // fn resolution_strategy(&self) -> ResolutionStrategy;
 
