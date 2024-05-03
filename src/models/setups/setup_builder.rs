@@ -1,10 +1,9 @@
-use crate::{
+use crate::
     models::{
         candle::Candle, interval::Interval, setups::setup::Setup,
         strategy_orientation::StrategyOrientation,
-    },
-    resolution_strategies::resolution_strategy::ResolutionStrategy,
-};
+    }
+;
 use anyhow::{anyhow, Result};
 
 #[derive(Debug, Clone)]
@@ -13,9 +12,6 @@ pub struct SetupBuilder {
     pub orientation: Option<StrategyOrientation>,
     pub symbol: Option<String>,
     pub interval: Option<Interval>,
-    pub resolution_strategy: Option<ResolutionStrategy>,
-    pub stop_loss: Option<f64>,
-    pub take_profit: Option<f64>,
 }
 
 #[allow(dead_code)] // TODO: Remove once used
@@ -26,9 +22,6 @@ impl SetupBuilder {
             orientation: None,
             symbol: None,
             interval: None,
-            resolution_strategy: None,
-            stop_loss: None,
-            take_profit: None,
         }
     }
 
@@ -52,21 +45,6 @@ impl SetupBuilder {
         self
     }
 
-    pub fn resolution_strategy(mut self, resolution_strategy: &ResolutionStrategy) -> Self {
-        self.resolution_strategy = Some(resolution_strategy.clone());
-        self
-    }
-
-    pub fn stop_loss(mut self, stop_loss: f64) -> Self {
-        self.stop_loss = Some(stop_loss);
-        self
-    }
-
-    pub fn take_profit(mut self, take_profit: f64) -> Self {
-        self.take_profit = Some(take_profit);
-        self
-    }
-
     pub fn build(&self) -> Result<Setup> {
         let candle = self.candle.clone().ok_or(anyhow!("Candle is required."))?;
         let orientation = self
@@ -83,7 +61,6 @@ impl SetupBuilder {
             orientation,
             symbol,
             interval,
-            resolution_strategy: self.resolution_strategy.clone(),
         })
     }
 }

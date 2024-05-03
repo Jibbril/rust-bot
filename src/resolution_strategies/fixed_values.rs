@@ -72,6 +72,7 @@ impl RequiresIndicators for FixedValuesResolution {
 }
 
 impl FixedValuesResolution {
+    #[allow(dead_code)]
     pub fn new(high: f64, low: f64) -> Self {
         Self { high, low }
     }

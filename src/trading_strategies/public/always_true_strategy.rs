@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fmt::{Display, Formatter}};
 use chrono::Weekday;
-use crate::{indicators::indicator_type::IndicatorType, models::{candle::Candle, interval::Interval, setups::setup_builder::SetupBuilder, strategy_orientation::StrategyOrientation, traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy}}, resolution_strategies::{fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy}};
+use crate::{indicators::indicator_type::IndicatorType, models::{candle::Candle, interval::Interval, setups::setup_builder::SetupBuilder, strategy_orientation::StrategyOrientation, traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy}}, resolution_strategies::resolution_strategy::ResolutionStrategy};
 
 /// # One Activation Strategy
 ///
@@ -47,12 +47,9 @@ impl TradingStrategy for AlwaysTrueStrategy {
     }
 
     fn check_last_for_setup(&self, candles: &[Candle]) -> Option<SetupBuilder> {
-        let candle = candles.last()?;
-        let rs = ResolutionStrategy::FixedValues(FixedValuesResolution::new(candle.close, candle.close));
         let sb = SetupBuilder::new()
             .candle(&candles[0])
-            .orientation(&StrategyOrientation::Long)
-            .resolution_strategy(&rs);
+            .orientation(&StrategyOrientation::Long);
             
         Some(sb)
     }

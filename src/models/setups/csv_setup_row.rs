@@ -8,8 +8,6 @@ pub struct CsvSetupRow {
     pub timestamp: DateTime<Utc>,
     pub interval: Interval,
     pub orientation: StrategyOrientation,
-    pub stop_loss_resolution: String,
-    pub take_profit_resolution: String,
     pub open: f64,
     pub close: f64,
     pub high: f64,

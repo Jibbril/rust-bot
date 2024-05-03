@@ -78,7 +78,6 @@ impl Handler<CandleAddedPayload> for SetupFinder {
             let setup = sb
                 .symbol(&candle_response.symbol)
                 .interval(&candle_response.interval)
-                .resolution_strategy(&resolution_strategy)
                 .build();
 
             let setup = match setup {
