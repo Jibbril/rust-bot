@@ -2,14 +2,12 @@ use crate::{
     models::{
         candle::Candle,
         interval::Interval,
-        setups::{setup::Setup, setup_builder::SetupBuilder},
+        setups::setup_builder::SetupBuilder,
         strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries,
         traits::requires_indicators::RequiresIndicators,
     },
     resolution_strategies::resolution_strategy::ResolutionStrategy,
 };
-use anyhow::Result;
 use chrono::Weekday;
 use std::{
     collections::HashSet,
@@ -28,10 +26,6 @@ pub trait TradingStrategy: Display + Debug + RequiresIndicators {
     /// Returns the number of candles needed from a TimeSeries to calculate
     /// whether the strategy has yielded a  setup for the last candle provided.
     fn candles_needed_for_setup(&self) -> usize;
-
-    /// Analyzes the given TimeSeries for all historical trade setups triggered
-    /// by the current TradingStrategy.
-    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>>;
 
     /// Returns the minimum number of candles needed in a TimeSeries for the
     /// current TradingStrategy to work.

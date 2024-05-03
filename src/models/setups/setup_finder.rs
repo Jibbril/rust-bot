@@ -108,7 +108,7 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                 let dollar_value = quantity * last_price;
 
                 let trade = TradeBuilder::new()
-                    .symbol(symbol)
+                    .symbol(setup.symbol.clone())
                     .quantity(quantity)
                     .dollar_value(dollar_value)
                     .source(source)

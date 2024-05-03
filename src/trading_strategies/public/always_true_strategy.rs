@@ -1,7 +1,6 @@
 use std::{collections::HashSet, fmt::{Display, Formatter}};
-use anyhow::{anyhow, Result};
 use chrono::Weekday;
-use crate::{indicators::indicator_type::IndicatorType, models::{candle::Candle, interval::Interval, setups::{setup::Setup, setup_builder::SetupBuilder}, strategy_orientation::StrategyOrientation, timeseries::TimeSeries, traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy}}, resolution_strategies::{fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy}};
+use crate::{indicators::indicator_type::IndicatorType, models::{candle::Candle, interval::Interval, setups::setup_builder::SetupBuilder, strategy_orientation::StrategyOrientation, traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy}}, resolution_strategies::{fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy}};
 
 /// # One Activation Strategy
 ///
@@ -41,21 +40,6 @@ impl TradingStrategy for AlwaysTrueStrategy {
 
     fn candles_needed_for_setup(&self) -> usize {
         1
-    }
-
-    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
-        if ts.candles.len() == 0 {
-            return Err(anyhow!("No candles in provided timeentry"));
-        }
-        
-        let setup = SetupBuilder::new()
-            .candle(&ts.candles[0])
-            .orientation(&StrategyOrientation::Long)
-            .symbol(&ts.symbol)
-            .interval(&ts.interval)
-            .build()?;
-
-        Ok(vec![setup])
     }
 
     fn min_length(&self) -> usize {

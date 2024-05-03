@@ -3,16 +3,14 @@ use crate::{
     models::{
         candle::Candle,
         interval::Interval,
-        setups::{setup::Setup, setup_builder::SetupBuilder},
+        setups::setup_builder::SetupBuilder,
         strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries,
         traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
     },
-    resolution_strategies::{
-        fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy,
-    },
+    resolution_strategies::
+        resolution_strategy::ResolutionStrategy
+    ,
 };
-use anyhow::Result;
 use chrono::{Datelike, Weekday};
 use std::{
     collections::HashSet,
@@ -96,42 +94,6 @@ impl TradingStrategy for RsiBasic {
     fn candles_needed_for_setup(&self) -> usize {
         // TODO: Add real value
         self.len
-    }
-
-    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
-        let len = self.len;
-        let key = IndicatorType::RSI(len);
-        let mut setups: Vec<Setup> = Vec::new();
-
-        for (i, candle) in ts.candles.iter().enumerate().skip(1) {
-            let prev_candle = &ts.candles[i - 1];
-
-            let prev_rsi = prev_candle.clone_indicator(&key)?.as_rsi();
-            let current_rsi = candle.clone_indicator(&key)?.as_rsi();
-
-            if let (Some(prev), Some(current)) = (prev_rsi, current_rsi) {
-                let orientation = self.get_orientation(&prev, &current);
-
-                if let Some(orientation) = orientation {
-                    let take_profit = candle.close * 1.05;
-                    let stop_loss = candle.close * 0.95;
-                    let fv = FixedValuesResolution::new(take_profit, stop_loss);
-                    let resolution_strategy = ResolutionStrategy::FixedValues(fv);
-
-                    setups.push(Setup {
-                        symbol: ts.symbol.clone(),
-                        candle: candle.clone(),
-                        interval: ts.interval.clone(),
-                        orientation,
-                        resolution_strategy: Some(resolution_strategy),
-                        stop_loss: Some(stop_loss),
-                        take_profit: Some(take_profit),
-                    });
-                }
-            }
-        }
-
-        Ok(setups)
     }
 
     fn min_length(&self) -> usize {

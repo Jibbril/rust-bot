@@ -36,6 +36,7 @@ impl Setup {
         }
     }
 
+    #[allow(dead_code)] // TODO: Remove once used
     pub fn to_csv_row(&self) -> CsvSetupRow {
         let resolution = match self.resolution_strategy {
             Some(ref strategy) => strategy.to_string(),

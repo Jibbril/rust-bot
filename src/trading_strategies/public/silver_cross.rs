@@ -1,18 +1,16 @@
 use crate::{
-    indicators::{indicator_type::IndicatorType, sma::SMA},
+    indicators::indicator_type::IndicatorType,
     models::{
         candle::Candle,
         interval::Interval,
-        setups::{setup::Setup, setup_builder::SetupBuilder},
+        setups::setup_builder::SetupBuilder,
         strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries,
         traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
     },
-    resolution_strategies::{
-        fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy,
-    },
+    resolution_strategies::
+        resolution_strategy::ResolutionStrategy
+    ,
 };
-use anyhow::Result;
 use chrono::Weekday;
 use std::{
     collections::HashSet,
@@ -39,25 +37,6 @@ impl SilverCross {
             short_len,
             long_len,
             trading_days: Self::build_trading_days(),
-        }
-    }
-
-    fn get_orientation(
-        &self,
-        prev_short: &SMA,
-        prev_long: &SMA,
-        current_short: &SMA,
-        current_long: &SMA,
-    ) -> Option<StrategyOrientation> {
-        let long_condition = prev_short < prev_long && current_short >= current_long;
-        let _short_condition = prev_short > prev_long && current_short <= current_long;
-
-        if long_condition {
-            Some(StrategyOrientation::Long)
-        // } else if short_condition {
-        //     Some(StrategyOrientation::Short)
-        } else {
-            None
         }
     }
 
@@ -90,46 +69,6 @@ impl TradingStrategy for SilverCross {
     fn candles_needed_for_setup(&self) -> usize {
         // TODO: Add real value
         self.long_len
-    }
-
-    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
-        let mut setups: Vec<Setup> = Vec::new();
-        let key_short = IndicatorType::SMA(self.short_len);
-        let key_long = IndicatorType::SMA(self.long_len);
-
-        for (i, candle) in ts.candles.iter().enumerate().skip(1) {
-            let prev_candle = &ts.candles[i - 1];
-            let prev_short = prev_candle.clone_indicator(&key_short)?.as_sma();
-            let prev_long = prev_candle.clone_indicator(&key_long)?.as_sma();
-            let current_short = candle.clone_indicator(&key_short)?.as_sma();
-            let current_long = candle.clone_indicator(&key_long)?.as_sma();
-
-            if let (Some(prev_short), Some(prev_long), Some(current_short), Some(current_long)) =
-                (prev_short, prev_long, current_short, current_long)
-            {
-                let orientation =
-                    self.get_orientation(&prev_short, &prev_long, &current_short, &current_long);
-
-                if let Some(orientation) = orientation {
-                    let take_profit = candle.close * 1.05;
-                    let stop_loss = candle.close * 0.95;
-                    let fv = FixedValuesResolution::new(take_profit, stop_loss);
-                    let resolution_strategy = ResolutionStrategy::FixedValues(fv);
-
-                    setups.push(Setup {
-                        symbol: ts.symbol.clone(),
-                        candle: candle.clone(),
-                        interval: ts.interval.clone(),
-                        orientation,
-                        resolution_strategy: Some(resolution_strategy),
-                        stop_loss: Some(stop_loss),
-                        take_profit: Some(take_profit),
-                    })
-                }
-            }
-        }
-
-        Ok(setups)
     }
 
     fn min_length(&self) -> usize {

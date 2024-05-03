@@ -14,9 +14,7 @@ use crate::{
         stochastic::Stochastic,
     },
     models::{net_version::NetVersion, websockets::wsclient::WebsocketClient},
-    notifications::notification_center::NotificationCenter,
     trading_strategies::private::jb_2::JB2,
-    utils::save_setups,
 };
 use actix::Actor;
 use anyhow::Result;
@@ -37,7 +35,7 @@ use models::{
 };
 use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
-use trading_strategies::{private::jb_1::JB1, public::{always_true_strategy::AlwaysTrueStrategy, rsi_basic::RsiBasic}};
+use trading_strategies::public::{always_true_strategy::AlwaysTrueStrategy, rsi_basic::RsiBasic};
 
 pub async fn run_dummy() -> Result<()> {
     todo!()
@@ -329,40 +327,6 @@ pub async fn run_strategy_tester() -> Result<()> {
     let result = StrategyTester::test_strategy(&strategy, &ts.candles[300..])?;
 
     println!("{:#?}", result);
-
-    Ok(())
-}
-
-pub async fn _run_strategy_testing() -> Result<()> {
-    // Get TimeSeries data
-    let source = DataSource::Bybit;
-    let interval = Interval::Hour1;
-    let net = NetVersion::Mainnet;
-    let mut ts = source
-        .get_historical_data("BTCUSDT", &interval, 1000, &net)
-        .await?;
-
-    // Calculate indicators for TimeSeries
-
-    // Implement Strategy to analyze TimeSeries
-    let strategy: Box<dyn TradingStrategy> = Box::new(JB1::new());
-
-    for indicator in strategy.required_indicators() {
-        indicator.populate_candles(&mut ts)?;
-    }
-
-    let setups = strategy.find_setups(&ts)?;
-
-    let filename = format!("{}-setups.csv", strategy);
-    save_setups(&setups, &filename)?;
-
-    // Send email notifications
-    if false {
-        NotificationCenter::notify(&setups[0], &strategy).await?;
-    }
-
-    // Test results of taking setups
-    // let result = test_setups(&setups, &ts.candles);
 
     Ok(())
 }
