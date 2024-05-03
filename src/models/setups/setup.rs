@@ -16,8 +16,6 @@ pub struct Setup {
     pub symbol: String,
     pub interval: Interval,
     pub resolution_strategy: Option<ResolutionStrategy>,
-    pub stop_loss: Option<f64>,
-    pub take_profit: Option<f64>,
 }
 
 impl Setup {
@@ -31,8 +29,6 @@ impl Setup {
             interval: Interval::Day1,
             orientation: StrategyOrientation::Long,
             resolution_strategy: Some(resolution_strategy),
-            stop_loss: None,
-            take_profit: None,
         }
     }
 
@@ -50,8 +46,6 @@ impl Setup {
             orientation: self.orientation,
             stop_loss_resolution: resolution.clone(),
             take_profit_resolution: resolution,
-            stop_loss: self.stop_loss.unwrap_or(-1.0),
-            take_profit: self.take_profit.unwrap_or(-1.0),
             open: self.candle.open,
             close: self.candle.close,
             high: self.candle.high,

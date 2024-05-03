@@ -10,8 +10,6 @@ pub struct CsvSetupRow {
     pub orientation: StrategyOrientation,
     pub stop_loss_resolution: String,
     pub take_profit_resolution: String,
-    pub stop_loss: f64,
-    pub take_profit: f64,
     pub open: f64,
     pub close: f64,
     pub high: f64,

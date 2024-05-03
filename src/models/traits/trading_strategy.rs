@@ -42,6 +42,14 @@ pub trait TradingStrategy: Display + Debug + RequiresIndicators {
     /// strategy.
     fn default_resolution_strategy(&self) -> ResolutionStrategy;
 
+
+    /// Returns the resolution strategy of this Trading Strategy. If none has 
+    /// been set then it returns the default strategy.
+    // fn resolution_strategy(&self) -> ResolutionStrategy;
+
+    /// Sets the provided ResolutionStrategy for this strategy.
+    // fn set_resolution_strategy(&mut self, strat: ResolutionStrategy);
+
     /// Returns the StrategyOrientation for this TradingStrategy
     fn orientation(&self) -> StrategyOrientation;
 

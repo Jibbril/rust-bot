@@ -84,8 +84,6 @@ impl SetupBuilder {
             symbol,
             interval,
             resolution_strategy: self.resolution_strategy.clone(),
-            stop_loss: self.stop_loss,
-            take_profit: self.take_profit,
         })
     }
 }
