@@ -5,7 +5,7 @@ use anyhow::{anyhow, Result};
 use super::trade::Trade;
 
 #[allow(dead_code)]
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct TradeBuilder {
     pub setup: Option<Setup>,
     pub symbol: Option<String>,

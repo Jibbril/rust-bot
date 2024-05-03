@@ -4,7 +4,7 @@ use crate::{data_sources::datasource::DataSource, models::{message_payloads::{ca
 use actix::{Actor, ActorContext, Addr, AsyncContext, Context, Handler, WrapFuture};
 
 #[allow(dead_code)]
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Trade {
     pub setup: Setup,
     pub quantity: f64,
