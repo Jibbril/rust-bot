@@ -8,7 +8,8 @@ use crate::{
 };
 use anyhow::{anyhow, Result};
 
-struct PercentageResolution {
+#[derive(Debug, Clone)]
+pub struct PercentageResolution {
     initial_value: f64,
     take_profit: f64,
     drawdown: f64,

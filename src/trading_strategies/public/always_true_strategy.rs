@@ -1,0 +1,123 @@
+use std::{collections::HashSet, fmt::{Display, Formatter}};
+use anyhow::{anyhow, Result};
+use chrono::Weekday;
+use crate::{indicators::indicator_type::IndicatorType, models::{candle::Candle, interval::Interval, setups::{setup::Setup, setup_builder::SetupBuilder}, strategy_orientation::StrategyOrientation, timeseries::TimeSeries, traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy}}, resolution_strategies::{fixed_values::FixedValuesResolution, resolution_strategy::ResolutionStrategy}};
+
+/// # One Activation Strategy
+///
+/// Dummy strategy used for testing purposes. Always returns that entry
+/// conditions have been reached on first ask, after that always negative. 
+/// Same for take-profit and stop-loss.
+///
+/// ## Directionality
+/// - Long
+///
+/// ## Interval
+/// - Any
+///
+/// ## Entry Conditions
+/// - Always positive on first ask.
+///
+/// ## Take-profit
+/// - Always positive one first ask.
+///
+/// ## Stop-loss
+/// - Always positive on first ask.
+///
+/// ## Trading days
+/// - All
+///
+#[derive(Debug, Clone)]
+pub struct AlwaysTrueStrategy {
+    trading_days: HashSet<Weekday>,
+}
+
+impl TradingStrategy for AlwaysTrueStrategy {
+    fn new() -> Self where Self: Sized {
+        Self {
+            trading_days: Self::build_trading_days(),
+        }
+    }
+
+    fn candles_needed_for_setup(&self) -> usize {
+        1
+    }
+
+    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>> {
+        if ts.candles.len() == 0 {
+            return Err(anyhow!("No candles in provided timeentry"));
+        }
+        
+        let setup = SetupBuilder::new()
+            .candle(&ts.candles[0])
+            .orientation(&StrategyOrientation::Long)
+            .symbol(&ts.symbol)
+            .interval(&ts.interval)
+            .build()?;
+
+        Ok(vec![setup])
+    }
+
+    fn min_length(&self) -> usize {
+        1
+    }
+
+    fn check_last_for_setup(&self, candles: &[Candle]) -> Option<SetupBuilder> {
+        let candle = candles.last()?;
+        let rs = ResolutionStrategy::FixedValues(FixedValuesResolution::new(candle.close, candle.close));
+        let sb = SetupBuilder::new()
+            .candle(&candles[0])
+            .orientation(&StrategyOrientation::Long)
+            .resolution_strategy(&rs);
+            
+        Some(sb)
+    }
+
+    fn clone_box(&self) -> Box<dyn TradingStrategy> {
+        Box::new(self.clone())
+    }
+
+    fn default_resolution_strategy(&self) -> ResolutionStrategy {
+        todo!()
+    }
+
+    fn orientation(&self) -> StrategyOrientation {
+        StrategyOrientation::Long
+    }
+
+    fn interval(&self) -> Interval {
+        Interval::Minute1
+    }
+
+    fn trading_days(&self) -> HashSet<Weekday> {
+        self.trading_days.clone()
+    }
+}
+
+impl AlwaysTrueStrategy {
+    fn build_trading_days() -> HashSet<Weekday> {
+        let mut set = HashSet::new();
+
+        set.insert(Weekday::Mon);
+        set.insert(Weekday::Tue);
+        set.insert(Weekday::Wed);
+        set.insert(Weekday::Thu);
+        set.insert(Weekday::Fri);
+        set.insert(Weekday::Sat);
+        set.insert(Weekday::Sun);
+
+        set
+    }
+}
+
+impl RequiresIndicators for AlwaysTrueStrategy {
+    fn required_indicators(&self) -> Vec<IndicatorType> {
+        vec![]
+    }
+}
+
+impl Display for AlwaysTrueStrategy {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "NewStrategy")
+    }
+}

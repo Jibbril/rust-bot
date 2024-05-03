@@ -37,7 +37,7 @@ use models::{
 };
 use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
-use trading_strategies::{private::jb_1::JB1, public::rsi_basic::RsiBasic};
+use trading_strategies::{private::jb_1::JB1, public::{always_true_strategy::AlwaysTrueStrategy, rsi_basic::RsiBasic}};
 
 pub async fn run_dummy() -> Result<()> {
     todo!()
@@ -93,7 +93,7 @@ pub async fn run_single_indicator() -> Result<()> {
 }
 
 pub async fn run_strategy() -> Result<()> {
-    let strategy: Box<dyn TradingStrategy> = Box::new(JB1::new());
+    let strategy: Box<dyn TradingStrategy> = Box::new(AlwaysTrueStrategy::new());
     let interval = Interval::Minute1;
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;
