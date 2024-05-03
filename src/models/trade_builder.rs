@@ -1,8 +1,4 @@
-use crate::{
-    data_sources::datasource::DataSource,
-    models::{strategy_orientation::StrategyOrientation, timeseries::TimeSeries},
-    resolution_strategies::resolution_strategy::ResolutionStrategy,
-};
+use crate::{data_sources::datasource::DataSource, models::{setups::setup::Setup, strategy_orientation::StrategyOrientation, timeseries::TimeSeries}, resolution_strategies::resolution_strategy::ResolutionStrategy};
 use actix::Addr;
 use anyhow::{anyhow, Result};
 
@@ -11,6 +7,7 @@ use super::trade::Trade;
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct TradeBuilder {
+    pub setup: Option<Setup>,
     pub symbol: Option<String>,
     pub quantity: Option<f64>,
     pub dollar_value: Option<f64>,
@@ -25,6 +22,7 @@ pub struct TradeBuilder {
 impl TradeBuilder {
     pub fn new() -> Self {
         TradeBuilder {
+            setup: None,
             symbol: None,
             quantity: None,
             dollar_value: None,
@@ -86,10 +84,10 @@ impl TradeBuilder {
     pub fn build(&self) -> Result<Trade> {
         let notifications_enabled = self.notifications_enabled;
         let trading_enabled = self.trading_enabled;
-        let symbol = self
-            .symbol
+        let setup = self
+            .setup
             .clone()
-            .ok_or(anyhow!("Symbol is required to build Trade."))?;
+            .ok_or(anyhow!("Setup is required to build Trade."))?;
         let quantity = self
             .quantity
             .clone()
@@ -106,24 +104,19 @@ impl TradeBuilder {
             .resolution_strategy
             .clone()
             .ok_or(anyhow!("Resolution strategy is required to build Trade."))?;
-        let orientation = self
-            .orientation
-            .clone()
-            .ok_or(anyhow!("Orientation is required to build Trade."))?;
         let timeseries = self
             .timeseries_addr
             .clone()
             .ok_or(anyhow!("TimeSeries is required to build Trade."))?;
 
         let trade = Trade {
-            symbol,
+            setup,
             quantity,
             dollar_value,
             source,
             notifications_enabled,
             trading_enabled,
             resolution_strategy,
-            orientation,
             timeseries,
         };
 

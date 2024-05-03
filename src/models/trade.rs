@@ -1,31 +1,18 @@
-use crate::models::message_payloads::stop_payload::StopPayload;
-use crate::{
-    data_sources::datasource::DataSource,
-    models::{
-        message_payloads::{
-            candle_added_payload::CandleAddedPayload,
-            request_latest_candles_payload::RequestLatestCandlesPayload,
-        },
-        strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries,
-    },
-    resolution_strategies::{
+use crate::{data_sources::datasource::DataSource, models::{message_payloads::{candle_added_payload::CandleAddedPayload, request_latest_candles_payload::RequestLatestCandlesPayload, stop_payload::StopPayload}, setups::setup::Setup, timeseries::TimeSeries}, resolution_strategies::{
         is_resolution_strategy::IsResolutionStrategy, resolution_strategy::ResolutionStrategy,
-    },
-};
+    }};
 use actix::{Actor, ActorContext, Addr, AsyncContext, Context, Handler, WrapFuture};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Trade {
-    pub symbol: String,
+    pub setup: Setup,
     pub quantity: f64,
     pub dollar_value: f64,
     pub source: DataSource,
     pub notifications_enabled: bool,
     pub trading_enabled: bool,
     pub resolution_strategy: ResolutionStrategy,
-    pub orientation: StrategyOrientation,
     pub timeseries: Addr<TimeSeries>,
 }
 
@@ -34,7 +21,7 @@ impl Actor for Trade {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         let source = self.source.clone();
-        let symbol = self.symbol.clone();
+        let symbol = self.setup.symbol.clone();
         let quantity = self.quantity.clone();
 
         let fut = async move {
@@ -68,10 +55,10 @@ impl Handler<CandleAddedPayload> for Trade {
         let resolution_strategy = self.resolution_strategy.clone();
         let tp_candles_needed = resolution_strategy.n_candles_take_profit();
         let sl_candles_needed = resolution_strategy.n_candles_stop_loss();
-        let orientation = self.orientation.clone();
+        let orientation = self.setup.orientation.clone();
         let ts_addr = self.timeseries.clone();
         let source = self.source.clone();
-        let symbol = self.symbol.clone();
+        let symbol = self.setup.symbol.clone();
         let quantity = self.quantity;
         let self_addr = ctx.address();
 
