@@ -8,7 +8,6 @@ use super::trade::Trade;
 #[derive(Debug)]
 pub struct TradeBuilder {
     pub setup: Option<Setup>,
-    pub symbol: Option<String>,
     pub quantity: Option<f64>,
     pub dollar_value: Option<f64>,
     pub source: Option<DataSource>,
@@ -23,7 +22,6 @@ impl TradeBuilder {
     pub fn new() -> Self {
         TradeBuilder {
             setup: None,
-            symbol: None,
             quantity: None,
             dollar_value: None,
             source: None,
@@ -33,11 +31,6 @@ impl TradeBuilder {
             orientation: None,
             timeseries_addr: None,
         }
-    }
-
-    pub fn symbol(mut self, symbol: String) -> Self {
-        self.symbol = Some(symbol);
-        self
     }
 
     #[allow(dead_code)]
@@ -78,6 +71,11 @@ impl TradeBuilder {
 
     pub fn timeseries_addr(mut self, timeseries: Addr<TimeSeries>) -> Self {
         self.timeseries_addr = Some(timeseries);
+        self
+    }
+
+    pub fn setup(mut self, setup: Setup) -> Self {
+        self.setup = Some(setup);
         self
     }
 

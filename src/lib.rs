@@ -303,7 +303,7 @@ pub async fn run_manual_setups() -> Result<()> {
 pub async fn run_strategy_tester() -> Result<()> {
     // Get TimeSeries data
     let source = DataSource::Bybit;
-    let strategy: Box<dyn TradingStrategy> = Box::new(JB2::new());
+    let mut strategy: Box<dyn TradingStrategy> = Box::new(JB2::new());
     let interval = strategy.interval();
     let net = NetVersion::Mainnet;
 
@@ -321,7 +321,7 @@ pub async fn run_strategy_tester() -> Result<()> {
         indicator.populate_candles(&mut ts)?;
     }
 
-    let result = StrategyTester::test_strategy(&strategy, &ts.candles[300..])?;
+    let result = StrategyTester::test_strategy(&mut strategy, &ts.candles[300..])?;
 
     println!("{:#?}", result);
 

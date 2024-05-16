@@ -41,7 +41,7 @@ impl Handler<CandleAddedPayload> for SetupFinder {
         };
 
         let ts = self.ts_addr.clone();
-        let strategy = self.strategy.clone_box();
+        let mut strategy = self.strategy.clone_box();
         let notifications_enabled = self.notifications_enabled;
         let live_trading_enabled = self.live_trading_enabled;
         let mut spawned_trades = self.spawned_trade_addrs.clone();
@@ -109,7 +109,7 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                 let dollar_value = quantity * last_price;
 
                 let trade = TradeBuilder::new()
-                    .symbol(setup.symbol.clone())
+                    .setup(setup.clone())
                     .quantity(quantity)
                     .dollar_value(dollar_value)
                     .source(source)
