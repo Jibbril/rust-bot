@@ -5,3 +5,4 @@ pub mod percentage;
 pub mod pmarp_or_bbwp_vs_percentage;
 pub mod pmarp_vs_percentage;
 pub mod resolution_strategy;
+pub mod instant_resolution;
