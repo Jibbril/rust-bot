@@ -98,7 +98,7 @@ impl TradingStrategy for RsiBasic {
         self.len
     }
 
-    fn check_last_for_setup(&self, candles: &[Candle]) -> Option<SetupBuilder> {
+    fn check_last_for_setup(&mut self, candles: &[Candle]) -> Option<SetupBuilder> {
         if candles.len() < 2 {
             return None;
         }

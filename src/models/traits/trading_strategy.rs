@@ -30,7 +30,7 @@ pub trait TradingStrategy: Display + Debug + RequiresIndicators {
 
     /// Checks whether a new Setup has arisen upon the closure of the last
     /// candle provided.
-    fn check_last_for_setup(&self, candles: &[Candle]) -> Option<SetupBuilder>;
+    fn check_last_for_setup(&mut self, candles: &[Candle]) -> Option<SetupBuilder>;
 
     /// Returns a boxed clone of the current TradingStrategy
     fn clone_box(&self) -> Box<dyn TradingStrategy>;

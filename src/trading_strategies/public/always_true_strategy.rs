@@ -42,6 +42,7 @@ use std::{
 #[derive(Debug, Clone)]
 pub struct AlwaysTrueStrategy {
     trading_days: HashSet<Weekday>,
+    triggered: bool
 }
 
 impl TradingStrategy for AlwaysTrueStrategy {
@@ -51,6 +52,7 @@ impl TradingStrategy for AlwaysTrueStrategy {
     {
         Self {
             trading_days: Self::build_trading_days(),
+            triggered: false
         }
     }
 
@@ -62,10 +64,16 @@ impl TradingStrategy for AlwaysTrueStrategy {
         1
     }
 
-    fn check_last_for_setup(&self, candles: &[Candle]) -> Option<SetupBuilder> {
+    fn check_last_for_setup(&mut self, candles: &[Candle]) -> Option<SetupBuilder> {
+        if self.triggered {
+            return None;
+        }
+
         let sb = SetupBuilder::new()
             .candle(&candles[0])
             .orientation(&StrategyOrientation::Long);
+
+        self.triggered = true;
 
         Some(sb)
     }

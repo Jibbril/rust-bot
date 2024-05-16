@@ -73,7 +73,7 @@ impl TradingStrategy for SilverCross {
         self.long_len
     }
 
-    fn check_last_for_setup(&self, _candles: &[Candle]) -> Option<SetupBuilder> {
+    fn check_last_for_setup(&mut self, _candles: &[Candle]) -> Option<SetupBuilder> {
         todo!()
     }
 
