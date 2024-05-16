@@ -7,7 +7,7 @@ use crate::{
         strategy_orientation::StrategyOrientation,
         traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
     },
-    resolution_strategies::resolution_strategy::ResolutionStrategy,
+    resolution_strategies::{instant_resolution::InstantResolution, resolution_strategy::ResolutionStrategy},
 };
 use chrono::Weekday;
 use std::{
@@ -83,7 +83,7 @@ impl TradingStrategy for AlwaysTrueStrategy {
     }
 
     fn default_resolution_strategy(&self) -> ResolutionStrategy {
-        todo!()
+        ResolutionStrategy::Instant(InstantResolution)
     }
 
     fn orientation(&self) -> StrategyOrientation {
