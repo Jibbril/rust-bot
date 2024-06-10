@@ -38,6 +38,54 @@ pub async fn run_dummy() -> Result<()> {
     todo!()
 }
 
+pub async fn run_always_true_buys() -> Result<()> {
+    let strategy: Box<dyn TradingStrategy> = Box::new(AlwaysTrueStrategy::new());
+    let interval = Interval::Minute1;
+    let source = DataSource::Bybit;
+    let net = NetVersion::Mainnet;
+
+    // Initialize timeseries and indicators
+    let mut ts = source
+        .get_historical_data("BTCUSDT", &interval, strategy.min_length() + 300, &net)
+        .await?;
+
+    // ts.save_to_local(&source).await?;
+    // let ts = source.load_local_data(symbol, &interval).await?;
+
+    for indicator_type in strategy.required_indicators() {
+        ts.add_indicator(indicator_type)?;
+    }
+
+    let ts_addr = ts.start();
+
+    // Create setup finder and subscribe to timeseries
+    let setup_finder = SetupFinderBuilder::new()
+        .strategy(strategy)
+        .ts(ts_addr.clone())
+        .notifications_enabled(true)
+        .live_trading_enabled(true)
+        .source(source.clone())
+        .only_trigger_once(true)
+        .build()?;
+
+    let sf_addr = setup_finder.start();
+
+    let payload = TSSubscribePayload {
+        observer: sf_addr.clone(),
+    };
+
+    ts_addr.do_send(payload);
+
+    // Start websocket client
+    let mut wsclient = WebsocketClient::new(source, interval, net);
+    wsclient.add_observer(ts_addr);
+    wsclient.start();
+
+    loop {
+        sleep(Duration::from_secs(1)).await;
+    }
+}
+
 pub async fn run_market_buy() -> Result<()> {
     let time = BybitRestApi::get_server_time().await?;
 

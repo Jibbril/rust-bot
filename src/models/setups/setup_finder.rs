@@ -3,9 +3,8 @@ use crate::{
     models::{
         message_payloads::{
             candle_added_payload::CandleAddedPayload,
-            request_latest_candles_payload::RequestLatestCandlesPayload,
+            request_latest_candles_payload::RequestLatestCandlesPayload, triggered_payload::TriggeredPayload,
         },
-        setups::setup_finder_builder::SetupFinderBuilder,
         timeseries::TimeSeries,
         trade::Trade,
         trade_builder::TradeBuilder,
@@ -19,12 +18,13 @@ use tokio::try_join;
 
 #[derive(Debug)]
 pub struct SetupFinder {
-    symbol: String,
     strategy: Box<dyn TradingStrategy>,
     ts_addr: Addr<TimeSeries>,
     source: DataSource,
     notifications_enabled: bool,
     live_trading_enabled: bool,
+    only_trigger_once: bool,
+    triggered: bool,
     spawned_trade_addrs: Vec<Addr<Trade>>,
 }
 
@@ -36,17 +36,22 @@ impl Handler<CandleAddedPayload> for SetupFinder {
     type Result = ();
 
     fn handle(&mut self, _msg: CandleAddedPayload, ctx: &mut Context<Self>) -> Self::Result {
+        if self.only_trigger_once && self.triggered {
+            println!("Self is triggered and SetupFinder is configured to only trigger once!");
+            return ();
+        }
+
         let payload = RequestLatestCandlesPayload {
             n: self.strategy.candles_needed_for_setup(),
         };
 
+        let self_addr = ctx.address();
         let ts = self.ts_addr.clone();
         let mut strategy = self.strategy.clone_box();
         let notifications_enabled = self.notifications_enabled;
         let live_trading_enabled = self.live_trading_enabled;
         let mut spawned_trades = self.spawned_trade_addrs.clone();
         let source = self.source.clone();
-        let symbol = self.symbol.clone();
 
         let fut = async move {
             let send_result = match ts.send(payload).await {
@@ -90,6 +95,8 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                 }
             };
 
+            self_addr.do_send(TriggeredPayload);
+
             println!("Setup found: {:#?}", setup);
 
             if live_trading_enabled {
@@ -100,11 +107,13 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                 }
 
                 let wallet_fut = source.get_wallet();
-                let last_price_fut = source.get_symbol_price(&symbol);
+                let last_price_fut = source.get_symbol_price(&setup.symbol);
 
                 let (wallet, last_price) = try_join!(wallet_fut, last_price_fut)
                     .expect("Unable to fetch data when creating Trade.");
 
+                // TODO: Implement system to enable variantions on position size
+                // Quantity is half of available balance
                 let quantity = wallet.total_available_balance / 2.0;
                 let dollar_value = quantity * last_price;
 
@@ -142,23 +151,34 @@ impl Handler<CandleAddedPayload> for SetupFinder {
     }
 }
 
+impl Handler<TriggeredPayload> for SetupFinder {
+    type Result = ();
+
+    fn handle(&mut self, _msg: TriggeredPayload, _ctx: &mut Self::Context) -> Self::Result {
+        self.triggered = true;
+    }
+}
+
 #[allow(dead_code)]
 impl SetupFinder {
     pub fn new(
         strategy: Box<dyn TradingStrategy>,
-        ts: Addr<TimeSeries>,
+        ts_addr: Addr<TimeSeries>,
         notifications_enabled: bool,
         live_trading_enabled: bool,
-        spawned_trades: &[Addr<Trade>],
+        only_trigger_once: bool,
+        spawned_trade_addrs: &[Addr<Trade>],
         source: DataSource,
     ) -> Result<Self> {
-        SetupFinderBuilder::new()
-            .strategy(strategy)
-            .ts(ts)
-            .notifications_enabled(notifications_enabled)
-            .live_trading_enabled(live_trading_enabled)
-            .spawned_trades(spawned_trades)
-            .source(source)
-            .build()
+        Ok(SetupFinder {
+            strategy, 
+            ts_addr,
+            notifications_enabled,
+            live_trading_enabled,
+            only_trigger_once,
+            spawned_trade_addrs: spawned_trade_addrs.to_vec(),
+            source,
+            triggered: false
+        })
     }
 }

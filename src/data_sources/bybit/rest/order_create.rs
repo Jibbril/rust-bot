@@ -104,12 +104,12 @@ async fn post_market_order(params: Map<String, Value>, net: &NetVersion) -> Resu
 
     // println!("Response Text: {:#?}",res.text().await?);
 
-    let response: OrderCreateResponse = match res.status() {
+    let _response: OrderCreateResponse = match res.status() {
         reqwest::StatusCode::OK => res.json().await?,
         _ => panic!("Unable to perform market buy"),
     };
 
-    println!("Create Response: {:#?}", response);
+    // println!("Create Response: {:#?}", response);
 
     Ok(())
 }

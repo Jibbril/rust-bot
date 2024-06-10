@@ -15,6 +15,7 @@ pub struct SetupFinderBuilder {
     source: Option<DataSource>,
     notifications_enabled: bool,
     live_trading_enabled: bool,
+    only_trigger_once: bool,
     spawned_trades: Vec<Addr<Trade>>,
 }
 
@@ -26,6 +27,7 @@ impl SetupFinderBuilder {
             source: None,
             notifications_enabled: false,
             live_trading_enabled: false,
+            only_trigger_once: false,
             spawned_trades: vec![],
         }
     }
@@ -55,6 +57,12 @@ impl SetupFinderBuilder {
         self
     }
 
+    pub fn only_trigger_once(mut self, enabled: bool) -> Self {
+        self.only_trigger_once = enabled;
+        self
+    }
+
+    #[allow(dead_code)]
     pub fn spawned_trades(mut self, trades: &[Addr<Trade>]) -> Self {
         self.spawned_trades = trades.to_vec();
         self
@@ -69,6 +77,7 @@ impl SetupFinderBuilder {
             .context("TimeSeries address is required to build SetupFinder")?;
         let notifications_enabled = self.notifications_enabled;
         let live_trading_enabled = self.live_trading_enabled;
+        let only_trigger_once = self.only_trigger_once;
         let spawned_trades = self.spawned_trades;
         let source = self
             .source
@@ -79,6 +88,7 @@ impl SetupFinderBuilder {
             ts,
             notifications_enabled,
             live_trading_enabled,
+            only_trigger_once,
             &spawned_trades,
             source,
         )?)

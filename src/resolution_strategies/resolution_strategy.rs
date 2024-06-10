@@ -133,7 +133,7 @@ impl Display for ResolutionStrategy {
                     init_value, pvp.pmarp_threshold, pvp.bbwp_threshold
                 )
             }
-            Self::Instant(fv) => write!(f, "Instant"),
+            Self::Instant(_) => write!(f, "Instant"),
         }
     }
 }
