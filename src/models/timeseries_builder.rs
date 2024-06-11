@@ -2,10 +2,11 @@ use crate::{
     indicators::indicator_type::IndicatorType,
     models::{
         candle::Candle, interval::Interval, net_version::NetVersion,
-        setups::setup_finder::SetupFinder, timeseries::TimeSeries,
+        timeseries::TimeSeries,
+        message_payloads::candle_added_payload::CandleAddedPayload,
     },
 };
-use actix::Addr;
+use actix::Recipient;
 use indexmap::IndexSet;
 
 #[derive(Debug, Clone)]
@@ -15,7 +16,7 @@ pub struct TimeSeriesBuilder {
     max_length: usize,
     candles: Vec<Candle>,
     indicators: IndexSet<IndicatorType>,
-    observers: Vec<Addr<SetupFinder>>,
+    observers: Vec<Recipient<CandleAddedPayload>>,
     net: NetVersion,
 }
 
@@ -58,7 +59,7 @@ impl TimeSeriesBuilder {
         self
     }
 
-    pub fn add_observer(mut self, observer: Addr<SetupFinder>) -> Self {
+    pub fn add_observer(mut self, observer: Recipient<CandleAddedPayload>) -> Self {
         self.observers.push(observer);
         self
     }

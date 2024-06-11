@@ -12,13 +12,11 @@ use crate::{
             ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
         },
         net_version::NetVersion,
-        setups::setup_finder::SetupFinder,
         timeseries_builder::TimeSeriesBuilder,
     },
 };
 use actix::{
-    dev::ContextFutureSpawner, Actor, Addr, AsyncContext, Context as ActixContext, Handler,
-    WrapFuture,
+    dev::ContextFutureSpawner, Actor, AsyncContext, Context as ActixContext, Handler, Recipient, WrapFuture
 };
 use anyhow::Result;
 use chrono::{DateTime, Utc};
@@ -31,7 +29,7 @@ pub struct TimeSeries {
     pub max_length: usize,
     pub candles: Vec<Candle>,
     pub indicators: IndexSet<IndicatorType>,
-    pub observers: Vec<Addr<SetupFinder>>,
+    pub observers: Vec<Recipient<CandleAddedPayload>>,
     pub net: NetVersion,
 }
 

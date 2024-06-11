@@ -1,9 +1,9 @@
-use crate::models::setups::setup_finder::SetupFinder;
-use actix::{Addr, Message};
+use crate::models::message_payloads::candle_added_payload::CandleAddedPayload;
+use actix::{Message, Recipient};
 
 #[derive(Debug, Clone)]
 pub struct TSSubscribePayload {
-    pub observer: Addr<SetupFinder>,
+    pub observer: Recipient<CandleAddedPayload>,
 }
 
 impl Message for TSSubscribePayload {

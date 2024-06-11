@@ -71,7 +71,7 @@ pub async fn run_always_true_buys() -> Result<()> {
     let sf_addr = setup_finder.start();
 
     let payload = TSSubscribePayload {
-        observer: sf_addr.clone(),
+        observer: sf_addr.recipient(),
     };
 
     ts_addr.do_send(payload);
@@ -161,12 +161,13 @@ pub async fn run_strategy() -> Result<()> {
         .ts(ts_addr.clone())
         .notifications_enabled(true)
         .live_trading_enabled(false)
+        .source(source.clone())
         .build()?;
 
     let sf_addr = setup_finder.start();
 
     let payload = TSSubscribePayload {
-        observer: sf_addr.clone(),
+        observer: sf_addr.recipient(),
     };
 
     ts_addr.do_send(payload);
@@ -227,11 +228,11 @@ pub async fn run_double_strategies() -> Result<()> {
     let short_sf_addr = short_setup_finder.start();
 
     let long_payload = TSSubscribePayload {
-        observer: long_sf_addr.clone(),
+        observer: long_sf_addr.recipient(),
     };
 
     let short_payload = TSSubscribePayload {
-        observer: short_sf_addr.clone(),
+        observer: short_sf_addr.recipient(),
     };
 
     ts_addr.do_send(long_payload);
@@ -288,7 +289,7 @@ pub async fn run_setup_finder() -> Result<()> {
     let sf = sf.start();
 
     let payload = TSSubscribePayload {
-        observer: sf.clone(),
+        observer: sf.recipient(),
     };
     ts.do_send(payload);
 
@@ -326,7 +327,7 @@ pub async fn run_manual_setups() -> Result<()> {
     let sf = sf.start();
 
     let payload = TSSubscribePayload {
-        observer: sf.clone(),
+        observer: sf.recipient(),
     };
     ts.do_send(payload);
 
