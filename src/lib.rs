@@ -108,6 +108,20 @@ pub async fn run_market_buy() -> Result<()> {
     Ok(())
 }
 
+pub async fn run_market_sell_all() -> Result<()> {
+    let time = BybitRestApi::get_server_time().await?;
+
+    println!("Time: {:#?}", time);
+
+    let wallet = BybitRestApi::get_wallet_balance().await?;
+
+    println!("Wallet: {:#?}", wallet);
+
+    BybitRestApi::market_sell_all(&wallet).await?;
+
+    Ok(())
+}
+
 pub async fn run_single_indicator() -> Result<()> {
     let (k_len, k_smoothing, d_smoothing) = Stochastic::krown_args().stochastic_res()?;
     let indicator_type = IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing);

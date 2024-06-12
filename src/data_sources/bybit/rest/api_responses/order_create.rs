@@ -4,10 +4,10 @@ use serde_json::Value;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OrderCreateResponse {
     #[serde(rename = "retCode")]
-    ret_code: u32,
+    pub ret_code: u32,
 
     #[serde(rename = "retMsg")]
-    ret_msg: String,
+    pub ret_msg: String,
 
     pub result: Option<OrderCreateResult>,
 
@@ -20,8 +20,8 @@ pub struct OrderCreateResponse {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct OrderCreateResult {
     #[serde(rename = "orderId")]
-    pub order_id: String,
+    pub order_id: Option<String>,
 
     #[serde(rename = "orderLinkId")]
-    order_link_id: String,
+    order_link_id: Option<String>,
 }

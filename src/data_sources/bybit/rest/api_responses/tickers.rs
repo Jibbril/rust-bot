@@ -61,5 +61,5 @@ pub struct TickerData {
     volume_24h: String,
 
     #[serde(rename = "usdIndexPrice")]
-    usd_index_price: String,
+    usd_index_price: Option<String>,
 }

@@ -22,10 +22,10 @@ impl Actor for Trade {
     fn started(&mut self, ctx: &mut Self::Context) {
         let source = self.source.clone();
         let symbol = self.setup.symbol.clone();
-        let quantity = self.quantity.clone();
+        let dollar_value = self.dollar_value.clone();
 
         let fut = async move {
-            let res = source.enter_trade(&symbol, quantity).await;
+            let res = source.enter_trade(&symbol, dollar_value).await;
 
             match res {
                 Ok(_) => println!("Successfully entered trade"),
@@ -59,8 +59,12 @@ impl Handler<CandleAddedPayload> for Trade {
         let ts_addr = self.timeseries.clone();
         let source = self.source.clone();
         let symbol = self.setup.symbol.clone();
-        let quantity = self.quantity;
         let self_addr = ctx.address();
+
+        // Multiply to avoid scenarios where quantity is slightly larger than 
+        // account balance (caused by sudden price changes in time between 
+        // account balance is checked and initial buy is performed).
+        let quantity = self.quantity * 0.995; 
 
         let payload = RequestLatestCandlesPayload {
             n: tp_candles_needed.max(sl_candles_needed),
@@ -70,8 +74,8 @@ impl Handler<CandleAddedPayload> for Trade {
             let candle_response = ts_addr
                 .send(payload)
                 .await
-                .expect("Unable to fetch timeseries data in ActiveTrade.")
-                .expect("Unable to parse LatestCandleResponse in ActiveTrade.");
+                .expect("Unable to fetch timeseries data in Trade.")
+                .expect("Unable to parse LatestCandleResponse in Trade.");
 
             let end = candle_response.candles.len();
 
@@ -86,8 +90,12 @@ impl Handler<CandleAddedPayload> for Trade {
                 .expect("Unable to perform stop-loss check in Active Trade");
 
             if take_profit_reached || stop_loss_reached {
-                let _ = source.exit_trade(&symbol, quantity).await;
-
+                let res = source.exit_trade(&symbol, quantity).await;
+                
+                match res {
+                    Ok(_) => println!("Trade successfully exited!"),
+                    Err(e) => println!("Trade exit failed with error: {:#?}",e)
+                }
                 // TODO: Handle/notify user in case selling was unsuccessful.
 
                 self_addr.do_send(StopPayload);

@@ -10,7 +10,7 @@ use crate::{
         math::{floor, round},
     },
 };
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde_json::{json, to_string, Map, Value};
 
@@ -27,7 +27,7 @@ pub async fn market_buy(symbol: &str, quantity: f64) -> Result<()> {
     params.insert("marketUnit".to_string(), json!("quoteCoin"));
     params.insert("qty".to_string(), json!(rounded_quantity.to_string()));
 
-    println!("params: {:#?}", params);
+    println!("buy params: {:#?}", params);
 
     Ok(post_market_order(params, &NetVersion::Mainnet).await?)
 }
@@ -62,6 +62,8 @@ pub async fn market_sell_all(wallet: &Wallet) -> Result<()> {
         params.insert("qty".to_string(), json!(quantity.to_string()));
         params.insert("marketUnit".to_string(), json!("baseCoin"));
 
+        println!("sell params: {:#?}", params);
+
         post_market_order(params, &NetVersion::Mainnet).await?;
     }
 
@@ -69,13 +71,17 @@ pub async fn market_sell_all(wallet: &Wallet) -> Result<()> {
 }
 
 pub async fn market_sell(symbol: &str, quantity: f64) -> Result<()> {
+    let qty = floor(quantity, ORDER_MAX_DECIMALS);
+
     let mut params = Map::new();
     params.insert("category".to_string(), json!("spot"));
     params.insert("symbol".to_string(), json!(symbol));
     params.insert("side".to_string(), json!("Sell"));
     params.insert("orderType".to_string(), json!("Market"));
-    params.insert("qty".to_string(), json!(quantity.to_string()));
+    params.insert("qty".to_string(), json!(qty.to_string()));
     params.insert("marketUnit".to_string(), json!("baseCoin"));
+
+    println!("sell params: {:#?}", params);
 
     post_market_order(params, &NetVersion::Mainnet).await?;
 
@@ -104,10 +110,14 @@ async fn post_market_order(params: Map<String, Value>, net: &NetVersion) -> Resu
 
     // println!("Response Text: {:#?}",res.text().await?);
 
-    let _response: OrderCreateResponse = match res.status() {
+    let response: OrderCreateResponse = match res.status() {
         reqwest::StatusCode::OK => res.json().await?,
         _ => panic!("Unable to perform market buy"),
     };
+
+    if response.ret_code != 0 {
+        return Err(anyhow!(format!("Unable to post market order, error: {}", response.ret_msg)))
+    }
 
     // println!("Create Response: {:#?}", response);
 

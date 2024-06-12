@@ -3,7 +3,7 @@ use crate::{
     models::{
         message_payloads::{
             candle_added_payload::CandleAddedPayload,
-            request_latest_candles_payload::RequestLatestCandlesPayload, triggered_payload::TriggeredPayload,
+            request_latest_candles_payload::RequestLatestCandlesPayload, triggered_payload::TriggeredPayload, ts_subscribe_payload::TSSubscribePayload,
         },
         timeseries::TimeSeries,
         trade::Trade,
@@ -37,7 +37,6 @@ impl Handler<CandleAddedPayload> for SetupFinder {
 
     fn handle(&mut self, _msg: CandleAddedPayload, ctx: &mut Context<Self>) -> Self::Result {
         if self.only_trigger_once && self.triggered {
-            println!("Self is triggered and SetupFinder is configured to only trigger once!");
             return ();
         }
 
@@ -102,6 +101,9 @@ impl Handler<CandleAddedPayload> for SetupFinder {
             if live_trading_enabled {
                 // Don't allow multiple active trades from the same strategy
                 // and timeseries
+                // TODO: Update this check to check whether the spawned trades 
+                // are still active. Maybe it spawned a Trade but it has since
+                // completed. In that scenario it should still be ok to run. 
                 if spawned_trades.len() > 0 {
                     return;
                 }
@@ -114,8 +116,8 @@ impl Handler<CandleAddedPayload> for SetupFinder {
 
                 // TODO: Implement system to enable variantions on position size
                 // Quantity is half of available balance
-                let quantity = wallet.total_available_balance / 2.0;
-                let dollar_value = quantity * last_price;
+                let dollar_value = wallet.total_available_balance / 2.0;
+                let quantity = dollar_value / last_price;
 
                 let trade = TradeBuilder::new()
                     .setup(setup.clone())
@@ -126,11 +128,19 @@ impl Handler<CandleAddedPayload> for SetupFinder {
                     .trading_enabled(true)
                     .resolution_strategy(resolution_strategy)
                     .orientation(strategy.orientation())
-                    .timeseries_addr(ts)
+                    .timeseries_addr(ts.clone())
                     .build()
                     .expect("Unable to build Trade in SetupFinder");
 
                 let trade_addr = trade.start();
+
+                // Subscribe Trade to TimeSeries so it receives updates when 
+                // candles are added
+                let ts_subscribe_payload = TSSubscribePayload {
+                    observer: trade_addr.clone().recipient(),
+                };
+
+                ts.do_send(ts_subscribe_payload);
 
                 spawned_trades.push(trade_addr)
             }
