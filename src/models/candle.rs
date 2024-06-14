@@ -8,6 +8,8 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+use super::interval::Interval;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Candle {
     pub timestamp: DateTime<Utc>,
@@ -110,6 +112,38 @@ impl Candle {
                 }
             })
             .collect()
+    }
+
+    pub fn dyn_dummy_from_prev(candle: &Candle, interval: Interval) -> Candle {
+        let prev = candle.close;
+        let mut rng = rand::thread_rng();
+        let delta = prev / 100.0;
+        let wick_delta = delta / 2.0;
+
+        let increment = rng.gen_range(-delta..delta);
+
+        let open = prev;
+        let close = prev + increment;
+        let high;
+        let low;
+
+        if open < close {
+            high = open + wick_delta;
+            low = close - wick_delta;
+        } else {
+            high = close + wick_delta;
+            low = open - wick_delta;
+        }
+
+        Candle {
+            timestamp: candle.timestamp + interval.to_duration(),
+            open,
+            close,
+            high,
+            low,
+            volume: rng.gen_range(200..1500) as f64,
+            indicators: HashMap::new(),
+        }
     }
 
     #[allow(dead_code)]

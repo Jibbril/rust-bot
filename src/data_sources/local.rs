@@ -73,6 +73,7 @@ fn exchange_path(interval: &Interval, symbol: &str, source: &DataSource) -> Stri
         DataSource::Bybit => "bybit",
         DataSource::CoinMarketCap => "coinmarketcap",
         DataSource::CryptoCompare(_) => "cryptocompare",
+        DataSource::Dummy(_) => "dummy",
     };
 
     let interval = match interval {

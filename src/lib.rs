@@ -41,16 +41,15 @@ pub async fn run_dummy() -> Result<()> {
 pub async fn run_always_true_buys() -> Result<()> {
     let strategy: Box<dyn TradingStrategy> = Box::new(AlwaysTrueStrategy::new());
     let interval = Interval::Minute1;
-    let source = DataSource::Bybit;
+    // let source = DataSource::Bybit;
+    let source = DataSource::Dummy(6000);
     let net = NetVersion::Mainnet;
 
     // Initialize timeseries and indicators
     let mut ts = source
         .get_historical_data("BTCUSDT", &interval, strategy.min_length() + 300, &net)
         .await?;
-
-    // ts.save_to_local(&source).await?;
-    // let ts = source.load_local_data(symbol, &interval).await?;
+    ts.validate_candles_on_add = false;
 
     for indicator_type in strategy.required_indicators() {
         ts.add_indicator(indicator_type)?;

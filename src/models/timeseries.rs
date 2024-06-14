@@ -31,6 +31,7 @@ pub struct TimeSeries {
     pub indicators: IndexSet<IndicatorType>,
     pub observers: Vec<Recipient<CandleAddedPayload>>,
     pub net: NetVersion,
+    pub validate_candles_on_add: bool
 }
 
 impl Actor for TimeSeries {
@@ -72,7 +73,11 @@ impl Handler<WebsocketPayload> for TimeSeries {
             .candle
             .expect("No message passed although WebsocketPayload ok.");
 
-        let integrity_ok = self.validate_timeseries_integrity(candle.timestamp);
+        let integrity_ok = if self.validate_candles_on_add {
+            self.validate_timeseries_integrity(candle.timestamp)
+        } else {
+            true
+        };
 
         if integrity_ok {
             // If no historical data is needed, send message straight to add
@@ -254,7 +259,7 @@ impl TimeSeries {
 
     pub fn dummy() -> Self {
         TimeSeriesBuilder::new()
-            .symbol("DUMMY".to_string())
+            .symbol("BTCUSDT".to_string())
             .interval(Interval::Day1)
             .build()
     }

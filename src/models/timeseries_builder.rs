@@ -18,6 +18,7 @@ pub struct TimeSeriesBuilder {
     indicators: IndexSet<IndicatorType>,
     observers: Vec<Recipient<CandleAddedPayload>>,
     net: NetVersion,
+    validate_candles_on_add: bool,
 }
 
 #[allow(dead_code)]
@@ -31,6 +32,7 @@ impl TimeSeriesBuilder {
             indicators: IndexSet::new(),
             observers: vec![],
             net: NetVersion::Mainnet,
+            validate_candles_on_add: true
         }
     }
 
@@ -69,6 +71,11 @@ impl TimeSeriesBuilder {
         self
     }
 
+    pub fn validate_candles_on_add(mut self, b: bool) -> Self {
+        self.validate_candles_on_add = b;
+        self
+    }
+
     pub fn build(self) -> TimeSeries {
         TimeSeries {
             symbol: self.symbol.expect("Symbol is required"),
@@ -78,6 +85,7 @@ impl TimeSeriesBuilder {
             indicators: self.indicators,
             observers: self.observers,
             net: self.net,
+            validate_candles_on_add: self.validate_candles_on_add,
         }
     }
 }
