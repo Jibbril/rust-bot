@@ -55,24 +55,9 @@ impl Handler<CandleAddedPayload> for SetupFinder {
         self.clear_closed_trades();
 
         let fut = async move {
-            let send_result = match ts.send(payload).await {
-                Ok(res) => res,
-                Err(e) => {
-                    println!("Error: {:#?}", e);
-                    return;
-                }
-            };
-
-            // TODO: Seems actix result types for the RequestLatestCandlesPayload
-            // are causing this "double" result. Investigate to see if there is
-            // some way of removing.
-            let candle_response = match send_result {
-                Ok(res) => res,
-                Err(e) => {
-                    println!("Error: {:#?}", e);
-                    return;
-                }
-            };
+            let candle_response = ts.send(payload).await
+                .unwrap_or_else(|e| panic!("Failed to send payload: {:#?}", e))
+                .unwrap_or_else(|e| panic!("Failed to unwrap LatestCandleResponse: {:#?}", e));
 
             let sb = strategy.check_last_for_setup(&candle_response.candles);
 
