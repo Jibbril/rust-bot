@@ -5,7 +5,10 @@ use crate::{
         interval::Interval,
         setups::setup_builder::SetupBuilder,
         strategy_orientation::StrategyOrientation,
-        traits::{has_min_length::HasMinLength, requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
+        traits::{
+            has_min_length::HasMinLength, requires_indicators::RequiresIndicators,
+            trading_strategy::TradingStrategy,
+        },
     },
     resolution_strategies::resolution_strategy::ResolutionStrategy,
 };

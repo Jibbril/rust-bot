@@ -2,7 +2,9 @@ use crate::{
     data_sources::datasource::DataSource,
     models::{
         message_payloads::{
-            candle_added_payload::CandleAddedPayload, ping_payload::PingPayload, request_latest_candles_payload::RequestLatestCandlesPayload, triggered_payload::TriggeredPayload, ts_subscribe_payload::TSSubscribePayload
+            candle_added_payload::CandleAddedPayload, ping_payload::PingPayload,
+            request_latest_candles_payload::RequestLatestCandlesPayload,
+            triggered_payload::TriggeredPayload, ts_subscribe_payload::TSSubscribePayload,
         },
         timeseries::TimeSeries,
         trade::Trade,
@@ -55,7 +57,9 @@ impl Handler<CandleAddedPayload> for SetupFinder {
         self.clear_closed_trades();
 
         let fut = async move {
-            let candle_response = ts.send(payload).await
+            let candle_response = ts
+                .send(payload)
+                .await
                 .unwrap_or_else(|e| panic!("Failed to send payload: {:#?}", e))
                 .unwrap_or_else(|e| panic!("Failed to unwrap LatestCandleResponse: {:#?}", e));
 
@@ -115,7 +119,7 @@ impl Handler<CandleAddedPayload> for SetupFinder {
 
                 let trade_addr = trade.start();
 
-                // Subscribe Trade to TimeSeries so it receives updates when 
+                // Subscribe Trade to TimeSeries so it receives updates when
                 // candles are added
                 let ts_subscribe_payload = TSSubscribePayload {
                     observer: trade_addr.clone().recipient(),
@@ -162,14 +166,14 @@ impl SetupFinder {
         source: DataSource,
     ) -> Result<Self> {
         Ok(SetupFinder {
-            strategy, 
+            strategy,
             ts_addr,
             notifications_enabled,
             live_trading_enabled,
             only_trigger_once,
             spawned_trade_addrs: spawned_trade_addrs.to_vec(),
             source,
-            triggered: false
+            triggered: false,
         })
     }
 

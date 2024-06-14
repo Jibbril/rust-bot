@@ -1,4 +1,10 @@
-use crate::{data_sources::datasource::DataSource, models::{setups::setup::Setup, strategy_orientation::StrategyOrientation, timeseries::TimeSeries}, resolution_strategies::resolution_strategy::ResolutionStrategy};
+use crate::{
+    data_sources::datasource::DataSource,
+    models::{
+        setups::setup::Setup, strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
+    },
+    resolution_strategies::resolution_strategy::ResolutionStrategy,
+};
 use actix::Addr;
 use anyhow::{anyhow, Result};
 

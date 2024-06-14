@@ -116,7 +116,10 @@ async fn post_market_order(params: Map<String, Value>, net: &NetVersion) -> Resu
     };
 
     if response.ret_code != 0 {
-        return Err(anyhow!(format!("Unable to post market order, error: {}", response.ret_msg)))
+        return Err(anyhow!(format!(
+            "Unable to post market order, error: {}",
+            response.ret_msg
+        )));
     }
 
     // println!("Create Response: {:#?}", response);

@@ -32,7 +32,10 @@ use models::{
 };
 use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
-use trading_strategies::{private::kq_12::KQ12, public::{always_true_strategy::AlwaysTrueStrategy, rsi_basic::RsiBasic}};
+use trading_strategies::{
+    private::kq_12::KQ12,
+    public::{always_true_strategy::AlwaysTrueStrategy, rsi_basic::RsiBasic},
+};
 
 pub async fn run_dummy() -> Result<()> {
     todo!()
@@ -57,7 +60,7 @@ pub async fn run_actual_strategy() -> Result<()> {
 
     let ts_addr = ts.start();
 
-    // Create setup finder 
+    // Create setup finder
     let setup_finder = SetupFinderBuilder::new()
         .strategy(strategy)
         .ts(ts_addr.clone())

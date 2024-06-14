@@ -1,9 +1,9 @@
 use crate::{
     indicators::indicator_type::IndicatorType,
     models::{
-        candle::Candle, interval::Interval, net_version::NetVersion,
+        candle::Candle, interval::Interval,
+        message_payloads::candle_added_payload::CandleAddedPayload, net_version::NetVersion,
         timeseries::TimeSeries,
-        message_payloads::candle_added_payload::CandleAddedPayload,
     },
 };
 use actix::Recipient;
@@ -32,7 +32,7 @@ impl TimeSeriesBuilder {
             indicators: IndexSet::new(),
             observers: vec![],
             net: NetVersion::Mainnet,
-            validate_candles_on_add: true
+            validate_candles_on_add: true,
         }
     }
 

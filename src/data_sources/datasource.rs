@@ -5,13 +5,15 @@ use crate::{
         coinmarketcap, cryptocompare, local,
     },
     models::{
-        candle::Candle, interval::Interval, message_payloads::websocket_payload::WebsocketPayload, net_version::NetVersion, timeseries::TimeSeries, wallet::Wallet, websockets::wsclient::WebsocketClient
+        candle::Candle, interval::Interval, message_payloads::websocket_payload::WebsocketPayload,
+        net_version::NetVersion, timeseries::TimeSeries, wallet::Wallet,
+        websockets::wsclient::WebsocketClient,
     },
 };
 use actix::{spawn, Addr};
 use anyhow::{anyhow, Result};
-use tokio::time::{Duration,sleep};
 use std::fmt::{Display, Formatter};
+use tokio::time::{sleep, Duration};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,8 +37,8 @@ impl DataSource {
             DataSource::Bybit => BybitRestApi::market_buy(symbol, quantity).await,
             DataSource::Dummy(_) => BybitRestApi::market_buy(symbol, quantity).await,
             _ => Err(anyhow!(format!(
-            "{} does not support entering positions yet",
-            self
+                "{} does not support entering positions yet",
+                self
             ))),
         }
     }
@@ -46,8 +48,8 @@ impl DataSource {
             DataSource::Bybit => BybitRestApi::market_sell(symbol, quantity).await,
             DataSource::Dummy(_) => BybitRestApi::market_sell(symbol, quantity).await,
             _ => Err(anyhow!(format!(
-            "{} does not support exiting positions yet",
-            self
+                "{} does not support exiting positions yet",
+                self
             ))),
         }
     }
@@ -88,7 +90,7 @@ impl DataSource {
             DataSource::CoinMarketCap => coinmarketcap::get().await?,
             DataSource::CryptoCompare(exchange) => {
                 cryptocompare::get(symbol, &interval, exchange.clone()).await?
-            },
+            }
             DataSource::Dummy(_duration) => {
                 let mut ts = TimeSeries::dummy();
                 let candles = Candle::dummy_data(len, "alternating", 1000.0);

@@ -1,13 +1,14 @@
-use crate::{models::{candle::Candle, setups::setup::Setup, strategy_orientation::StrategyOrientation}, resolution_strategies::is_resolution_strategy::IsResolutionStrategy};
-use serde::{Deserialize, Serialize};
 use crate::models::traits::requires_indicators::RequiresIndicators;
-
-
+use crate::{
+    models::{candle::Candle, setups::setup::Setup, strategy_orientation::StrategyOrientation},
+    resolution_strategies::is_resolution_strategy::IsResolutionStrategy,
+};
+use serde::{Deserialize, Serialize};
 
 /// # InstantResolution
 ///
-/// Dummy resolution strategy which always fires off positively for both 
-/// stop-loss and take-profit. Only intended for use in testing. 
+/// Dummy resolution strategy which always fires off positively for both
+/// stop-loss and take-profit. Only intended for use in testing.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InstantResolution;
 

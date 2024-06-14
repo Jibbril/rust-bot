@@ -16,7 +16,8 @@ use crate::{
     },
 };
 use actix::{
-    dev::ContextFutureSpawner, Actor, AsyncContext, Context as ActixContext, Handler, Recipient, WrapFuture
+    dev::ContextFutureSpawner, Actor, AsyncContext, Context as ActixContext, Handler, Recipient,
+    WrapFuture,
 };
 use anyhow::Result;
 use chrono::{DateTime, Utc};
@@ -31,7 +32,7 @@ pub struct TimeSeries {
     pub indicators: IndexSet<IndicatorType>,
     pub observers: Vec<Recipient<CandleAddedPayload>>,
     pub net: NetVersion,
-    pub validate_candles_on_add: bool
+    pub validate_candles_on_add: bool,
 }
 
 impl Actor for TimeSeries {

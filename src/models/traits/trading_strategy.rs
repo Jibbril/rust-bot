@@ -1,8 +1,8 @@
 use crate::{
     models::{
         candle::Candle, interval::Interval, setups::setup_builder::SetupBuilder,
-        strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators,
-        traits::has_min_length::HasMinLength,
+        strategy_orientation::StrategyOrientation, traits::has_min_length::HasMinLength,
+        traits::requires_indicators::RequiresIndicators,
     },
     resolution_strategies::resolution_strategy::ResolutionStrategy,
 };

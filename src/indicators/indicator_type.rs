@@ -148,7 +148,9 @@ impl HasMinLength for IndicatorType {
             IndicatorType::DynamicPivot(n) => n + 1,
             IndicatorType::PMAR(n, _) => n + 1,
             IndicatorType::PMARP(_, n, _) => n + 1,
-            IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing) => k_len + k_smoothing + d_smoothing,
+            IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing) => {
+                k_len + k_smoothing + d_smoothing
+            }
         }
     }
 }

@@ -5,9 +5,14 @@ use crate::{
         interval::Interval,
         setups::setup_builder::SetupBuilder,
         strategy_orientation::StrategyOrientation,
-        traits::{has_min_length::HasMinLength, requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
+        traits::{
+            has_min_length::HasMinLength, requires_indicators::RequiresIndicators,
+            trading_strategy::TradingStrategy,
+        },
     },
-    resolution_strategies::{instant_resolution::InstantResolution, resolution_strategy::ResolutionStrategy},
+    resolution_strategies::{
+        instant_resolution::InstantResolution, resolution_strategy::ResolutionStrategy,
+    },
 };
 use chrono::Weekday;
 use std::{
@@ -42,7 +47,7 @@ use std::{
 #[derive(Debug, Clone)]
 pub struct AlwaysTrueStrategy {
     trading_days: HashSet<Weekday>,
-    triggered: bool
+    triggered: bool,
 }
 
 impl HasMinLength for AlwaysTrueStrategy {
@@ -58,7 +63,7 @@ impl TradingStrategy for AlwaysTrueStrategy {
     {
         Self {
             trading_days: Self::build_trading_days(),
-            triggered: false
+            triggered: false,
         }
     }
 

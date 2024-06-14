@@ -1,6 +1,17 @@
-use crate::{data_sources::datasource::DataSource, models::{message_payloads::{candle_added_payload::CandleAddedPayload, request_latest_candles_payload::RequestLatestCandlesPayload, stop_payload::StopPayload}, setups::setup::Setup, timeseries::TimeSeries}, resolution_strategies::{
+use crate::{
+    data_sources::datasource::DataSource,
+    models::{
+        message_payloads::{
+            candle_added_payload::CandleAddedPayload,
+            request_latest_candles_payload::RequestLatestCandlesPayload, stop_payload::StopPayload,
+        },
+        setups::setup::Setup,
+        timeseries::TimeSeries,
+    },
+    resolution_strategies::{
         is_resolution_strategy::IsResolutionStrategy, resolution_strategy::ResolutionStrategy,
-    }};
+    },
+};
 use actix::{Actor, ActorContext, Addr, AsyncContext, Context, Handler, WrapFuture};
 
 use super::message_payloads::ping_payload::PingPayload;
@@ -25,7 +36,8 @@ impl Actor for Trade {
         let source = self.source.clone();
         let symbol = self.setup.symbol.clone();
         let dollar_value = self.dollar_value.clone();
-        self.resolution_strategy.set_initial_values(&self.setup)
+        self.resolution_strategy
+            .set_initial_values(&self.setup)
             .expect("Unable to set initial values resolution strategy when starting Trade.");
 
         let fut = async move {
@@ -55,9 +67,7 @@ impl Handler<StopPayload> for Trade {
 impl Handler<PingPayload> for Trade {
     type Result = ();
 
-    fn handle(&mut self, _msg: PingPayload, _ctx: &mut Self::Context) -> Self::Result {
-        
-    }
+    fn handle(&mut self, _msg: PingPayload, _ctx: &mut Self::Context) -> Self::Result {}
 }
 
 impl Handler<CandleAddedPayload> for Trade {
@@ -73,10 +83,10 @@ impl Handler<CandleAddedPayload> for Trade {
         let symbol = self.setup.symbol.clone();
         let self_addr = ctx.address();
 
-        // Multiply to avoid scenarios where quantity is slightly larger than 
-        // account balance (caused by sudden price changes in time between 
+        // Multiply to avoid scenarios where quantity is slightly larger than
+        // account balance (caused by sudden price changes in time between
         // account balance is checked and initial buy is performed).
-        let quantity = self.quantity; 
+        let quantity = self.quantity;
 
         let payload = RequestLatestCandlesPayload {
             n: tp_candles_needed.max(sl_candles_needed),
@@ -103,10 +113,10 @@ impl Handler<CandleAddedPayload> for Trade {
 
             if take_profit_reached || stop_loss_reached {
                 let res = source.exit_trade(&symbol, quantity).await;
-                
+
                 match res {
                     Ok(_) => println!("Trade successfully exited!"),
-                    Err(e) => println!("Trade exit failed with error: {:#?}",e)
+                    Err(e) => println!("Trade exit failed with error: {:#?}", e),
                 }
                 // TODO: Handle/notify user in case selling was unsuccessful.
 

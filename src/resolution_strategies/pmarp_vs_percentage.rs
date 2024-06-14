@@ -24,7 +24,7 @@ use serde::{Deserialize, Serialize};
 pub struct PmarpVsPercentageResolution {
     pub initial_value: Option<f64>,
     pub drawdown_threshold: f64, // Given in %
-    pub pmarp_threshhold: f64, // Given in decimals
+    pub pmarp_threshhold: f64,   // Given in decimals
     pub pmarp_len: usize,
     pub pmarp_lookback: usize,
     pub pmarp_ma_type: MAType,
