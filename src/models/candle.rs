@@ -1,6 +1,6 @@
 use crate::{
     indicators::{indicator::Indicator, indicator_type::IndicatorType},
-    models::calculation_mode::CalculationMode,
+    models::interval::Interval,
 };
 use anyhow::{Context, Result};
 use chrono::{DateTime, Duration, Utc};
@@ -112,6 +112,38 @@ impl Candle {
             .collect()
     }
 
+    pub fn dyn_dummy_from_prev(candle: &Candle, interval: Interval) -> Candle {
+        let prev = candle.close;
+        let mut rng = rand::thread_rng();
+        let delta = prev / 100.0;
+        let wick_delta = delta / 2.0;
+
+        let increment = rng.gen_range(-delta..delta);
+
+        let open = prev;
+        let close = prev + increment;
+        let high;
+        let low;
+
+        if open < close {
+            high = open + wick_delta;
+            low = close - wick_delta;
+        } else {
+            high = close + wick_delta;
+            low = open - wick_delta;
+        }
+
+        Candle {
+            timestamp: candle.timestamp + interval.to_duration(),
+            open,
+            close,
+            high,
+            low,
+            volume: rng.gen_range(200..1500) as f64,
+            indicators: HashMap::new(),
+        }
+    }
+
     #[allow(dead_code)]
     pub fn dyn_dummy_from_increments(nums: &[f64]) -> Vec<Candle> {
         let mut now = Utc::now();
@@ -179,15 +211,6 @@ impl Candle {
                 }
             })
             .collect()
-    }
-
-    pub fn price_by_mode(&self, mode: &CalculationMode) -> f64 {
-        match mode {
-            CalculationMode::Close => self.close,
-            CalculationMode::Open => self.open,
-            CalculationMode::High => self.high,
-            CalculationMode::Low => self.low,
-        }
     }
 
     pub fn clone_indicator(&self, key: &IndicatorType) -> Result<Indicator> {

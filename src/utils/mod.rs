@@ -48,6 +48,7 @@ pub fn f_len_or_one<T>(arr: &[T]) -> f64 {
     len_or_one(arr) as f64
 }
 
+#[allow(dead_code)]
 pub fn save_setups(setups: &[Setup], name: &str) -> Result<()> {
     let folder_path = "data/temp/setups";
     let folder_path = Path::new(&folder_path);

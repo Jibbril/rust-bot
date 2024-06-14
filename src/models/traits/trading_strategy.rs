@@ -1,15 +1,11 @@
 use crate::{
     models::{
-        candle::Candle,
-        interval::Interval,
-        setups::{setup::Setup, setup_builder::SetupBuilder},
-        strategy_orientation::StrategyOrientation,
-        timeseries::TimeSeries,
+        candle::Candle, interval::Interval, setups::setup_builder::SetupBuilder,
+        strategy_orientation::StrategyOrientation, traits::has_min_length::HasMinLength,
         traits::requires_indicators::RequiresIndicators,
     },
     resolution_strategies::resolution_strategy::ResolutionStrategy,
 };
-use anyhow::Result;
 use chrono::Weekday;
 use std::{
     collections::HashSet,
@@ -20,7 +16,7 @@ use std::{
 ///
 /// This trait provides the interface for interacting with a Trading Strategy
 /// used by the bot.
-pub trait TradingStrategy: Display + Debug + RequiresIndicators {
+pub trait TradingStrategy: Display + Debug + RequiresIndicators + HasMinLength {
     fn new() -> Self
     where
         Self: Sized;
@@ -29,17 +25,9 @@ pub trait TradingStrategy: Display + Debug + RequiresIndicators {
     /// whether the strategy has yielded a  setup for the last candle provided.
     fn candles_needed_for_setup(&self) -> usize;
 
-    /// Analyzes the given TimeSeries for all historical trade setups triggered
-    /// by the current TradingStrategy.
-    fn find_setups(&self, ts: &TimeSeries) -> Result<Vec<Setup>>;
-
-    /// Returns the minimum number of candles needed in a TimeSeries for the
-    /// current TradingStrategy to work.
-    fn min_length(&self) -> usize;
-
     /// Checks whether a new Setup has arisen upon the closure of the last
     /// candle provided.
-    fn check_last_for_setup(&self, candles: &[Candle]) -> Option<SetupBuilder>;
+    fn check_last_for_setup(&mut self, candles: &[Candle]) -> Option<SetupBuilder>;
 
     /// Returns a boxed clone of the current TradingStrategy
     fn clone_box(&self) -> Box<dyn TradingStrategy>;
@@ -47,6 +35,13 @@ pub trait TradingStrategy: Display + Debug + RequiresIndicators {
     /// Returns the default resolution strategy associated with this Trading
     /// strategy.
     fn default_resolution_strategy(&self) -> ResolutionStrategy;
+
+    /// Returns the resolution strategy of this Trading Strategy. If none has
+    /// been set then it returns the default strategy.
+    // fn resolution_strategy(&self) -> ResolutionStrategy;
+
+    /// Sets the provided ResolutionStrategy for this strategy.
+    // fn set_resolution_strategy(&mut self, strat: ResolutionStrategy);
 
     /// Returns the StrategyOrientation for this TradingStrategy
     fn orientation(&self) -> StrategyOrientation;

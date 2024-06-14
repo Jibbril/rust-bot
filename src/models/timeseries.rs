@@ -12,12 +12,11 @@ use crate::{
             ts_subscribe_payload::TSSubscribePayload, websocket_payload::WebsocketPayload,
         },
         net_version::NetVersion,
-        setups::setup_finder::SetupFinder,
         timeseries_builder::TimeSeriesBuilder,
     },
 };
 use actix::{
-    dev::ContextFutureSpawner, Actor, Addr, AsyncContext, Context as ActixContext, Handler,
+    dev::ContextFutureSpawner, Actor, AsyncContext, Context as ActixContext, Handler, Recipient,
     WrapFuture,
 };
 use anyhow::Result;
@@ -31,8 +30,9 @@ pub struct TimeSeries {
     pub max_length: usize,
     pub candles: Vec<Candle>,
     pub indicators: IndexSet<IndicatorType>,
-    pub observers: Vec<Addr<SetupFinder>>,
+    pub observers: Vec<Recipient<CandleAddedPayload>>,
     pub net: NetVersion,
+    pub validate_candles_on_add: bool,
 }
 
 impl Actor for TimeSeries {
@@ -74,7 +74,11 @@ impl Handler<WebsocketPayload> for TimeSeries {
             .candle
             .expect("No message passed although WebsocketPayload ok.");
 
-        let integrity_ok = self.validate_timeseries_integrity(candle.timestamp);
+        let integrity_ok = if self.validate_candles_on_add {
+            self.validate_timeseries_integrity(candle.timestamp)
+        } else {
+            true
+        };
 
         if integrity_ok {
             // If no historical data is needed, send message straight to add
@@ -232,10 +236,12 @@ impl TimeSeries {
         self.candles = candles.to_vec();
     }
 
+    #[allow(dead_code)]
     pub fn get_candles(&self) -> Vec<Candle> {
         self.candles.clone()
     }
 
+    #[allow(dead_code)]
     pub fn clear_candles(&mut self) {
         self.candles.clear()
     }
@@ -254,7 +260,7 @@ impl TimeSeries {
 
     pub fn dummy() -> Self {
         TimeSeriesBuilder::new()
-            .symbol("DUMMY".to_string())
+            .symbol("BTCUSDT".to_string())
             .interval(Interval::Day1)
             .build()
     }

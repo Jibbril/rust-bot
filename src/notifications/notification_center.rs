@@ -58,8 +58,6 @@ impl NotificationCenter {
         Timeframe: {}
         Orientation: {}
         Suggested entry: {}
-        Suggested take profit: {} 
-        Suggested stop loss: {}
 
     Best of luck,
     Rust-Bot"#,
@@ -69,8 +67,6 @@ impl NotificationCenter {
             setup.interval,
             setup.orientation,
             setup.candle.close,
-            setup.take_profit.unwrap_or(-1.0),
-            setup.stop_loss.unwrap_or(-1.0)
         );
         s.to_string()
     }

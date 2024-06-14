@@ -14,7 +14,7 @@ use crate::{
         sma::SMA,
         stochastic::Stochastic,
     },
-    models::{ma_type::MAType, timeseries::TimeSeries},
+    models::{ma_type::MAType, timeseries::TimeSeries, traits::has_min_length::HasMinLength},
 };
 use anyhow::Result;
 use serde::Serialize;
@@ -130,6 +130,26 @@ impl PopulatesCandlesWithSelf for IndicatorType {
             IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing) => {
                 let args = IndicatorArgs::StochasticArgs(*k_len, *k_smoothing, *d_smoothing);
                 Stochastic::populate_last_candle_args(ts, args)
+            }
+        }
+    }
+}
+
+impl HasMinLength for IndicatorType {
+    fn min_length(&self) -> usize {
+        match self {
+            IndicatorType::SMA(n) => n + 1,
+            IndicatorType::EMA(n) => n + 1,
+            IndicatorType::RSI(n) => n + 1,
+            IndicatorType::ATR(n) => n + 1,
+            IndicatorType::BollingerBands(n) => n + 1,
+            IndicatorType::BBW(n) => n + 1,
+            IndicatorType::BBWP(_, n) => n + 1,
+            IndicatorType::DynamicPivot(n) => n + 1,
+            IndicatorType::PMAR(n, _) => n + 1,
+            IndicatorType::PMARP(_, n, _) => n + 1,
+            IndicatorType::Stochastic(k_len, k_smoothing, d_smoothing) => {
+                k_len + k_smoothing + d_smoothing
             }
         }
     }

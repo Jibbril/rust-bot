@@ -1,11 +1,12 @@
 use crate::{
     indicators::indicator_type::IndicatorType,
     models::{
-        candle::Candle, interval::Interval, net_version::NetVersion,
-        setups::setup_finder::SetupFinder, timeseries::TimeSeries,
+        candle::Candle, interval::Interval,
+        message_payloads::candle_added_payload::CandleAddedPayload, net_version::NetVersion,
+        timeseries::TimeSeries,
     },
 };
-use actix::Addr;
+use actix::Recipient;
 use indexmap::IndexSet;
 
 #[derive(Debug, Clone)]
@@ -15,8 +16,9 @@ pub struct TimeSeriesBuilder {
     max_length: usize,
     candles: Vec<Candle>,
     indicators: IndexSet<IndicatorType>,
-    observers: Vec<Addr<SetupFinder>>,
+    observers: Vec<Recipient<CandleAddedPayload>>,
     net: NetVersion,
+    validate_candles_on_add: bool,
 }
 
 #[allow(dead_code)]
@@ -30,6 +32,7 @@ impl TimeSeriesBuilder {
             indicators: IndexSet::new(),
             observers: vec![],
             net: NetVersion::Mainnet,
+            validate_candles_on_add: true,
         }
     }
 
@@ -58,13 +61,18 @@ impl TimeSeriesBuilder {
         self
     }
 
-    pub fn add_observer(mut self, observer: Addr<SetupFinder>) -> Self {
+    pub fn add_observer(mut self, observer: Recipient<CandleAddedPayload>) -> Self {
         self.observers.push(observer);
         self
     }
 
     pub fn net(mut self, net: NetVersion) -> Self {
         self.net = net;
+        self
+    }
+
+    pub fn validate_candles_on_add(mut self, b: bool) -> Self {
+        self.validate_candles_on_add = b;
         self
     }
 
@@ -77,6 +85,7 @@ impl TimeSeriesBuilder {
             indicators: self.indicators,
             observers: self.observers,
             net: self.net,
+            validate_candles_on_add: self.validate_candles_on_add,
         }
     }
 }

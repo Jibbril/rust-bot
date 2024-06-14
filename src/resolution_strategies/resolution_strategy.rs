@@ -6,7 +6,7 @@ use crate::{
     },
     resolution_strategies::{
         dynamic_pivot::DynamicPivotResolution, fixed_values::FixedValuesResolution,
-        is_resolution_strategy::IsResolutionStrategy,
+        instant_resolution::InstantResolution, is_resolution_strategy::IsResolutionStrategy,
         pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution,
         pmarp_vs_percentage::PmarpVsPercentageResolution,
     },
@@ -21,6 +21,7 @@ pub enum ResolutionStrategy {
     FixedValues(FixedValuesResolution),
     PmarpVsPercentage(PmarpVsPercentageResolution),
     PmarpOrBbwpVsPercentage(PmarpOrBbwpVsPercentageResolution),
+    Instant(InstantResolution),
 }
 
 impl IsResolutionStrategy for ResolutionStrategy {
@@ -30,6 +31,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::FixedValues(fv) => fv.n_candles_stop_loss(),
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.n_candles_stop_loss(),
             ResolutionStrategy::PmarpOrBbwpVsPercentage(pbvp) => pbvp.n_candles_stop_loss(),
+            ResolutionStrategy::Instant(i) => i.n_candles_stop_loss(),
         }
     }
 
@@ -39,6 +41,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::FixedValues(fv) => fv.n_candles_take_profit(),
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.n_candles_take_profit(),
             ResolutionStrategy::PmarpOrBbwpVsPercentage(pvp) => pvp.n_candles_take_profit(),
+            ResolutionStrategy::Instant(i) => i.n_candles_take_profit(),
         }
     }
 
@@ -56,6 +59,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::PmarpOrBbwpVsPercentage(pvp) => {
                 pvp.stop_loss_reached(orientation, candles)
             }
+            ResolutionStrategy::Instant(i) => i.stop_loss_reached(orientation, candles),
         }
     }
 
@@ -73,6 +77,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::PmarpOrBbwpVsPercentage(pvp) => {
                 pvp.take_profit_reached(orientation, candles)
             }
+            ResolutionStrategy::Instant(i) => i.take_profit_reached(orientation, candles),
         }
     }
 
@@ -82,6 +87,7 @@ impl IsResolutionStrategy for ResolutionStrategy {
             ResolutionStrategy::FixedValues(fv) => fv.set_initial_values(setup),
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.set_initial_values(setup),
             ResolutionStrategy::PmarpOrBbwpVsPercentage(pvp) => pvp.set_initial_values(setup),
+            ResolutionStrategy::Instant(i) => i.set_initial_values(setup),
         }
     }
 }
@@ -93,6 +99,7 @@ impl RequiresIndicators for ResolutionStrategy {
             ResolutionStrategy::FixedValues(fv) => fv.required_indicators(),
             ResolutionStrategy::PmarpVsPercentage(pvp) => pvp.required_indicators(),
             ResolutionStrategy::PmarpOrBbwpVsPercentage(pvp) => pvp.required_indicators(),
+            ResolutionStrategy::Instant(i) => i.required_indicators(),
         }
     }
 }
@@ -124,6 +131,7 @@ impl Display for ResolutionStrategy {
                     init_value, pvp.pmarp_threshold, pvp.bbwp_threshold
                 )
             }
+            Self::Instant(_) => write!(f, "Instant"),
         }
     }
 }

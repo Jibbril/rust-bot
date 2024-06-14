@@ -141,6 +141,7 @@ impl Indicator {
         }
     }
 
+    #[allow(dead_code)]
     pub fn as_stochastic(&self) -> Option<Stochastic> {
         if let Indicator::Stochastic(stoch) = self {
             stoch.clone()
