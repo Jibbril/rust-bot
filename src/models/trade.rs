@@ -4,6 +4,7 @@ use crate::{
         message_payloads::{
             candle_added_payload::CandleAddedPayload,
             request_latest_candles_payload::RequestLatestCandlesPayload, stop_payload::StopPayload,
+            ping_payload::PingPayload,
         },
         setups::setup::Setup,
         timeseries::TimeSeries,
@@ -14,9 +15,6 @@ use crate::{
 };
 use actix::{Actor, ActorContext, Addr, AsyncContext, Context, Handler, WrapFuture};
 
-use super::message_payloads::ping_payload::PingPayload;
-
-#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Trade {
     pub setup: Setup,

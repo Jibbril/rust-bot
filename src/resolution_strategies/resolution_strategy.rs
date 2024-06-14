@@ -9,13 +9,12 @@ use crate::{
         is_resolution_strategy::IsResolutionStrategy,
         pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution,
         pmarp_vs_percentage::PmarpVsPercentageResolution,
+        instant_resolution::InstantResolution,
     },
 };
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-
-use super::instant_resolution::InstantResolution;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ResolutionStrategy {

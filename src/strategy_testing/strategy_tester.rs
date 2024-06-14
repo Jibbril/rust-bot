@@ -10,11 +10,9 @@ use crate::{
 };
 use anyhow::{Context, Result};
 
-#[allow(dead_code)]
 pub struct StrategyTester;
 
 impl StrategyTester {
-    #[allow(dead_code)]
     pub fn test_strategy(
         strat: &mut Box<dyn TradingStrategy>,
         candles: &[Candle],

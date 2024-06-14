@@ -154,7 +154,6 @@ impl Handler<TriggeredPayload> for SetupFinder {
     }
 }
 
-#[allow(dead_code)]
 impl SetupFinder {
     pub fn new(
         strategy: Box<dyn TradingStrategy>,

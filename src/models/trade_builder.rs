@@ -2,15 +2,13 @@ use crate::{
     data_sources::datasource::DataSource,
     models::{
         setups::setup::Setup, strategy_orientation::StrategyOrientation, timeseries::TimeSeries,
+        trade::Trade,
     },
     resolution_strategies::resolution_strategy::ResolutionStrategy,
 };
 use actix::Addr;
 use anyhow::{anyhow, Result};
 
-use super::trade::Trade;
-
-#[allow(dead_code)]
 #[derive(Debug)]
 pub struct TradeBuilder {
     pub setup: Option<Setup>,
@@ -39,7 +37,6 @@ impl TradeBuilder {
         }
     }
 
-    #[allow(dead_code)]
     pub fn quantity(mut self, quantity: f64) -> Self {
         self.quantity = Some(quantity);
         self

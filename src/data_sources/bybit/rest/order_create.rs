@@ -26,7 +26,6 @@ pub async fn market_buy(symbol: &str, quantity: f64) -> Result<()> {
     params.insert("orderType".to_string(), json!("Market"));
     params.insert("marketUnit".to_string(), json!("quoteCoin"));
     params.insert("qty".to_string(), json!(rounded_quantity.to_string()));
-
     println!("buy params: {:#?}", params);
 
     Ok(post_market_order(params, &NetVersion::Mainnet).await?)
@@ -62,8 +61,6 @@ pub async fn market_sell_all(wallet: &Wallet) -> Result<()> {
         params.insert("qty".to_string(), json!(quantity.to_string()));
         params.insert("marketUnit".to_string(), json!("baseCoin"));
 
-        println!("sell params: {:#?}", params);
-
         post_market_order(params, &NetVersion::Mainnet).await?;
     }
 
@@ -80,7 +77,6 @@ pub async fn market_sell(symbol: &str, quantity: f64) -> Result<()> {
     params.insert("orderType".to_string(), json!("Market"));
     params.insert("qty".to_string(), json!(qty.to_string()));
     params.insert("marketUnit".to_string(), json!("baseCoin"));
-
     println!("sell params: {:#?}", params);
 
     post_market_order(params, &NetVersion::Mainnet).await?;

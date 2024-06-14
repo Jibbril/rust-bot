@@ -11,17 +11,16 @@ pub async fn get_symbol_price(symbol: &str) -> Result<f64> {
 
     let res = get(url).await?;
 
-    match res.status() {
-        reqwest::StatusCode::OK => {
-            let resdata: TickersApiResponse = res.json().await?;
-            let res = resdata.result.context("Unable to parse TickersResult")?;
+    if let reqwest::StatusCode::OK = res.status() {
+        let resdata: TickersApiResponse = res.json().await?;
+        let res = resdata.result.context("Unable to parse TickersResult")?;
 
-            if res.list.len() > 0 {
-                Ok(res.list[0].last_price.parse()?)
-            } else {
-                Err(anyhow!("Unable to find ticker data."))
-            }
+        if res.list.len() > 0 {
+            Ok(res.list[0].last_price.parse()?)
+        } else {
+            Err(anyhow!("Unable to find ticker data."))
         }
-        _ => panic!("Unable to fetch server time."),
+    } else {
+        panic!("Unable to fetch server time.")
     }
 }

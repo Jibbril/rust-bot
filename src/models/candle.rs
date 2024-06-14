@@ -1,14 +1,12 @@
 use crate::{
     indicators::{indicator::Indicator, indicator_type::IndicatorType},
-    models::calculation_mode::CalculationMode,
+    models::interval::Interval,
 };
 use anyhow::{Context, Result};
 use chrono::{DateTime, Duration, Utc};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-use super::interval::Interval;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Candle {
@@ -213,16 +211,6 @@ impl Candle {
                 }
             })
             .collect()
-    }
-
-    #[allow(dead_code)]
-    pub fn price_by_mode(&self, mode: &CalculationMode) -> f64 {
-        match mode {
-            CalculationMode::Close => self.close,
-            CalculationMode::Open => self.open,
-            CalculationMode::High => self.high,
-            CalculationMode::Low => self.low,
-        }
     }
 
     pub fn clone_indicator(&self, key: &IndicatorType) -> Result<Indicator> {

@@ -17,14 +17,13 @@ impl Setup {
     pub fn dummy() -> Setup {
         let candle = Candle::dummy_data(1, "", 100.0).pop().unwrap();
         Setup {
-            symbol: "DUMMY".to_string(),
+            symbol: "BTCUSDT".to_string(),
             candle,
             interval: Interval::Day1,
             orientation: StrategyOrientation::Long,
         }
     }
 
-    #[allow(dead_code)] // TODO: Remove once used
     pub fn to_csv_row(&self) -> CsvSetupRow {
         CsvSetupRow {
             symbol: self.symbol.clone(),

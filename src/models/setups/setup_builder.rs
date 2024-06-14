@@ -12,7 +12,6 @@ pub struct SetupBuilder {
     pub interval: Option<Interval>,
 }
 
-#[allow(dead_code)] // TODO: Remove once used
 impl SetupBuilder {
     pub fn new() -> Self {
         SetupBuilder {

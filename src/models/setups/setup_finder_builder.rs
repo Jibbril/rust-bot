@@ -1,6 +1,5 @@
 use actix::Addr;
 use anyhow::{Context, Result};
-
 use crate::{
     data_sources::datasource::DataSource,
     models::{
