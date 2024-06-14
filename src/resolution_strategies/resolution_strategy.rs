@@ -6,10 +6,9 @@ use crate::{
     },
     resolution_strategies::{
         dynamic_pivot::DynamicPivotResolution, fixed_values::FixedValuesResolution,
-        is_resolution_strategy::IsResolutionStrategy,
+        instant_resolution::InstantResolution, is_resolution_strategy::IsResolutionStrategy,
         pmarp_or_bbwp_vs_percentage::PmarpOrBbwpVsPercentageResolution,
         pmarp_vs_percentage::PmarpVsPercentageResolution,
-        instant_resolution::InstantResolution,
     },
 };
 use anyhow::Result;

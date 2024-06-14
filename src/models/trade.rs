@@ -2,9 +2,8 @@ use crate::{
     data_sources::datasource::DataSource,
     models::{
         message_payloads::{
-            candle_added_payload::CandleAddedPayload,
+            candle_added_payload::CandleAddedPayload, ping_payload::PingPayload,
             request_latest_candles_payload::RequestLatestCandlesPayload, stop_payload::StopPayload,
-            ping_payload::PingPayload,
         },
         setups::setup::Setup,
         timeseries::TimeSeries,

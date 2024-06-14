@@ -1,5 +1,3 @@
-use actix::Addr;
-use anyhow::{Context, Result};
 use crate::{
     data_sources::datasource::DataSource,
     models::{
@@ -7,6 +5,8 @@ use crate::{
         traits::trading_strategy::TradingStrategy,
     },
 };
+use actix::Addr;
+use anyhow::{Context, Result};
 
 pub struct SetupFinderBuilder {
     strategy: Option<Box<dyn TradingStrategy>>,
