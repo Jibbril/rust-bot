@@ -2,6 +2,7 @@ use crate::{
     models::{
         candle::Candle, interval::Interval, setups::setup_builder::SetupBuilder,
         strategy_orientation::StrategyOrientation, traits::requires_indicators::RequiresIndicators,
+        traits::has_min_length::HasMinLength,
     },
     resolution_strategies::resolution_strategy::ResolutionStrategy,
 };
@@ -15,7 +16,7 @@ use std::{
 ///
 /// This trait provides the interface for interacting with a Trading Strategy
 /// used by the bot.
-pub trait TradingStrategy: Display + Debug + RequiresIndicators {
+pub trait TradingStrategy: Display + Debug + RequiresIndicators + HasMinLength {
     fn new() -> Self
     where
         Self: Sized;
@@ -23,10 +24,6 @@ pub trait TradingStrategy: Display + Debug + RequiresIndicators {
     /// Returns the number of candles needed from a TimeSeries to calculate
     /// whether the strategy has yielded a  setup for the last candle provided.
     fn candles_needed_for_setup(&self) -> usize;
-
-    /// Returns the minimum number of candles needed in a TimeSeries for the
-    /// current TradingStrategy to work.
-    fn min_length(&self) -> usize;
 
     /// Checks whether a new Setup has arisen upon the closure of the last
     /// candle provided.

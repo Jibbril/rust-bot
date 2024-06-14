@@ -32,10 +32,56 @@ use models::{
 };
 use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
-use trading_strategies::public::{always_true_strategy::AlwaysTrueStrategy, rsi_basic::RsiBasic};
+use trading_strategies::{private::kq_12::KQ12, public::{always_true_strategy::AlwaysTrueStrategy, rsi_basic::RsiBasic}};
 
 pub async fn run_dummy() -> Result<()> {
     todo!()
+}
+
+pub async fn run_actual_strategy() -> Result<()> {
+    let strategy: Box<dyn TradingStrategy> = Box::new(KQ12::new());
+    let interval = strategy.interval();
+    let source = DataSource::Bybit;
+    let net = NetVersion::Mainnet;
+
+    println!("Starting strategy {} on interval {}", strategy, interval);
+
+    // Initialize timeseries and indicators
+    let mut ts = source
+        .get_historical_data("BTCUSDT", &interval, strategy.min_length() + 300, &net)
+        .await?;
+
+    for indicator_type in strategy.required_indicators() {
+        ts.add_indicator(indicator_type)?;
+    }
+
+    let ts_addr = ts.start();
+
+    // Create setup finder 
+    let setup_finder = SetupFinderBuilder::new()
+        .strategy(strategy)
+        .ts(ts_addr.clone())
+        .notifications_enabled(true)
+        .live_trading_enabled(true)
+        .source(source.clone())
+        .build()?;
+
+    // Subscribe SetupFinder to TimeSeries
+    let sf_addr = setup_finder.start();
+    let payload = TSSubscribePayload {
+        observer: sf_addr.recipient(),
+    };
+    ts_addr.do_send(payload);
+
+    // Start websocket client
+    let mut wsclient = WebsocketClient::new(source, interval, net);
+    wsclient.add_observer(ts_addr);
+    wsclient.start();
+
+    // Run program indefinately
+    loop {
+        sleep(Duration::from_secs(1)).await;
+    }
 }
 
 pub async fn run_always_true_buys() -> Result<()> {

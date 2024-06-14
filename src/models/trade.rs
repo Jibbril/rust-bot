@@ -25,6 +25,8 @@ impl Actor for Trade {
         let source = self.source.clone();
         let symbol = self.setup.symbol.clone();
         let dollar_value = self.dollar_value.clone();
+        self.resolution_strategy.set_initial_values(&self.setup)
+            .expect("Unable to set initial values resolution strategy when starting Trade.");
 
         let fut = async move {
             let res = source.enter_trade(&symbol, dollar_value).await;

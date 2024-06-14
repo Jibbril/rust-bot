@@ -62,7 +62,6 @@ impl Handler<CandleAddedPayload> for SetupFinder {
             let sb = strategy.check_last_for_setup(&candle_response.candles);
 
             if sb.is_none() {
-                println!("No setup found");
                 return;
             }
 

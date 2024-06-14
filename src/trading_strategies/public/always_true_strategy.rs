@@ -5,7 +5,7 @@ use crate::{
         interval::Interval,
         setups::setup_builder::SetupBuilder,
         strategy_orientation::StrategyOrientation,
-        traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
+        traits::{has_min_length::HasMinLength, requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
     },
     resolution_strategies::{instant_resolution::InstantResolution, resolution_strategy::ResolutionStrategy},
 };
@@ -45,6 +45,12 @@ pub struct AlwaysTrueStrategy {
     triggered: bool
 }
 
+impl HasMinLength for AlwaysTrueStrategy {
+    fn min_length(&self) -> usize {
+        1
+    }
+}
+
 impl TradingStrategy for AlwaysTrueStrategy {
     fn new() -> Self
     where
@@ -57,10 +63,6 @@ impl TradingStrategy for AlwaysTrueStrategy {
     }
 
     fn candles_needed_for_setup(&self) -> usize {
-        1
-    }
-
-    fn min_length(&self) -> usize {
         1
     }
 

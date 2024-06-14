@@ -5,7 +5,7 @@ use crate::{
         interval::Interval,
         setups::setup_builder::SetupBuilder,
         strategy_orientation::StrategyOrientation,
-        traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
+        traits::{has_min_length::HasMinLength, requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
     },
     resolution_strategies::resolution_strategy::ResolutionStrategy,
 };
@@ -78,6 +78,12 @@ impl RsiBasic {
     }
 }
 
+impl HasMinLength for RsiBasic {
+    fn min_length(&self) -> usize {
+        self.len
+    }
+}
+
 impl TradingStrategy for RsiBasic {
     fn new() -> Self {
         RsiBasic {
@@ -91,10 +97,6 @@ impl TradingStrategy for RsiBasic {
 
     fn candles_needed_for_setup(&self) -> usize {
         // TODO: Add real value
-        self.len
-    }
-
-    fn min_length(&self) -> usize {
         self.len
     }
 

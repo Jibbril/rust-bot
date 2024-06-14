@@ -5,7 +5,7 @@ use crate::{
         interval::Interval,
         setups::setup_builder::SetupBuilder,
         strategy_orientation::StrategyOrientation,
-        traits::{requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
+        traits::{has_min_length::HasMinLength, requires_indicators::RequiresIndicators, trading_strategy::TradingStrategy},
     },
     resolution_strategies::resolution_strategy::ResolutionStrategy,
 };
@@ -53,6 +53,12 @@ impl SilverCross {
     }
 }
 
+impl HasMinLength for SilverCross {
+    fn min_length(&self) -> usize {
+        self.long_len
+    }
+}
+
 impl TradingStrategy for SilverCross {
     #[allow(dead_code)] // TODO: Remove once used
     fn new() -> Self {
@@ -66,10 +72,6 @@ impl TradingStrategy for SilverCross {
 
     fn candles_needed_for_setup(&self) -> usize {
         // TODO: Add real value
-        self.long_len
-    }
-
-    fn min_length(&self) -> usize {
         self.long_len
     }
 
