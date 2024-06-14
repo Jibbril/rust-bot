@@ -3,6 +3,8 @@ use crate::{data_sources::datasource::DataSource, models::{message_payloads::{ca
     }};
 use actix::{Actor, ActorContext, Addr, AsyncContext, Context, Handler, WrapFuture};
 
+use super::message_payloads::ping_payload::PingPayload;
+
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct Trade {
@@ -48,6 +50,14 @@ impl Handler<StopPayload> for Trade {
     }
 }
 
+impl Handler<PingPayload> for Trade {
+    type Result = ();
+
+    fn handle(&mut self, _msg: PingPayload, _ctx: &mut Self::Context) -> Self::Result {
+        
+    }
+}
+
 impl Handler<CandleAddedPayload> for Trade {
     type Result = ();
 
@@ -64,7 +74,7 @@ impl Handler<CandleAddedPayload> for Trade {
         // Multiply to avoid scenarios where quantity is slightly larger than 
         // account balance (caused by sudden price changes in time between 
         // account balance is checked and initial buy is performed).
-        let quantity = self.quantity * 0.995; 
+        let quantity = self.quantity; 
 
         let payload = RequestLatestCandlesPayload {
             n: tp_candles_needed.max(sl_candles_needed),

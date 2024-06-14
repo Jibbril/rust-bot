@@ -2,8 +2,7 @@ use crate::{
     data_sources::datasource::DataSource,
     models::{
         message_payloads::{
-            candle_added_payload::CandleAddedPayload,
-            request_latest_candles_payload::RequestLatestCandlesPayload, triggered_payload::TriggeredPayload, ts_subscribe_payload::TSSubscribePayload,
+            candle_added_payload::CandleAddedPayload, ping_payload::PingPayload, request_latest_candles_payload::RequestLatestCandlesPayload, triggered_payload::TriggeredPayload, ts_subscribe_payload::TSSubscribePayload
         },
         timeseries::TimeSeries,
         trade::Trade,
@@ -52,6 +51,9 @@ impl Handler<CandleAddedPayload> for SetupFinder {
         let mut spawned_trades = self.spawned_trade_addrs.clone();
         let source = self.source.clone();
 
+        // Clear trades before potentially starting new one
+        self.clear_closed_trades();
+
         let fut = async move {
             let send_result = match ts.send(payload).await {
                 Ok(res) => res,
@@ -99,11 +101,6 @@ impl Handler<CandleAddedPayload> for SetupFinder {
             println!("Setup found: {:#?}", setup);
 
             if live_trading_enabled {
-                // Don't allow multiple active trades from the same strategy
-                // and timeseries
-                // TODO: Update this check to check whether the spawned trades 
-                // are still active. Maybe it spawned a Trade but it has since
-                // completed. In that scenario it should still be ok to run. 
                 if spawned_trades.len() > 0 {
                     return;
                 }
@@ -190,5 +187,19 @@ impl SetupFinder {
             source,
             triggered: false
         })
+    }
+
+    fn clear_closed_trades(&mut self) {
+        let mut trade_addrs = vec![];
+
+        for addr in &self.spawned_trade_addrs {
+            let res = addr.try_send(PingPayload);
+
+            if res.is_ok() {
+                trade_addrs.push(addr.clone());
+            }
+        }
+
+        self.spawned_trade_addrs = trade_addrs;
     }
 }
