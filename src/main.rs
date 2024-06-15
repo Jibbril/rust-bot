@@ -1,8 +1,11 @@
-use dotenv::dotenv;
+use std::env;
+use dotenv::from_filename;
 
 #[actix::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    dotenv().ok();
+    let filename = env::var("RUSTBOT_ENV")
+        .unwrap_or(".env.dev".to_string());
+    from_filename(filename).ok();
 
     rust_bot::run_actual_strategy().await?;
 
