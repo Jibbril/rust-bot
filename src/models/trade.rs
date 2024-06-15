@@ -83,7 +83,7 @@ impl Handler<CandleAddedPayload> for Trade {
         // Multiply to avoid scenarios where quantity is slightly larger than
         // account balance (caused by sudden price changes in time between
         // account balance is checked and initial buy is performed).
-        let quantity = self.quantity;
+        let quantity = self.quantity * 0.99;
 
         let payload = RequestLatestCandlesPayload {
             n: tp_candles_needed.max(sl_candles_needed),
