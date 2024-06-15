@@ -130,6 +130,6 @@ impl RequiresIndicators for AlwaysTrueStrategy {
 
 impl Display for AlwaysTrueStrategy {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "NewStrategy")
+        write!(f, "AlwaysTrueStrategy")
     }
 }
