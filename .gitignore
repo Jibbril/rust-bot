@@ -1,4 +1,4 @@
 /target
 /data
-.env
+.env*
 /src/trading_strategies/private/
