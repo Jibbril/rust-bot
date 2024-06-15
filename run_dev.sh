@@ -1,3 +1,3 @@
 #!/bin/bash
-export DOTENV=.env.dev
+export RUSTBOT_ENV=.env.dev
 cargo run

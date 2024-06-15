@@ -1,3 +1,3 @@
 #!/bin/bash
-export DOTENV=.env.prod
+export RUSTBOT_ENV=.env.prod
 ./target/release/rust_bot
