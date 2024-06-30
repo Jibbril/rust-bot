@@ -33,7 +33,7 @@ use models::{
 use strategy_testing::strategy_tester::StrategyTester;
 use tokio::time::{sleep, Duration};
 use trading_strategies::{
-    private::kq_12::KQ12,
+    private::kq_14::KQ14,
     public::{always_true_strategy::AlwaysTrueStrategy, rsi_basic::RsiBasic},
 };
 
@@ -42,7 +42,7 @@ pub async fn run_dummy() -> Result<()> {
 }
 
 pub async fn run_actual_strategy() -> Result<()> {
-    let strategy: Box<dyn TradingStrategy> = Box::new(KQ12::new());
+    let strategy: Box<dyn TradingStrategy> = Box::new(KQ14::new());
     let interval = strategy.interval();
     let source = DataSource::Bybit;
     let net = NetVersion::Mainnet;

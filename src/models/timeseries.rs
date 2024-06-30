@@ -213,7 +213,7 @@ impl TimeSeries {
             indicator_type.populate_last_candle(self)?;
         }
 
-        println!("Added candle: {:#?}", self.candles.last());
+        println!("Added candle: {:?}", self.candles.last());
 
         // Notify observers
         let payload = CandleAddedPayload {
